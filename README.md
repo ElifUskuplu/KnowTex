@@ -7,7 +7,7 @@ Derived from [Patrick Massot’s *plastexdepgraph* plugin](https://github.com/Pa
 
 ---
 
-## ✨ Features
+## Features
 
 - Parses a full LaTeX project following:
   - `\input`, `\include`, `\import`, `\subimport`, and `\includeonly`.
@@ -25,7 +25,7 @@ Derived from [Patrick Massot’s *plastexdepgraph* plugin](https://github.com/Pa
 
 ---
 
-## 🧩 Supported Environments
+## Supported Environments
 
 KnowTeX recognizes the following canonical theorem-like environments (case-insensitive, with aliases such as `defn`, `thm`, `lem`, etc.):
 
@@ -45,7 +45,7 @@ This legend determines how nodes are drawn in the dependency graph.
 
 ---
 
-## 🔗 `\uses{...}` and `\proves{...}` Commands
+## `\uses{...}` and `\proves{...}` Commands
 
 ### `\uses{label1,label2,...}`
 Declares that the current **statement** (or **proof**) *depends on* or *uses* previously labeled results.
@@ -66,7 +66,7 @@ Declares that the current **proof** *establishes* a particular labeled statement
 
 ---
 
-## 🧮 Example
+## Example
 
 ```latex
 \begin{definition}\label{def:ring}
@@ -104,7 +104,7 @@ Produces a graph with:
 
 ---
 
-## 🧰 Installation
+## Installation
 
 **Requirements**
 
@@ -148,7 +148,7 @@ python KnowTeX.py
 
 ---
 
-## 🧠 Notes
+## Notes
 
 - When `\includeonly{...}` is used, only those chapters are loaded.
 - The “Nonreduced” option disables transitive reduction (keeps all edges).
