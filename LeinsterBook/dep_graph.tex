@@ -1,0 +1,140 @@
+\documentclass{article}
+\usepackage[x11names, svgnames, rgb]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+\usepackage{amsmath}
+%
+%
+
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{0pt}%
+
+%
+
+\begin{document}
+\pagestyle{empty}
+%
+%
+%
+
+\enlargethispage{100cm}
+% Start of code
+\begin{tikzpicture}[>=latex',line join=bevel,]
+%%
+\node (defn_category) at (598.3bp,849.27bp) [draw=Purple,fill=Lavender,rectangle] {category};
+  \node (defn_isomorphism) at (282.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {isomorphism};
+  \node (constn_op-cat) at (315.3bp,777.27bp) [draw=Purple,fill=White,diamond] {op-cat};
+  \node (constn_prod-cat) at (458.3bp,777.27bp) [draw=Purple,fill=White,diamond] {prod-cat};
+  \node (defn_functor) at (702.3bp,777.27bp) [draw=Purple,fill=Lavender,rectangle] {functor};
+  \node (defn_subcategory) at (598.3bp,777.27bp) [draw=Purple,fill=Lavender,rectangle] {subcategory};
+  \node (defn_init-term) at (1447.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {init-term};
+  \node (defn_gen-elt) at (825.3bp,777.27bp) [draw=Purple,fill=Lavender,rectangle] {gen-elt};
+  \node (lemma_nat-iso-compts) at (395.3bp,561.27bp) [draw=Blue,fill=SkyBlue,ellipse] {nat-iso-compts};
+  \node (defn_ess-surj) at (134.3bp,633.27bp) [draw=Purple,fill=Lavender,rectangle] {ess-surj};
+  \node (lemma_init-unique) at (1188.3bp,633.27bp) [draw=Blue,fill=SkyBlue,ellipse] {init-unique};
+  \node (defn_repr-func) at (667.3bp,633.27bp) [draw=Purple,fill=Lavender,rectangle] {repr-func};
+  \node (contra-repr-func) at (464.3bp,633.27bp) [draw=Purple,fill=Lavender,rectangle] {contra-repr-func};
+  \node (lemma_ff-refl-isos) at (283.3bp,633.27bp) [draw=Blue,fill=SkyBlue,ellipse] {ff-refl-isos};
+  \node (defn_nat-trans) at (1033.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {nat-trans};
+  \node (defn_comma-cat) at (1323.3bp,137.09bp) [draw=Purple,fill=Lavender,rectangle] {comma-cat};
+  \node (defn_contravariant) at (411.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {contravariant};
+  \node (defn_presheaf) at (525.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {presheaf};
+  \node (defn_full-faithful) at (161.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {full-faithful};
+  \node (defn_hom-func) at (932.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {hom-func};
+  \node (defn_contra-hom-func) at (806.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {contra-hom-func};
+  \node (defn_Hom-func-unified) at (652.3bp,705.27bp) [draw=Purple,fill=Lavender,rectangle] {Hom-func-unified};
+  \node (cor_ff-emb) at (40.296bp,633.27bp) [draw=Blue,fill=White,ellipse] {ff-emb};
+  \node (lemma_adj-implies-init) at (1647.3bp,306.53bp) [draw=Blue,fill=SkyBlue,ellipse] {adj-implies-init};
+  \node (thm_adj-comma) at (1456.3bp,137.09bp) [draw=Blue,fill=SkyBlue,circle, double] {adj-comma};
+  \node (propn_eqv-ffeso) at (186.3bp,459.07bp) [draw=Blue,fill=SkyBlue,diamond] {eqv-ffeso};
+  \node (lemma_adj-to-rep) at (829.3bp,561.27bp) [draw=Blue,fill=SkyBlue,ellipse] {adj-to-rep};
+  \node (cor_reps-unique) at (398.3bp,137.09bp) [draw=Blue,fill=White,ellipse] {reps-unique};
+  \node (constn_comp-nat) at (1033.3bp,633.27bp) [draw=Purple,fill=White,diamond] {comp-nat};
+  \node (defn_nat-iso) at (906.3bp,633.27bp) [draw=Purple,fill=Lavender,rectangle] {nat-iso};
+  \node (cor_pre-AFT) at (1456.3bp,18.0bp) [draw=Blue,fill=White,ellipse] {pre-AFT};
+  \node (defn_contra-yon-emb) at (791.3bp,633.27bp) [draw=Purple,fill=Lavender,rectangle] {contra-yon-emb};
+  \node (thm_yoneda) at (613.3bp,459.07bp) [draw=Blue,fill=SkyBlue,circle, double] {yoneda};
+  \node (defn_yon-emb) at (530.3bp,561.27bp) [draw=Purple,fill=Lavender,rectangle] {yon-emb};
+  \node (propn_ladj-rep) at (829.3bp,459.07bp) [draw=Blue,fill=SkyBlue,diamond] {ladj-rep};
+  \node (defn_adjn) at (977.3bp,561.27bp) [draw=Purple,fill=Lavender,rectangle] {adjn};
+  \node (defn_nat-in) at (726.3bp,561.27bp) [draw=Purple,fill=Lavender,rectangle] {nat-in};
+  \node (defn_eqv) at (652.3bp,561.27bp) [draw=Purple,fill=Lavender,rectangle] {eqv};
+  \node (cor_yoneda-ff) at (492.3bp,306.53bp) [draw=Blue,fill=White,ellipse] {yoneda-ff};
+  \node (cor_rep-univ) at (613.3bp,306.53bp) [draw=Blue,fill=White,ellipse] {rep-univ};
+  \node (cor_rep-univ-dual) at (753.3bp,306.53bp) [draw=Blue,fill=White,ellipse] {rep-univ-dual};
+  \node (lemma_triangle-ids) at (1123.3bp,459.07bp) [draw=Blue,fill=SkyBlue,ellipse] {triangle-ids};
+  \node (lemma_unit-determines-adjn) at (1413.3bp,459.07bp) [draw=Blue,fill=SkyBlue,ellipse] {unit-determines-adjn};
+  \node (cor_adj-triangle) at (977.3bp,459.07bp) [draw=Blue,fill=White,ellipse] {adj-triangle};
+  \node (thm_adj-triangle) at (1423.3bp,306.53bp) [draw=Blue,fill=SkyBlue,circle, double] {adj-triangle};
+  \draw [-stealth',dashed] (defn_category) ..controls (476.22bp,847.7bp) and (290.56bp,840.98bp)  .. (251.3bp,795.27bp) .. controls (235.79bp,777.21bp) and (247.92bp,750.94bp)  .. (defn_isomorphism);
+  \draw [-stealth',dashed] (defn_category) ..controls (514.75bp,828.57bp) and (441.86bp,811.15bp)  .. (379.3bp,795.27bp) .. controls (371.06bp,793.18bp) and (362.24bp,790.88bp)  .. (constn_op-cat);
+  \draw [-stealth',dashed] (defn_category) ..controls (541.38bp,819.81bp) and (511.88bp,805.06bp)  .. (constn_prod-cat);
+  \draw [-stealth',dashed] (defn_category) ..controls (637.08bp,822.16bp) and (653.62bp,811.03bp)  .. (defn_functor);
+  \draw [-stealth',dashed] (defn_category) ..controls (598.3bp,823.25bp) and (598.3bp,813.98bp)  .. (defn_subcategory);
+  \draw [-stealth',dashed] (defn_category) ..controls (668.8bp,830.27bp) and (711.69bp,815.98bp)  .. (745.3bp,795.27bp) .. controls (765.1bp,783.07bp) and (762.0bp,768.64bp)  .. (783.3bp,759.27bp) .. controls (886.88bp,713.69bp) and (1178.6bp,733.4bp)  .. (1291.3bp,723.27bp) .. controls (1326.8bp,720.08bp) and (1366.7bp,715.72bp)  .. (defn_init-term);
+  \draw [-stealth',dashed] (defn_category) ..controls (674.45bp,827.11bp) and (730.31bp,811.0bp)  .. (778.3bp,795.27bp) .. controls (779.71bp,794.81bp) and (781.15bp,794.33bp)  .. (defn_gen-elt);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (322.29bp,677.72bp) and (337.88bp,665.12bp)  .. (349.3bp,651.27bp) .. controls (364.86bp,632.38bp) and (377.21bp,607.37bp)  .. (lemma_nat-iso-compts);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (226.04bp,677.66bp) and (200.92bp,665.78bp)  .. (defn_ess-surj);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (339.87bp,688.18bp) and (342.61bp,687.69bp)  .. (345.3bp,687.27bp) .. controls (685.1bp,634.16bp) and (777.85bp,700.08bp)  .. (1118.3bp,651.27bp) .. controls (1123.8bp,650.48bp) and (1129.5bp,649.46bp)  .. (lemma_init-unique);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (339.7bp,688.51bp) and (342.53bp,687.87bp)  .. (345.3bp,687.27bp) .. controls (439.84bp,666.79bp) and (551.51bp,650.05bp)  .. (defn_repr-func);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (352.03bp,677.45bp) and (383.75bp,665.25bp)  .. (contra-repr-func);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (282.65bp,679.25bp) and (282.79bp,669.98bp)  .. (lemma_ff-refl-isos);
+  \draw [-stealth',dashed] (defn_functor) ..controls (664.99bp,760.69bp) and (662.12bp,759.9bp)  .. (659.3bp,759.27bp) .. controls (599.0bp,745.75bp) and (146.56bp,768.36bp)  .. (104.3bp,723.27bp) .. controls (87.979bp,705.86bp) and (100.12bp,679.27bp)  .. (defn_ess-surj);
+  \draw [-stealth',dashed] (defn_functor) ..controls (741.03bp,761.82bp) and (745.75bp,760.42bp)  .. (750.3bp,759.27bp) .. controls (851.47bp,733.74bp) and (880.89bp,747.85bp)  .. (982.3bp,723.27bp) .. controls (982.4bp,723.25bp) and (982.5bp,723.22bp)  .. (defn_nat-trans);
+  \draw [-stealth',dashed] (defn_functor) ..controls (738.14bp,760.15bp) and (739.73bp,759.68bp)  .. (741.3bp,759.27bp) .. controls (859.56bp,728.07bp) and (1277.3bp,756.58bp)  .. (1277.3bp,634.27bp) .. controls (1277.3bp,634.27bp) and (1277.3bp,634.27bp)  .. (1277.3bp,458.07bp) .. controls (1277.3bp,348.63bp) and (1304.0bp,220.26bp)  .. (defn_comma-cat);
+  \draw [-stealth',dashed] (defn_functor) ..controls (665.23bp,761.11bp) and (662.22bp,760.13bp)  .. (659.3bp,759.27bp) .. controls (582.86bp,736.85bp) and (558.96bp,741.35bp)  .. (defn_contravariant);
+  \draw [-stealth',dashed] (defn_functor) ..controls (641.52bp,752.23bp) and (604.13bp,737.45bp)  .. (defn_presheaf);
+  \draw [-stealth',dashed] (defn_functor) ..controls (664.98bp,760.73bp) and (662.11bp,759.93bp)  .. (659.3bp,759.27bp) .. controls (470.96bp,715.38bp) and (413.47bp,758.1bp)  .. (defn_full-faithful);
+  \draw [-stealth',dashed] (defn_functor) ..controls (741.15bp,762.22bp) and (745.83bp,760.67bp)  .. (750.3bp,759.27bp) .. controls (804.98bp,742.1bp) and (821.83bp,740.91bp)  .. (defn_hom-func);
+  \draw [-stealth',dashed] (defn_functor) ..controls (741.08bp,750.16bp) and (757.62bp,739.03bp)  .. (defn_contra-hom-func);
+  \draw [-stealth',dashed] (defn_functor) ..controls (684.06bp,750.74bp) and (676.93bp,740.75bp)  .. (defn_Hom-func-unified);
+  \draw [-stealth',dashed] (defn_subcategory) ..controls (543.2bp,760.38bp) and (540.22bp,759.79bp)  .. (537.3bp,759.27bp) .. controls (435.01bp,741.24bp) and (153.58bp,786.65bp)  .. (71.296bp,723.27bp) .. controls (52.421bp,708.73bp) and (44.989bp,681.94bp)  .. (cor_ff-emb);
+  \draw [-stealth',dashed] (defn_init-term) ..controls (1362.6bp,681.37bp) and (1290.6bp,661.91bp)  .. (lemma_init-unique);
+  \draw [-stealth',dashed] (defn_init-term) ..controls (1512.8bp,687.88bp) and (1544.2bp,674.39bp)  .. (1563.3bp,651.27bp) .. controls (1642.0bp,556.14bp) and (1648.9bp,398.58bp)  .. (lemma_adj-implies-init);
+  \draw [-stealth',dashed] (defn_init-term) ..controls (1476.1bp,653.8bp) and (1516.1bp,577.48bp)  .. (1530.3bp,507.27bp) .. controls (1554.1bp,389.32bp) and (1535.1bp,353.39bp)  .. (1500.3bp,238.19bp) .. controls (1497.0bp,227.37bp) and (1492.9bp,216.16bp)  .. (thm_adj-comma);
+  \draw [-stealth',dashed] (defn_ess-surj) ..controls (148.64bp,584.78bp) and (167.77bp,521.43bp)  .. (propn_eqv-ffeso);
+  \draw [-stealth',dashed] (defn_repr-func) ..controls (731.51bp,604.52bp) and (763.05bp,590.9bp)  .. (lemma_adj-to-rep);
+  \draw [-stealth'] (lemma_ff-refl-isos) ..controls (304.24bp,542.28bp) and (371.02bp,255.29bp)  .. (cor_reps-unique);
+  \draw [-stealth',dashed] (defn_nat-trans) ..controls (1033.3bp,679.25bp) and (1033.3bp,669.98bp)  .. (constn_comp-nat);
+  \draw [-stealth',dashed] (defn_nat-trans) ..controls (985.47bp,677.91bp) and (964.59bp,666.4bp)  .. (defn_nat-iso);
+  \draw [-stealth',dashed] (defn_comma-cat) ..controls (1348.9bp,105.42bp) and (1365.8bp,86.629bp)  .. (1382.3bp,72.0bp) .. controls (1395.4bp,60.406bp) and (1411.0bp,48.925bp)  .. (cor_pre-AFT);
+  \draw [-stealth',dashed] (defn_full-faithful) ..controls (208.32bp,677.29bp) and (230.01bp,664.84bp)  .. (lemma_ff-refl-isos);
+  \draw [-stealth',dashed] (defn_full-faithful) ..controls (113.86bp,676.83bp) and (91.127bp,663.68bp)  .. (cor_ff-emb);
+  \draw [-stealth',dashed] (defn_full-faithful) ..controls (172.55bp,676.75bp) and (177.05bp,663.5bp)  .. (179.3bp,651.27bp) .. controls (189.94bp,593.44bp) and (189.21bp,524.16bp)  .. (propn_eqv-ffeso);
+  \draw [-stealth',dashed] (defn_hom-func) ..controls (887.5bp,689.04bp) and (884.36bp,688.11bp)  .. (881.3bp,687.27bp) .. controls (812.72bp,668.32bp) and (791.53bp,670.78bp)  .. (defn_repr-func);
+  \draw [-stealth',dashed] (defn_hom-func) ..controls (878.86bp,677.74bp) and (855.16bp,665.98bp)  .. (defn_contra-yon-emb);
+  \draw [-stealth',dashed] (defn_contra-hom-func) ..controls (736.45bp,688.57bp) and (733.34bp,687.91bp)  .. (730.3bp,687.27bp) .. controls (648.31bp,670.13bp) and (627.4bp,667.87bp)  .. (545.3bp,651.27bp) .. controls (543.84bp,650.98bp) and (542.38bp,650.68bp)  .. (contra-repr-func);
+  \draw [-stealth',dashed] (defn_contra-hom-func) ..controls (686.51bp,674.14bp) and (620.27bp,656.42bp)  .. (616.3bp,651.27bp) .. controls (586.97bp,613.27bp) and (589.81bp,557.21bp)  .. (thm_yoneda);
+  \draw [-stealth',dashed] (defn_contra-hom-func) ..controls (675.26bp,674.31bp) and (586.55bp,653.66bp)  .. (583.3bp,651.27bp) .. controls (562.22bp,635.79bp) and (547.98bp,609.17bp)  .. (defn_yon-emb);
+  \draw [-stealth'] (lemma_adj-implies-init) ..controls (1628.4bp,247.31bp) and (1589.9bp,141.83bp)  .. (1530.3bp,72.0bp) .. controls (1519.3bp,59.087bp) and (1504.5bp,47.676bp)  .. (cor_pre-AFT);
+  \draw [-stealth'] (thm_adj-comma) ..controls (1456.3bp,62.766bp) and (1456.3bp,53.992bp)  .. (cor_pre-AFT);
+  \draw [-stealth'] (lemma_adj-to-rep) ..controls (829.3bp,527.59bp) and (829.3bp,505.23bp)  .. (propn_ladj-rep);
+  \draw [-stealth',dashed] (defn_nat-iso) ..controls (870.48bp,616.94bp) and (867.35bp,616.02bp)  .. (864.3bp,615.27bp) .. controls (698.63bp,574.85bp) and (651.07bp,603.65bp)  .. (482.3bp,579.27bp) .. controls (475.54bp,578.29bp) and (468.52bp,577.15bp)  .. (lemma_nat-iso-compts);
+  \draw [-stealth',dashed] (defn_nat-iso) ..controls (932.53bp,606.4bp) and (943.16bp,595.93bp)  .. (defn_adjn);
+  \draw [-stealth',dashed] (defn_nat-iso) ..controls (870.59bp,617.7bp) and (867.38bp,616.45bp)  .. (864.3bp,615.27bp) .. controls (822.93bp,599.46bp) and (809.74bp,597.17bp)  .. (defn_nat-in);
+  \draw [-stealth',dashed] (defn_nat-iso) ..controls (870.41bp,617.22bp) and (867.31bp,616.18bp)  .. (864.3bp,615.27bp) .. controls (790.85bp,593.1bp) and (765.99bp,603.59bp)  .. (defn_eqv);
+  \draw [-stealth'] (thm_yoneda) ..controls (561.1bp,393.13bp) and (531.3bp,356.06bp)  .. (cor_yoneda-ff);
+  \draw [-stealth'] (thm_yoneda) ..controls (613.3bp,385.89bp) and (613.3bp,356.12bp)  .. (cor_rep-univ);
+  \draw [-stealth'] (thm_yoneda) ..controls (671.86bp,395.1bp) and (707.83bp,356.42bp)  .. (cor_rep-univ-dual);
+  \draw [-stealth',dashed] (defn_yon-emb) ..controls (521.19bp,499.69bp) and (504.26bp,387.1bp)  .. (cor_yoneda-ff);
+  \draw [-stealth',dashed] (defn_adjn) ..controls (1027.1bp,526.08bp) and (1065.0bp,500.11bp)  .. (lemma_triangle-ids);
+  \draw [-stealth',dashed] (defn_adjn) ..controls (1071.3bp,538.66bp) and (1244.7bp,498.81bp)  .. (lemma_unit-determines-adjn);
+  \draw [-stealth',dashed] (defn_adjn) ..controls (977.3bp,527.59bp) and (977.3bp,505.23bp)  .. (cor_adj-triangle);
+  \draw [-stealth',dashed] (defn_adjn) ..controls (925.12bp,524.95bp) and (883.26bp,496.6bp)  .. (propn_ladj-rep);
+  \draw [-stealth',dashed] (defn_nat-in) ..controls (693.08bp,530.82bp) and (674.02bp,513.91bp)  .. (thm_yoneda);
+  \draw [-stealth',dashed] (defn_eqv) ..controls (610.98bp,550.79bp) and (593.21bp,546.77bp)  .. (577.3bp,543.27bp) .. controls (453.64bp,516.1bp) and (307.68bp,485.41bp)  .. (propn_eqv-ffeso);
+  \draw [-stealth'] (lemma_unit-determines-adjn) ..controls (1481.7bp,414.06bp) and (1566.1bp,359.77bp)  .. (lemma_adj-implies-init);
+  \draw [-stealth'] (lemma_unit-determines-adjn) ..controls (1415.4bp,426.8bp) and (1416.8bp,406.01bp)  .. (thm_adj-triangle);
+  \draw [-stealth'] (thm_adj-triangle) ..controls (1438.2bp,230.09bp) and (1440.0bp,220.53bp)  .. (thm_adj-comma);
+  \draw [-stealth'] (cor_yoneda-ff) ..controls (466.3bp,259.22bp) and (432.41bp,198.87bp)  .. (cor_reps-unique);
+%
+\end{tikzpicture}
+% End of code
+
+%
+\end{document}
+%
+
+

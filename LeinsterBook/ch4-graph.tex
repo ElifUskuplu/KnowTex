@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage[x11names, svgnames, rgb]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+\usepackage{amsmath}
+%
+%
+
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{0pt}%
+
+%
+
+\begin{document}
+\pagestyle{empty}
+%
+%
+%
+
+\enlargethispage{100cm}
+% Start of code
+\begin{tikzpicture}[>=latex',line join=bevel,]
+%%
+\node (defn_category) at (491.64bp,378.0bp) [draw=Purple,fill=Lavender,rectangle] {category};
+  \node (defn_isomorphism) at (185.64bp,306.0bp) [draw=Purple,fill=Lavender,rectangle] {isomorphism};
+  \node (constn_op-cat) at (616.64bp,306.0bp) [draw=Purple,fill=White,diamond] {op-cat};
+  \node (constn_prod-cat) at (759.64bp,306.0bp) [draw=Purple,fill=White,diamond] {prod-cat};
+  \node (defn_functor) at (387.64bp,306.0bp) [draw=Purple,fill=Lavender,rectangle] {functor};
+  \node (defn_subcategory) at (491.64bp,306.0bp) [draw=Purple,fill=Lavender,rectangle] {subcategory};
+  \node (lemma_nat-iso-compts) at (78.643bp,90.0bp) [draw=Blue,fill=SkyBlue,ellipse] {nat-iso-compts};
+  \node (defn_ess-surj) at (185.64bp,234.0bp) [draw=Purple,fill=Lavender,rectangle] {ess-surj};
+  \node (defn_nat-trans) at (280.64bp,234.0bp) [draw=Purple,fill=Lavender,rectangle] {nat-trans};
+  \node (defn_contravariant) at (510.64bp,234.0bp) [draw=Purple,fill=Lavender,rectangle] {contravariant};
+  \node (defn_presheaf) at (624.64bp,234.0bp) [draw=Purple,fill=Lavender,rectangle] {presheaf};
+  \node (defn_full-faithful) at (387.64bp,234.0bp) [draw=Purple,fill=Lavender,rectangle] {full-faithful};
+  \node (cor_ff-emb) at (618.64bp,162.0bp) [draw=Blue,fill=White,ellipse] {ff-emb};
+  \node (propn_eqv-ffeso) at (243.64bp,18.0bp) [draw=Blue,fill=SkyBlue,diamond] {eqv-ffeso};
+  \node (constn_comp-nat) at (373.64bp,162.0bp) [draw=Purple,fill=White,diamond] {comp-nat};
+  \node (defn_nat-iso) at (246.64bp,162.0bp) [draw=Purple,fill=Lavender,rectangle] {nat-iso};
+  \node (defn_nat-in) at (317.64bp,90.0bp) [draw=Purple,fill=Lavender,rectangle] {nat-in};
+  \node (defn_eqv) at (243.64bp,90.0bp) [draw=Purple,fill=Lavender,rectangle] {eqv};
+  \draw [-stealth',dashed] (defn_category) ..controls (400.79bp,356.22bp) and (311.17bp,335.71bp)  .. (defn_isomorphism);
+  \draw [-stealth',dashed] (defn_category) ..controls (542.44bp,348.55bp) and (568.74bp,333.82bp)  .. (constn_op-cat);
+  \draw [-stealth',dashed] (defn_category) ..controls (580.87bp,353.69bp) and (665.81bp,331.51bp)  .. (constn_prod-cat);
+  \draw [-stealth',dashed] (defn_category) ..controls (452.86bp,350.89bp) and (436.32bp,339.76bp)  .. (defn_functor);
+  \draw [-stealth',dashed] (defn_category) ..controls (491.64bp,351.98bp) and (491.64bp,342.71bp)  .. (defn_subcategory);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (159.43bp,278.12bp) and (148.41bp,265.08bp)  .. (140.64bp,252.0bp) .. controls (114.57bp,208.08bp) and (95.717bp,151.22bp)  .. (lemma_nat-iso-compts);
+  \draw [-stealth',dashed] (defn_isomorphism) ..controls (185.64bp,279.98bp) and (185.64bp,270.71bp)  .. (defn_ess-surj);
+  \draw [-stealth',dashed] (defn_functor) ..controls (323.64bp,284.04bp) and (278.81bp,269.08bp)  .. (defn_ess-surj);
+  \draw [-stealth',dashed] (defn_functor) ..controls (347.61bp,278.81bp) and (330.4bp,267.55bp)  .. (defn_nat-trans);
+  \draw [-stealth',dashed] (defn_functor) ..controls (433.96bp,278.64bp) and (454.18bp,267.13bp)  .. (defn_contravariant);
+  \draw [-stealth',dashed] (defn_functor) ..controls (424.75bp,289.96bp) and (427.74bp,288.93bp)  .. (430.64bp,288.0bp) .. controls (491.32bp,268.62bp) and (510.81bp,270.9bp)  .. (defn_presheaf);
+  \draw [-stealth',dashed] (defn_functor) ..controls (387.64bp,279.98bp) and (387.64bp,270.71bp)  .. (defn_full-faithful);
+  \draw [-stealth',dashed] (defn_subcategory) ..controls (597.31bp,274.98bp) and (672.62bp,253.36bp)  .. (673.64bp,252.0bp) .. controls (690.17bp,229.97bp) and (667.83bp,202.81bp)  .. (cor_ff-emb);
+  \draw [-stealth',dashed] (defn_ess-surj) ..controls (185.66bp,185.81bp) and (188.55bp,121.78bp)  .. (207.64bp,72.0bp) .. controls (211.81bp,61.139bp) and (218.58bp,50.307bp)  .. (propn_eqv-ffeso);
+  \draw [-stealth',dashed] (defn_nat-trans) ..controls (317.08bp,205.57bp) and (334.1bp,192.76bp)  .. (constn_comp-nat);
+  \draw [-stealth',dashed] (defn_nat-trans) ..controls (268.37bp,207.73bp) and (263.69bp,198.1bp)  .. (defn_nat-iso);
+  \draw [-stealth',dashed] (defn_full-faithful) ..controls (477.35bp,205.82bp) and (536.81bp,187.8bp)  .. (cor_ff-emb);
+  \draw [-stealth',dashed] (defn_full-faithful) ..controls (436.63bp,207.25bp) and (450.99bp,195.26bp)  .. (458.64bp,180.0bp) .. controls (465.81bp,165.7bp) and (466.04bp,158.19bp)  .. (458.64bp,144.0bp) .. controls (424.9bp,79.251bp) and (341.93bp,45.501bp)  .. (propn_eqv-ffeso);
+  \draw [-stealth',dashed] (defn_nat-iso) ..controls (188.29bp,136.68bp) and (152.49bp,121.77bp)  .. (lemma_nat-iso-compts);
+  \draw [-stealth',dashed] (defn_nat-iso) ..controls (272.88bp,135.14bp) and (283.51bp,124.66bp)  .. (defn_nat-in);
+  \draw [-stealth',dashed] (defn_nat-iso) ..controls (245.57bp,135.98bp) and (245.17bp,126.71bp)  .. (defn_eqv);
+  \draw [-stealth',dashed] (defn_eqv) ..controls (243.64bp,63.983bp) and (243.64bp,54.712bp)  .. (propn_eqv-ffeso);
+%
+\end{tikzpicture}
+% End of code
+
+%
+\end{document}
+%
+
+

@@ -1,0 +1,277 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\setlist{nosep}
+
+% --- Theorem environments ---
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% --- Handy macros ---
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\Ker}{\operatorname{Ker}}
+\newcommand{\Img}{\operatorname{Im}}
+\newcommand{\Stab}{\operatorname{Stab}}
+\newcommand{\Orb}{\operatorname{Orb}}
+\newcommand{\Syl}{\mathrm{Syl}}
+\newcommand{\Aut}{\mathrm{Aut}}
+\newcommand{\Inn}{\mathrm{Inn}}
+\newcommand{\lcm}{\operatorname{lcm}}
+
+% These are no-ops for LaTeX, but KnowTex reads them
+\newcommand{\uses}[1]{}
+\newcommand{\proves}[1]{}
+
+\begin{document}
+\begin{center}
+  {\Large \textbf{Group Theory Quick Sheet}}\\
+  \vspace{2mm}
+\end{center}
+
+% ---------------------------
+% 1. GROUPS
+% ---------------------------
+\section*{1. Groups}
+
+\begin{definition}[Group]\label{def:group}
+A \emph{group} $(G,\cdot)$ is a set with a binary operation such that for all $a,b,c\in G$:
+(1) $(ab)c=a(bc)$;
+(2) there exists $e\in G$ with $ea=ae=a$;
+(3) for each $a$ there exists $a^{-1}$ with $aa^{-1}=a^{-1}a=e$. If $ab=ba$ for all $a,b$, $G$ is \emph{abelian}.
+\end{definition}
+
+\begin{lemma}[Uniqueness of identity]\label{lem:unique_identity}
+\uses{def:group}
+A group has a unique identity element.
+\end{lemma}
+\begin{proof}\end{proof}
+
+\begin{lemma}[Uniqueness of inverses]\label{lem:unique_inverse}
+\uses{def:group}
+Each element of a group has a unique inverse.
+\end{lemma}
+\begin{proof}\uses{lem:unique_identity}\end{proof}
+
+\begin{lemma}[Inverse of a product]\label{lem:inverse_product}
+\uses{def:group}
+For all $a,b\in G$, $(ab)^{-1}=b^{-1}a^{-1}$.
+\end{lemma}
+\begin{proof}\end{proof}
+
+\begin{definition}[Order of an element]\label{def:order}
+\uses{def:group}
+The \emph{order} of $a\in G$ is the least $m\ge1$ such that $a^m=e$ (if it exists); otherwise the order is $\infty$.
+\end{definition}
+
+\begin{definition}[Cyclic groups]\label{def:cyclic_group}
+\uses{def:group}
+A group $G$ is \emph{cyclic} if $G=\langle g\rangle=\{g^n:n\in\ZZ\}$ for some $g\in G$.
+\end{definition}
+
+% ---------------------------
+% 2. SUBGROUPS & HOMOMORPHISMS
+% ---------------------------
+\section*{2. Subgroups and Homomorphisms}
+
+\begin{definition}[Subgroup]\label{def:subgroup}
+\uses{def:group}
+A nonempty subset $H\subseteq G$ is a \emph{subgroup} (written $H\le G$) if for all $a,b\in H$, $ab^{-1}\in H$.
+\end{definition}
+
+\begin{definition}[Normal subgroup]\label{def:normal_subgroup}
+\uses{def:group,def:subgroup}
+A subgroup $N\le G$ is \emph{normal} (written $N\trianglelefteq G$) if $gNg^{-1}=N$ for all $g\in G$.
+\end{definition}
+
+\begin{definition}[Homomorphism]\label{def:homomorphism}
+\uses{def:group}
+A map $\varphi:G\to H$ is a \emph{homomorphism} if $\varphi(ab)=\varphi(a)\varphi(b)$ for all $a,b\in G$.
+\end{definition}
+
+\begin{proposition}[Kernel and image]\label{prop:kernel_image}
+\uses{def:group,def:subgroup,def:normal_subgroup,def:homomorphism}
+For a homomorphism $\varphi:G\to H$, the kernel $\Ker\varphi=\{g\in G:\varphi(g)=e_H\}$ and the image $\Img\varphi=\varphi(G)$ are subgroups; moreover $\Ker\varphi\trianglelefteq G$.
+\end{proposition}
+\begin{proof}\end{proof}
+
+\begin{proposition}[Injectivity criterion]\label{prop:injective_kernel}
+\uses{def:group,def:subgroup,def:homomorphism}
+A homomorphism $\varphi:G\to H$ is injective if and only if $\Ker\varphi=\{e\}$.
+\end{proposition}
+\begin{proof}\uses{prop:kernel_image}\end{proof}
+
+\begin{definition}[Cosets and index]\label{def:coset_index}
+\uses{def:group,def:subgroup}
+For $H\le G$ and $g\in G$, the \emph{left coset} is $gH=\{gh:h\in H\}$. The \emph{index} $[G:H]$ is the number of left cosets.
+\end{definition}
+
+\begin{theorem}[Lagrange's Theorem]\label{thm:lagrange}
+\uses{def:group,def:subgroup,def:coset_index}
+If $G$ is finite and $H\le G$, then $|H|$ divides $|G|$ and $[G:H]=|G|/|H|$.
+\end{theorem}
+\begin{proof}\end{proof}
+
+\begin{corollary}[Order divides group order]\label{cor:order_divides}
+\uses{def:order}
+If $G$ is finite and $a\in G$, then $\operatorname{ord}(a)\mid |G|$.
+\end{corollary}
+\begin{proof}\uses{thm:lagrange}\end{proof}
+
+\begin{definition}[Quotient group]\label{def:quotient}
+\uses{def:group,def:subgroup,def:normal_subgroup}
+If $N\trianglelefteq G$, the set of cosets $G/N$ is a group with $(gN)(hN)=(gh)N$.
+\end{definition}
+
+% ---------------------------
+% 3. ISOMORPHISM THEOREMS
+% ---------------------------
+\section*{3. Isomorphism Theorems}
+
+\begin{theorem}[First Isomorphism Theorem]\label{thm:first_iso}
+\uses{def:homomorphism, prop:kernel_image, def:quotient}
+For a homomorphism $\varphi:G\to H$, there is a natural isomorphism $G/\Ker\varphi\cong \Img\varphi$.
+\end{theorem}
+\begin{proof}\end{proof}
+
+\begin{theorem}[Second Isomorphism Theorem]\label{thm:second_iso}
+\uses{def:subgroup, def:normal_subgroup, def:quotient}
+If $A\le G$ and $N\trianglelefteq G$, then $A\cap N\trianglelefteq A$, $AN\le G$, and $A/(A\cap N)\cong AN/N$.
+\end{theorem}
+\begin{proof}\end{proof}
+
+\begin{theorem}[Third Isomorphism Theorem]\label{thm:third_iso}
+\uses{def:normal_subgroup, def:quotient}
+If $N\trianglelefteq G$ and $K\trianglelefteq G$ with $N\subseteq K$, then $K/N\trianglelefteq G/N$ and $(G/N)/(K/N)\cong G/K$.
+\end{theorem}
+\begin{proof}\end{proof}
+
+% ---------------------------
+% 4. GROUP ACTIONS
+% ---------------------------
+\section*{4. Group Actions}
+
+\begin{definition}[Group action]\label{def:action}
+\uses{def:group}
+An action of $G$ on a set $X$ is a map $G\times X\to X$, $(g,x)\mapsto g\cdot x$, such that $e\cdot x=x$ and $g\cdot(h\cdot x)=(gh)\cdot x$.
+\end{definition}
+
+\begin{definition}[Orbit and stabilizer]\label{def:orbit_stabilizer}
+\uses{def:group, def:action}
+For $x\in X$, the \emph{orbit} is $\Orb(x)=\{g\cdot x:g\in G\}$ and the \emph{stabilizer} is $\Stab(x)=\{g\in G:g\cdot x=x\}$.
+\end{definition}
+
+\begin{theorem}[Orbit--Stabilizer]\label{thm:orbit_stabilizer}
+\uses{def:action, def:orbit_stabilizer}
+If $G$ is finite and acts on $X$, then $|\Orb(x)|=[G:\Stab(x)]$ and $|\Orb(x)|\,|\Stab(x)|=|G|$.
+\end{theorem}
+\begin{proof}\end{proof}
+
+\begin{theorem}[Class equation]\label{thm:class_eq}
+\uses{def:action}
+For the conjugation action of $G$ on itself,
+\[
+|G|=|Z(G)|+\sum [G:C_G(g_i)],
+\]
+where $Z(G)$ is the center, $C_G(g)$ the centralizer, and the sum runs over representatives of noncentral conjugacy classes.
+\end{theorem}
+\begin{proof}\uses{thm:orbit_stabilizer}\end{proof}
+
+\begin{remark}[Burnside's lemma (Cauchy--Frobenius)]\label{rem:burnside}
+For a finite action $G\curvearrowright X$, the number of orbits is
+\[
+\#(X/G)=\frac{1}{|G|}\sum_{g\in G}\bigl|\{x\in X: g\cdot x=x\}\bigr|.
+\]
+\end{remark}
+
+% ---------------------------
+% 5. SYLOW THEORY
+% ---------------------------
+\section*{5. Sylow Theory}
+
+\begin{definition}[Sylow $p$-subgroup]\label{def:sylow}
+\uses{def:subgroup}
+Let $|G|=p^n m$ with $p\nmid m$. A \emph{Sylow $p$-subgroup} is a subgroup of order $p^n$. The set $\Syl_p(G)$ has size $n_p=|\Syl_p(G)|$.
+\end{definition}
+
+\begin{theorem}[Sylow existence]\label{thm:sylow_exist}
+\uses{def:sylow}
+If $|G|=p^n m$ with $p\nmid m$, then $G$ has a subgroup of order $p^n$.
+\end{theorem}
+\begin{proof}\uses{thm:class-eq, thm:cauchy}\end{proof}
+
+\begin{theorem}[Sylow conjugacy]\label{thm:sylow_conjugacy}
+\uses{def:sylow}
+Any two Sylow $p$-subgroups of $G$ are conjugate.
+\end{theorem}
+\begin{proof}\uses{thm:orbit_stabilizer}\end{proof}
+
+\begin{theorem}[Sylow counting]\label{thm:sylow_count}
+\uses{def:sylow}
+The number $n_p$ of Sylow $p$-subgroups satisfies $n_p\equiv 1\pmod p$ and $n_p\mid m$.
+\end{theorem}
+\begin{proof}\uses{thm:sylow_conjugacy, thm:orbit_stabilizer}\end{proof}
+
+\begin{theorem}[Cauchy's Theorem]\label{thm:cauchy}
+\uses{def:order}
+If a prime $p$ divides $|G|$, then $G$ contains an element of order $p$.
+\end{theorem}
+\begin{proof}\uses{thm:class_eq}\end{proof}
+
+\begin{corollary}[Normal Sylow criterion]\label{cor:unique_sylow_normal}
+\uses{def:normal_subgroup}
+If $n_p=1$, then the unique Sylow $p$-subgroup is normal in $G$.
+\end{corollary}
+\begin{proof}\uses{thm:sylow_conjugacy}\end{proof}
+
+% ---------------------------
+% 6. MISCELLANEOUS FACTS
+% ---------------------------
+\section*{6. Miscellaneous Facts}
+
+\begin{theorem}[Subgroups of cyclic groups]\label{thm:subgroups_cyclic}
+\uses{def:cyclic_group}
+Every subgroup of a cyclic group is cyclic.
+\end{theorem}
+\begin{proof}\end{proof}
+
+\begin{theorem}[Subgroups by divisors]\label{thm:unique_divisor_subgroup}
+\uses{def:cyclic_group}
+If $G$ is cyclic of order $n$, then for each $d\mid n$ there is a unique subgroup of order $d$.
+\end{theorem}
+\begin{proof}\uses{thm:subgroups_cyclic}\end{proof}
+
+\begin{proposition}[Normalizer test for normality]\label{prop:normalizer_test}
+\uses{def:normal_subgroup}
+A subgroup $N\le G$ is normal if and only if $gNg^{-1}=N$ for all $g\in G$.
+\end{proposition}
+\begin{proof}\end{proof}
+
+\begin{proposition}[Centralizer index and class size]\label{prop:class_size}
+\uses{def:action}
+For $x\in G$, the size of the conjugacy class of $x$ equals $[G:C_G(x)]$.
+\end{proposition}
+\begin{proof}\uses{thm:orbit_stabilizer}\end{proof}
+
+\begin{proposition}[Coprime orders multiply in abelian groups]\label{prop:coprime_orders}
+\uses{def:order}
+If $G$ is abelian and $a,b\in G$ have coprime finite orders, then $\operatorname{ord}(ab)=\lcm(\operatorname{ord}(a),\operatorname{ord}(b))=\operatorname{ord}(a)\operatorname{ord}(b)$.
+\end{proposition}
+\begin{proof}\end{proof}
+
+\begin{remark}[Handy notation]\label{rem:notation}
+$Z(G)$ center, $C_G(x)$ centralizer, $N_G(H)$ normalizer, $\Aut(G)$ automorphism group, $\Inn(G)$ inner automorphisms.
+\end{remark}
+
+\end{document}
+

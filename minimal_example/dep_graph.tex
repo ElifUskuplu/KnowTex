@@ -1,0 +1,106 @@
+\documentclass{article}
+\usepackage[x11names, svgnames, rgb]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+\usepackage{amsmath}
+%
+%
+
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{0pt}%
+
+%
+
+\begin{document}
+\pagestyle{empty}
+%
+%
+%
+
+\enlargethispage{100cm}
+% Start of code
+\begin{tikzpicture}[>=latex',line join=bevel,]
+%%
+\node (def_group) at (905.57bp,1180.9bp) [draw=Purple,fill=Lavender,rectangle] {group};
+  \node (lem_unique_identity) at (568.57bp,1108.9bp) [draw=Blue,fill=SkyBlue,ellipse] {unique\_identity};
+  \node (lem_inverse_product) at (754.57bp,1108.9bp) [draw=Blue,fill=SkyBlue,ellipse] {inverse\_product};
+  \node (def_order) at (817.57bp,442.32bp) [draw=Purple,fill=Lavender,rectangle] {order};
+  \node (def_cyclic_group) at (1427.6bp,1108.9bp) [draw=Purple,fill=Lavender,rectangle] {cyclic\_group};
+  \node (def_subgroup) at (1096.6bp,961.23bp) [draw=Purple,fill=Lavender,rectangle] {subgroup};
+  \node (def_homomorphism) at (772.57bp,961.23bp) [draw=Purple,fill=Lavender,rectangle] {homomorphism};
+  \node (def_action) at (1199.6bp,1108.9bp) [draw=Purple,fill=Lavender,rectangle] {action};
+  \node (lem_unique_inverse) at (568.57bp,961.23bp) [draw=Blue,fill=SkyBlue,ellipse] {unique\_inverse};
+  \node (cor_order_divides) at (978.57bp,242.98bp) [draw=Blue,fill=White,ellipse] {order\_divides};
+  \node (thm_cauchy) at (1116.6bp,242.98bp) [draw=Blue,fill=SkyBlue,circle, double] {cauchy};
+  \node (prop_coprime_orders) at (769.57bp,242.98bp) [draw=Blue,fill=SkyBlue,diamond] {coprime\_orders};
+  \node (thm_subgroups_cyclic) at (1693.6bp,961.23bp) [draw=Blue,fill=SkyBlue,circle, double] {subgroups\_cyclic};
+  \node (def_normal_subgroup) at (1004.6bp,700.8bp) [draw=Purple,fill=Lavender,rectangle] {normal\_subgroup};
+  \node (def_coset_index) at (1188.6bp,700.8bp) [draw=Purple,fill=Lavender,rectangle] {coset\_index};
+  \node (def_sylow) at (1357.6bp,700.8bp) [draw=Purple,fill=Lavender,rectangle] {sylow};
+  \node (prop_kernel_image) at (335.57bp,442.32bp) [draw=Blue,fill=SkyBlue,diamond] {kernel\_image};
+  \node (def_orbit_stabilizer) at (1354.6bp,961.23bp) [draw=Purple,fill=Lavender,rectangle] {orbit\_stabilizer};
+  \node (thm_sylow_exist) at (1272.6bp,67.694bp) [draw=Blue,fill=SkyBlue,circle, double] {sylow\_exist};
+  \node (thm_unique_divisor_subgroup) at (1723.6bp,700.8bp) [draw=Blue,fill=SkyBlue,circle, double] {unique\_divisor\_subgroup};
+  \node (def_quotient) at (550.57bp,442.32bp) [draw=Purple,fill=Lavender,rectangle] {quotient};
+  \node (cor_unique_sylow_normal) at (1291.6bp,242.98bp) [draw=Blue,fill=White,ellipse] {unique\_sylow\_normal};
+  \node (prop_normalizer_test) at (981.57bp,442.32bp) [draw=Blue,fill=SkyBlue,diamond] {normalizer\_test};
+  \node (thm_lagrange) at (1211.6bp,442.32bp) [draw=Blue,fill=SkyBlue,circle, double] {lagrange};
+  \node (thm_sylow_conjugacy) at (1539.6bp,442.32bp) [draw=Blue,fill=SkyBlue,circle, double] {sylow\_conjugacy};
+  \node (prop_injective_kernel) at (118.57bp,242.98bp) [draw=Blue,fill=SkyBlue,diamond] {injective\_kernel};
+  \node (thm_first_iso) at (306.57bp,242.98bp) [draw=Blue,fill=SkyBlue,circle, double] {first\_iso};
+  \node (thm_orbit_stabilizer) at (1489.6bp,700.8bp) [draw=Blue,fill=SkyBlue,circle, double] {orbit\_stabilizer};
+  \node (thm_second_iso) at (440.57bp,242.98bp) [draw=Blue,fill=SkyBlue,circle, double] {second\_iso};
+  \node (thm_third_iso) at (578.57bp,242.98bp) [draw=Blue,fill=SkyBlue,circle, double] {third\_iso};
+  \node (thm_sylow_count) at (1539.6bp,242.98bp) [draw=Blue,fill=SkyBlue,circle, double] {sylow\_count};
+  \node (thm_class_eq) at (1338.6bp,442.32bp) [draw=Blue,fill=SkyBlue,circle, double] {class\_eq};
+  \node (prop_class_size) at (1728.6bp,442.32bp) [draw=Blue,fill=SkyBlue,diamond] {class\_size};
+  \draw [-stealth',dashed] (def_group) ..controls (822.73bp,1162.7bp) and (709.62bp,1139.2bp)  .. (lem_unique_identity);
+  \draw [-stealth',dashed] (def_group) ..controls (853.41bp,1155.7bp) and (822.54bp,1141.4bp)  .. (lem_inverse_product);
+  \draw [-stealth',dashed] (def_group) ..controls (891.99bp,1066.2bp) and (835.07bp,589.79bp)  .. (def_order);
+  \draw [-stealth',dashed] (def_group) ..controls (1017.5bp,1164.9bp) and (1251.2bp,1133.6bp)  .. (def_cyclic_group);
+  \draw [-stealth',dashed] (def_group) ..controls (954.17bp,1124.5bp) and (1035.7bp,1031.6bp)  .. (def_subgroup);
+  \draw [-stealth',dashed] (def_group) ..controls (871.88bp,1124.8bp) and (815.67bp,1032.8bp)  .. (def_homomorphism);
+  \draw [-stealth',dashed] (def_group) ..controls (988.1bp,1160.3bp) and (1099.4bp,1133.8bp)  .. (def_action);
+  \draw [-stealth'] (lem_unique_identity) ..controls (568.57bp,1065.7bp) and (568.57bp,1019.2bp)  .. (lem_unique_inverse);
+  \draw [-stealth',dashed] (def_order) ..controls (827.4bp,404.84bp) and (838.05bp,373.49bp)  .. (854.57bp,350.58bp) .. controls (868.95bp,330.63bp) and (877.92bp,330.6bp)  .. (896.57bp,314.58bp) .. controls (914.89bp,298.84bp) and (935.5bp,281.1bp)  .. (cor_order_divides);
+  \draw [-stealth',dashed] (def_order) ..controls (823.02bp,403.19bp) and (831.92bp,368.83bp)  .. (854.57bp,350.58bp) .. controls (926.94bp,292.26bp) and (980.69bp,362.09bp)  .. (1060.6bp,314.58bp) .. controls (1070.5bp,308.7bp) and (1079.3bp,300.38bp)  .. (thm_cauchy);
+  \draw [-stealth',dashed] (def_order) ..controls (804.98bp,389.56bp) and (785.94bp,311.29bp)  .. (prop_coprime_orders);
+  \draw [-stealth',dashed] (def_cyclic_group) ..controls (1494.0bp,1071.5bp) and (1552.8bp,1039.4bp)  .. (thm_subgroups_cyclic);
+  \draw [-stealth',dashed] (def_subgroup) ..controls (1074.7bp,898.74bp) and (1033.1bp,781.96bp)  .. (def_normal_subgroup);
+  \draw [-stealth',dashed] (def_subgroup) ..controls (1118.5bp,898.74bp) and (1160.0bp,781.96bp)  .. (def_coset_index);
+  \draw [-stealth',dashed] (def_subgroup) ..controls (1149.1bp,919.45bp) and (1204.6bp,874.58bp)  .. (1247.6bp,831.54bp) .. controls (1281.6bp,797.39bp) and (1317.0bp,754.01bp)  .. (def_sylow);
+  \draw [-stealth',dashed] (def_homomorphism) ..controls (693.04bp,866.16bp) and (429.1bp,553.95bp)  .. (prop_kernel_image);
+  \draw [-stealth',dashed] (def_action) ..controls (1245.5bp,1064.8bp) and (1297.4bp,1016.0bp)  .. (def_orbit_stabilizer);
+  \draw [-stealth'] (thm_cauchy) ..controls (1153.4bp,194.09bp) and (1163.2bp,182.08bp)  .. (1172.6bp,171.39bp) .. controls (1186.7bp,155.33bp) and (1202.6bp,138.48bp)  .. (thm_sylow_exist);
+  \draw [-stealth'] (thm_subgroups_cyclic) ..controls (1705.3bp,859.19bp) and (1706.4bp,850.1bp)  .. (thm_unique_divisor_subgroup);
+  \draw [-stealth',dashed] (def_normal_subgroup) ..controls (836.17bp,648.15bp) and (585.23bp,569.82bp)  .. (502.57bp,534.06bp) .. controls (453.02bp,512.62bp) and (398.59bp,481.52bp)  .. (prop_kernel_image);
+  \draw [-stealth',dashed] (def_normal_subgroup) ..controls (894.77bp,637.77bp) and (678.64bp,515.67bp)  .. (def_quotient);
+  \draw [-stealth',dashed] (def_normal_subgroup) ..controls (1040.8bp,653.61bp) and (1085.0bp,592.68bp)  .. (1108.6bp,534.06bp) .. controls (1139.6bp,456.79bp) and (1101.6bp,420.66bp)  .. (1146.6bp,350.58bp) .. controls (1171.2bp,312.24bp) and (1214.8bp,283.0bp)  .. (cor_unique_sylow_normal);
+  \draw [-stealth',dashed] (def_normal_subgroup) ..controls (999.11bp,638.85bp) and (988.74bp,523.29bp)  .. (prop_normalizer_test);
+  \draw [-stealth',dashed] (def_coset_index) ..controls (1193.3bp,647.56bp) and (1200.5bp,566.47bp)  .. (thm_lagrange);
+  \draw [-stealth',dashed] (def_sylow) ..controls (1373.0bp,652.8bp) and (1392.2bp,589.32bp)  .. (1400.6bp,534.06bp) .. controls (1412.6bp,454.34bp) and (1446.8bp,243.43bp)  .. (1410.6bp,171.39bp) .. controls (1395.9bp,142.25bp) and (1368.7bp,119.29bp)  .. (thm_sylow_exist);
+  \draw [-stealth',dashed] (def_sylow) ..controls (1363.1bp,656.47bp) and (1372.6bp,606.09bp)  .. (1395.6bp,570.06bp) .. controls (1398.2bp,565.88bp) and (1429.5bp,538.22bp)  .. (thm_sylow_conjugacy);
+  \draw [-stealth'] (prop_kernel_image) ..controls (281.85bp,392.47bp) and (186.83bp,306.06bp)  .. (prop_injective_kernel);
+  \draw [-stealth',dashed] (prop_kernel_image) ..controls (329.23bp,398.15bp) and (321.54bp,345.86bp)  .. (thm_first_iso);
+  \draw [-stealth',dashed] (def_orbit_stabilizer) ..controls (1380.2bp,911.13bp) and (1416.4bp,841.81bp)  .. (thm_orbit_stabilizer);
+  \draw [-stealth',dashed] (def_quotient) ..controls (515.07bp,404.57bp) and (481.22bp,372.27bp)  .. (447.57bp,350.58bp) .. controls (414.8bp,329.45bp) and (398.83bp,337.88bp)  .. (367.57bp,314.58bp) .. controls (359.19bp,308.33bp) and (351.17bp,300.75bp)  .. (thm_first_iso);
+  \draw [-stealth',dashed] (def_quotient) ..controls (526.73bp,398.56bp) and (499.13bp,349.04bp)  .. (thm_second_iso);
+  \draw [-stealth',dashed] (def_quotient) ..controls (556.65bp,398.48bp) and (563.71bp,348.74bp)  .. (thm_third_iso);
+  \draw [-stealth'] (thm_lagrange) ..controls (1152.0bp,387.24bp) and (1129.5bp,367.57bp)  .. (1108.6bp,350.58bp) .. controls (1087.9bp,333.75bp) and (1081.4bp,331.29bp)  .. (1060.6bp,314.58bp) .. controls (1041.6bp,299.34bp) and (1020.9bp,281.47bp)  .. (cor_order_divides);
+  \draw [-stealth'] (thm_sylow_conjugacy) ..controls (1419.2bp,345.5bp) and (1356.7bp,295.79bp)  .. (cor_unique_sylow_normal);
+  \draw [-stealth'] (thm_sylow_conjugacy) ..controls (1539.6bp,341.89bp) and (1539.6bp,333.25bp)  .. (thm_sylow_count);
+  \draw [-stealth'] (thm_orbit_stabilizer) ..controls (1510.3bp,593.21bp) and (1515.4bp,567.18bp)  .. (thm_sylow_conjugacy);
+  \draw [-stealth'] (thm_orbit_stabilizer) ..controls (1422.5bp,585.86bp) and (1392.7bp,535.3bp)  .. (thm_class_eq);
+  \draw [-stealth'] (thm_orbit_stabilizer) ..controls (1548.7bp,607.84bp) and (1565.5bp,587.0bp)  .. (1583.6bp,570.06bp) .. controls (1605.4bp,549.56bp) and (1617.3bp,552.95bp)  .. (1640.6bp,534.06bp) .. controls (1666.5bp,513.0bp) and (1692.7bp,484.89bp)  .. (prop_class_size);
+  \draw [-stealth'] (thm_class_eq) ..controls (1304.5bp,378.54bp) and (1291.7bp,362.16bp)  .. (1276.6bp,350.58bp) .. controls (1237.7bp,320.88bp) and (1212.5bp,342.87bp)  .. (1172.6bp,314.58bp) .. controls (1163.5bp,308.13bp) and (1155.1bp,299.81bp)  .. (thm_cauchy);
+%
+\end{tikzpicture}
+% End of code
+
+%
+\end{document}
+%
+
+
