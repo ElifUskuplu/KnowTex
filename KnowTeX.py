@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-# KnowTeX.py (canonical categories + alias matching) + zoomable preview
-# + CHAPTER SELECTION DIALOG (scan only chosen \chapter{...} blocks)
-# NOTE: we slice the expanded TeX to ONLY the chosen chapter ranges before parsing,
-# so filtering is guaranteed regardless of node offsets.
+# KnowTeX.py
 
 import os
 import re
@@ -212,7 +209,7 @@ def find_chapter_ranges(tex: str):
     return chapters
 
 # ----------------------
-# Parsing (no chapter logic here — we pass a filtered tex)
+# Parsing 
 # ----------------------
 
 def parse_latex_structure(tex, selected_canonicals):
