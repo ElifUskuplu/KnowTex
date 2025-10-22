@@ -128,7 +128,7 @@ Install Graphviz and add `Graphviz/bin` to your PATH.
 
 ---
 
-## 🚀 Usage
+## Usage
 
 ### 1. Launch GUI
 ```bash
