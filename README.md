@@ -3,7 +3,11 @@
 **KnowTeX** is a standalone Python GUI tool that analyzes LaTeX projects to construct **knowledge dependency graphs** among mathematical statements and proofs.  
 It expands your TeX project, parses the document structure, extracts labeled environments, and visualizes how results depend on one another via `\uses{...}` and `\proves{...}` annotations.
 
-Derived from [Patrick Massot’s *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph), KnowTeX provides similar functionality **without requiring PlasTeX or Lean blueprints**.
+Derived from [Patrick Massot’s *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph), KnowTeX provides similar functionality **without requiring PlasTeX or Lean blueprints**. 
+
+**Artificial Intelligence Disclosure (AID)**
+
+Portions of the KnowTeX project were developed with the assistance of generative AI tools (ChatGPT, OpenAI GPT-5). These tools were used to help draft Python code, suggest refactoring patterns, and improve documentation clarity. All generated code was reviewed, tested, and validated by the author, who assumes full responsibility for the final implementation and design decisions.
 
 ---
 
