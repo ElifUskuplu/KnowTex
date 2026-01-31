@@ -3,11 +3,11 @@
 
 import os
 import re
-import sys
 import tempfile
 from collections import defaultdict, namedtuple
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+import xml.etree.ElementTree as ET
 
 try:
     from pylatexenc.latexwalker import LatexWalker, LatexEnvironmentNode
@@ -58,7 +58,7 @@ def canonical_of_env(envname: str):
             return canon
     return None
 
-NodeInfo = namedtuple("NodeInfo", "canon env label index")
+NodeInfo = namedtuple("NodeInfo", "canon env label index snippet")
 
 SHAPES = {
     "theorem": "doublecircle",
@@ -120,6 +120,22 @@ def ensure_tex_ext(path: str) -> str:
 
 def norm_join(base_dir: str, rel: str) -> str:
     return os.path.normpath(os.path.join(base_dir, rel))
+
+def point_in_poly(x: float, y: float, poly):
+    # Ray casting, poly: list[(x,y)]
+    inside = False
+    n = len(poly)
+    if n < 3:
+        return False
+    j = n - 1
+    for i in range(n):
+        xi, yi = poly[i]
+        xj, yj = poly[j]
+        intersect = ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi + 1e-12) + xi)
+        if intersect:
+            inside = not inside
+        j = i
+    return inside
 
 # ----------------------
 # Project expansion (files)
@@ -193,7 +209,7 @@ def load_and_expand(main_path: str) -> str:
     return expand(main_path, project_dir)
 
 # ----------------------
-# Chapters — helpers
+# Chapters helpers
 # ----------------------
 
 def find_chapter_ranges(tex: str):
@@ -209,7 +225,7 @@ def find_chapter_ranges(tex: str):
     return chapters
 
 # ----------------------
-# Parsing 
+# Parsing
 # ----------------------
 
 def parse_latex_structure(tex, selected_canonicals):
@@ -233,15 +249,21 @@ def parse_latex_structure(tex, selected_canonicals):
             canon = canonical_of_env(env)
 
             if (canon is not None) and (canon in selected_canonicals):
-                my_index = order_counter; order_counter += 1
+                my_index = order_counter
+                order_counter += 1
                 last_stmt_idx = my_index
 
-                s = n.latex_verbatim()
+                try:
+                    snippet = tex[n.pos:n.pos_end]
+                except Exception:
+                    snippet = n.latex_verbatim()
+
+                s = snippet
                 m = LABEL_RX.search(s)
                 lbl = m.group(1) if m else None
                 label = lbl if lbl else f"{env}:{my_index}"
 
-                ni = NodeInfo(canon=canon, env=env, label=label, index=my_index)
+                ni = NodeInfo(canon=canon, env=env, label=label, index=my_index, snippet=snippet)
                 nodes.append(ni)
                 node_by_index[my_index] = ni
                 if lbl:
@@ -253,7 +275,8 @@ def parse_latex_structure(tex, selected_canonicals):
                         uses_on_node[my_index].extend(labels)
 
             elif PROOF_ALIAS_RX.fullmatch(env or ""):
-                my_index = order_counter; order_counter += 1
+                my_index = order_counter
+                order_counter += 1
                 s = n.latex_verbatim()
 
                 pm = PROVES_RX.search(s)
@@ -297,6 +320,7 @@ def build_graph(nodes, node_by_index, label_to_node, uses_on_node, proofs):
 
     for ni in nodes:
         k = ni.canon
+        # URL forces Graphviz to emit map areas (cmapx)
         G.add_node(
             ni.label,
             label=ni.label.split(":")[-1],
@@ -304,6 +328,8 @@ def build_graph(nodes, node_by_index, label_to_node, uses_on_node, proofs):
             style="filled",
             color=BORDERCOLOR.get(k, "black"),
             fillcolor=FILLCOLOR.get(k, "white"),
+            URL=ni.label,
+            tooltip=ni.label,
         )
 
     for idx, labels in uses_on_node.items():
@@ -334,11 +360,16 @@ def build_graph(nodes, node_by_index, label_to_node, uses_on_node, proofs):
 # ----------------------
 # GUI
 # ----------------------
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("KnowTeX: Knowledge Dependency from TeX")
-        self.geometry("1100x750")
+        # Start maximized (platform-aware)
+        try:
+            self.state("zoomed")      # Windows
+        except tk.TclError:
+            self.attributes("-zoomed", True)   # Linux
 
         if _IMPORT_ERROR:
             messagebox.showerror(
@@ -351,14 +382,11 @@ class App(tk.Tk):
 
         self.tex_path = tk.StringVar()
         self.nonreduced = tk.BooleanVar(value=False)
-
         self.canon_vars = {canon: tk.BooleanVar(value=True) for canon in CANONICAL_ORDER}
 
-        # NEW: storage
-        self._chapter_ranges = None           # list[(start,end)] in expanded text, or None if no chapters
-        self._filtered_tex = None             # actual text we parse (subset of expanded)
+        self._chapter_ranges = None
+        self._filtered_tex = None
 
-        # Top controls
         top = ttk.Frame(self, padding=8)
         top.pack(fill="x")
         ttk.Label(top, text="Main .tex file:").pack(side="left")
@@ -366,7 +394,6 @@ class App(tk.Tk):
         ttk.Button(top, text="Browse…", command=self.browse_tex).pack(side="left")
         ttk.Checkbutton(top, text="Keep all edges (nonreduced)", variable=self.nonreduced).pack(side="left", padx=12)
 
-        # Category selection
         envs_frame = ttk.LabelFrame(self, text="Include categories", padding=8)
         envs_frame.pack(fill="x", padx=8, pady=8)
         labels = {
@@ -380,20 +407,19 @@ class App(tk.Tk):
             "remark": "Remark",
         }
         for i, canon in enumerate(CANONICAL_ORDER):
-            ttk.Checkbutton(envs_frame, text=labels[canon], variable=self.canon_vars[canon]).grid(row=0, column=i, padx=6, pady=2, sticky="w")
+            ttk.Checkbutton(envs_frame, text=labels[canon], variable=self.canon_vars[canon]).grid(
+                row=0, column=i, padx=6, pady=2, sticky="w"
+            )
 
-        # Actions
         btns = ttk.Frame(self, padding=8)
         btns.pack(fill="x")
         ttk.Button(btns, text="Scan", command=self.scan).pack(side="left")
         ttk.Button(btns, text="Generate DOT + TikZ", command=self.generate).pack(side="left", padx=8)
         ttk.Button(btns, text="Preview", command=self.preview).pack(side="left")
 
-        # Status
         self.status = tk.StringVar(value="Ready.")
         ttk.Label(self, textvariable=self.status, relief="sunken", anchor="w").pack(fill="x", side="bottom")
 
-        # Preview area
         self.preview_frame = ttk.Frame(self, padding=8)
         self.preview_frame.pack(fill="both", expand=True)
 
@@ -404,36 +430,63 @@ class App(tk.Tk):
         ttk.Button(toolbar, text="Fit", command=self._zoom_fit).pack(side="left", padx=(8,0))
         ttk.Button(toolbar, text="100%", command=self._zoom_reset).pack(side="left")
 
-        self.canvas = tk.Canvas(self.preview_frame, bg="#fafafa")
-        xscroll = ttk.Scrollbar(self.preview_frame, orient="horizontal", command=self.canvas.xview)
-        yscroll = ttk.Scrollbar(self.preview_frame, orient="vertical", command=self.canvas.yview)
+        pw = ttk.Panedwindow(self.preview_frame, orient="horizontal")
+        pw.pack(fill="both", expand=True)
+
+        canvas_frame = ttk.Frame(pw)
+        info_frame = ttk.Frame(pw, padding=8)
+        pw.add(canvas_frame, weight=4)
+        pw.add(info_frame, weight=1)
+
+        self.canvas = tk.Canvas(canvas_frame, bg="#fafafa")
+        xscroll = ttk.Scrollbar(canvas_frame, orient="horizontal", command=self.canvas.xview)
+        yscroll = ttk.Scrollbar(canvas_frame, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(xscrollcommand=xscroll.set, yscrollcommand=yscroll.set)
         self.canvas.pack(fill="both", expand=True, side="left")
         yscroll.pack(side="right", fill="y")
         xscroll.pack(side="bottom", fill="x")
 
-        # cache + preview state
+        ttk.Label(info_frame, text="Selection").pack(anchor="w")
+        self.info_title = tk.StringVar(value="Click a node")
+        ttk.Label(info_frame, textvariable=self.info_title, wraplength=260).pack(anchor="w", pady=(2,8))
+
+        self.info_text = tk.Text(info_frame, height=30, wrap="word")
+        self.info_text.pack(fill="both", expand=True)
+        self.info_text.insert("1.0", "No node selected.\n")
+        self.info_text.configure(state="disabled")
+
         self._photo = None
         self._expanded_tex = None
-        self._graph = None
         self._nodes = None
         self._node_by_index = None
         self._label_to_node = None
         self._uses_on_node = None
         self._proofs = None
 
-        # zoom/pan
+        self._label_to_info = {}
+        self._rev_uses = defaultdict(set)
+        self._rev_proof = defaultdict(set)
+
+        # Click map from Graphviz cmapx
+        # list of dicts: {"label": ..., "shape": "poly"/"rect"/"circle", "coords": [...]}
+        self._map_areas = []
+
+        self._mouse_down = None
+        self._highlight_item = None
+
         self._base_pil = None
         self._zoom = 1.0
         self._img_item = None
 
-        # mouse
         self.canvas.bind("<ButtonPress-1>", self._pan_start)
         self.canvas.bind("<B1-Motion>", self._pan_move)
         self.canvas.bind("<Control-MouseWheel>", self._on_wheel)
         self.canvas.bind("<Command-MouseWheel>", self._on_wheel)
         self.canvas.bind("<Control-Button-4>", lambda e: self._wheel_compat(+120))
         self.canvas.bind("<Control-Button-5>", lambda e: self._wheel_compat(-120))
+
+        self.canvas.bind("<ButtonPress-1>", self._on_mouse_down, add="+")
+        self.canvas.bind("<ButtonRelease-1>", self._on_mouse_up, add="+")
 
     def browse_tex(self):
         path = filedialog.askopenfilename(
@@ -459,7 +512,6 @@ class App(tk.Tk):
             messagebox.showerror("Error while expanding", str(e))
             return None
 
-    # ------------- Chapter chooser -------------
     def _choose_chapters_from_tex(self, expanded_tex: str):
         chapters = find_chapter_ranges(expanded_tex)
         if not chapters:
@@ -528,7 +580,6 @@ class App(tk.Tk):
 
         self._chapter_ranges = self._choose_chapters_from_tex(expanded)
         if self._chapter_ranges is None:
-            # No chapters found
             self._filtered_tex = expanded
             self.status.set("No chapters found; scanning whole document…")
         else:
@@ -560,10 +611,34 @@ class App(tk.Tk):
         self._uses_on_node = uses_on_node
         self._proofs = proofs
 
+        self._label_to_info = {ni.label: ni for ni in nodes}
+
+        self._rev_uses = defaultdict(set)
+        for idx, labels in uses_on_node.items():
+            tgt = node_by_index.get(idx)
+            if not tgt:
+                continue
+            for lbl in labels:
+                src = label_to_node.get(lbl)
+                if src:
+                    self._rev_uses[src.label].add(tgt.label)
+
+        self._rev_proof = defaultdict(set)
+        for p in proofs:
+            tgt_idx = p.get("target_node_idx")
+            if tgt_idx is None:
+                continue
+            tgt = node_by_index.get(tgt_idx)
+            if not tgt:
+                continue
+            for lbl in p.get("uses", []):
+                src = label_to_node.get(lbl)
+                if src:
+                    self._rev_proof[src.label].add(tgt.label)
+
         counts = defaultdict(int)
         for n in nodes:
             counts[n.canon] += 1
-        pretty = []
         display_names = {
             "definition": "Definition",
             "theorem": "Theorem",
@@ -574,6 +649,7 @@ class App(tk.Tk):
             "example": "Example",
             "remark": "Remark",
         }
+        pretty = []
         selected = self._selected_canonicals()
         for canon in CANONICAL_ORDER:
             if canon in selected:
@@ -601,10 +677,34 @@ class App(tk.Tk):
             self._nodes, self._node_by_index = nodes, node_by_index
             self._label_to_node, self._uses_on_node, self._proofs = label_to_node, uses_on_node, proofs
 
+            self._label_to_info = {ni.label: ni for ni in nodes}
+            self._rev_uses = defaultdict(set)
+            for idx, labels in uses_on_node.items():
+                tgt = node_by_index.get(idx)
+                if not tgt:
+                    continue
+                for lbl in labels:
+                    src = label_to_node.get(lbl)
+                    if src:
+                        self._rev_uses[src.label].add(tgt.label)
+
+            self._rev_proof = defaultdict(set)
+            for p in proofs:
+                tgt_idx = p.get("target_node_idx")
+                if tgt_idx is None:
+                    continue
+                tgt = node_by_index.get(tgt_idx)
+                if not tgt:
+                    continue
+                for lbl in p.get("uses", []):
+                    src = label_to_node.get(lbl)
+                    if src:
+                        self._rev_proof[src.label].add(tgt.label)
+
         try:
             G = build_graph(self._nodes, self._node_by_index, self._label_to_node, self._uses_on_node, self._proofs)
             if not self.nonreduced.get():
-                G = G.tred()
+                G.tred()
             return G
         except Exception as e:
             messagebox.showerror("Graph error", str(e))
@@ -617,7 +717,6 @@ class App(tk.Tk):
 
         base_dir = os.path.dirname(os.path.abspath(self.tex_path.get()))
 
-        # --- Ask user for custom base name ---
         from tkinter import simpledialog
         base_name = simpledialog.askstring(
             "Output file name",
@@ -625,7 +724,7 @@ class App(tk.Tk):
             initialvalue="dep_graph"
         )
         if not base_name:
-            return  # user cancelled
+            return
 
         dot_path  = os.path.join(base_dir, f"{base_name}.dot")
         tikz_path = os.path.join(base_dir, f"{base_name}.tex")
@@ -640,22 +739,31 @@ class App(tk.Tk):
             messagebox.showerror("Write error", str(e))
             return
 
-        self.status.set(f"DOT → {dot_path} • TikZ → {tikz_path}")
+        self.status.set(f"DOT -> {dot_path}  TikZ -> {tikz_path}")
         messagebox.showinfo("Generated", f"Wrote:\n{dot_path}\n{tikz_path}")
 
-
-    # ---------- ZOOMABLE PREVIEW ----------
+    # ---------- PREVIEW with Graphviz cmapx for accurate clicking ----------
     def preview(self):
         G = self._build_graph()
         if G is None:
             return
 
         try:
-            tmpdir = tempfile.gettempdir()
-            png_path = os.path.join(tmpdir, "dep_graph_preview.png")
+            # Fix dpi so PNG and map coordinates match
+            G.graph_attr["dpi"] = "96"
+
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+                png_path = f.name
+            with tempfile.NamedTemporaryFile(suffix=".cmapx", delete=False) as f:
+                map_path = f.name
+
+            # Draw both outputs from the same graph settings
             G.draw(png_path, prog="dot", format="png")
+            G.draw(map_path, prog="dot", format="cmapx")
         except Exception as e:
-            messagebox.showerror("Preview error", "Could not render preview. Ensure Graphviz is installed.\n\n" + str(e))
+            messagebox.showerror(
+                "Preview error",
+                "Could not render preview. Ensure Graphviz is installed.\n\n" + str(e))
             return
 
         if Image is None:
@@ -667,6 +775,31 @@ class App(tk.Tk):
         except Exception as e:
             messagebox.showerror("Preview error", f"Failed to load PNG into Tkinter:\n{e}")
             return
+
+        # Parse cmapx for exact clickable regions
+        self._map_areas = []
+        try:
+            text = open(map_path, "r", encoding="utf-8", errors="ignore").read()
+            # cmapx is HTML-ish; wrap into a root for XML parsing
+            # It typically looks like: <map id="G" name="G"> ... <area ... /> ... </map>
+            m = re.search(r"(<map\b.*?</map>)", text, flags=re.S | re.I)
+            if m:
+                map_xml = m.group(1)
+                root = ET.fromstring("<root>" + map_xml + "</root>")
+                for area in root.iter("area"):
+                    shape = (area.attrib.get("shape") or "").lower()
+                    coords_s = area.attrib.get("coords") or ""
+                    href = area.attrib.get("href") or ""
+                    title = area.attrib.get("title") or ""
+                    # We stored URL=label, so href should be that label
+                    lbl = href or title
+                    if not lbl or not coords_s:
+                        continue
+                    coords = [int(float(c)) for c in coords_s.split(",") if c.strip()]
+                    self._map_areas.append({"label": lbl, "shape": shape, "coords": coords})
+        except Exception:
+            # Fallback: no map; clicks will do nothing rather than be wrong
+            self._map_areas = []
 
         self._zoom = 1.0
         self._render_scaled(center=True)
@@ -686,6 +819,7 @@ class App(tk.Tk):
         if self._img_item is None:
             self.canvas.delete("all")
             self._img_item = self.canvas.create_image(0, 0, image=img, anchor="nw")
+            self._highlight_item = None
         else:
             self.canvas.itemconfigure(self._img_item, image=img)
 
@@ -701,6 +835,11 @@ class App(tk.Tk):
             by = (self.canvas.canvasy(cy)) / max(1, h)
             self.canvas.xview_moveto(max(0.0, min(1.0, bx - (self.canvas.winfo_width()/2)/max(1, w))))
             self.canvas.yview_moveto(max(0.0, min(1.0, by - (self.canvas.winfo_height()/2)/max(1, h))))
+
+        # Drop highlight on re-render
+        if self._highlight_item is not None:
+            self.canvas.delete(self._highlight_item)
+            self._highlight_item = None
 
     def _zoom_by(self, factor, pivot=None):
         new_zoom = self._zoom * factor
@@ -743,6 +882,146 @@ class App(tk.Tk):
         cx, cy = self.canvas.winfo_width()//2, self.canvas.winfo_height()//2
         self._zoom_by(factor, pivot=(cx, cy))
 
+    # ---------- click handlers ----------
+    def _on_mouse_down(self, event):
+        self._mouse_down = (event.x, event.y)
+
+    def _on_mouse_up(self, event):
+        if self._mouse_down is None:
+            return
+        x0, y0 = self._mouse_down
+        dx = abs(event.x - x0)
+        dy = abs(event.y - y0)
+        self._mouse_down = None
+        if dx > 4 or dy > 4:
+            return
+        self._handle_click(event)
+
+    def _handle_click(self, event):
+        if not self._map_areas:
+            return
+
+        ix = self.canvas.canvasx(event.x)
+        iy = self.canvas.canvasy(event.y)
+        x = ix / max(1e-9, self._zoom)
+        y = iy / max(1e-9, self._zoom)
+
+        hit = None
+        for area in self._map_areas:
+            shape = area["shape"]
+            coords = area["coords"]
+            if shape == "rect" and len(coords) >= 4:
+                l, t, r, b = coords[:4]
+                if l <= x <= r and t <= y <= b:
+                    hit = area["label"]
+                    break
+            elif shape == "circle" and len(coords) >= 3:
+                cx, cy, rad = coords[:3]
+                if (x - cx) * (x - cx) + (y - cy) * (y - cy) <= rad * rad:
+                    hit = area["label"]
+                    break
+            elif shape == "poly" and len(coords) >= 6:
+                pts = [(coords[i], coords[i+1]) for i in range(0, len(coords) - 1, 2)]
+                if point_in_poly(x, y, pts):
+                    hit = area["label"]
+                    break
+
+        if not hit:
+            return
+
+        ni = self._label_to_info.get(hit)
+        if ni:
+            messagebox.showinfo("Node", f"{ni.canon.title()}   {ni.label}")
+        else:
+            messagebox.showinfo("Node", hit)
+
+        self._update_info_panel(hit)
+        self._highlight_from_map(hit)
+
+    def _update_info_panel(self, label):
+        ni = self._label_to_info.get(label)
+        title = label if not ni else f"{ni.canon.title()}   {ni.label}"
+        self.info_title.set(title)
+
+        deps = []
+        if ni and self._uses_on_node is not None:
+            deps.extend(self._uses_on_node.get(ni.index, []))
+
+        proof_deps = []
+        if ni and self._proofs is not None:
+            for p in self._proofs:
+                if p.get("target_node_idx") == ni.index:
+                    proof_deps.extend(p.get("uses", []))
+
+        used_by = sorted(self._rev_uses.get(label, set()) | self._rev_proof.get(label, set()))
+
+        snippet = ""
+        if ni and ni.snippet:
+            snippet = ni.snippet.strip()
+
+        lines = []
+        if deps:
+            lines.append("Depends on (uses):")
+            lines.extend([f"  - {x}" for x in sorted(set(deps))])
+            lines.append("")
+        if proof_deps:
+            lines.append("Proof uses:")
+            lines.extend([f"  - {x}" for x in sorted(set(proof_deps))])
+            lines.append("")
+        if used_by:
+            lines.append("Used by:")
+            lines.extend([f"  - {x}" for x in used_by])
+            lines.append("")
+        if snippet:
+            lines.append("LaTeX snippet:")
+            lines.append(snippet)
+            lines.append("")
+
+        if not lines:
+            lines = ["No extra info available.\n"]
+
+        self.info_text.configure(state="normal")
+        self.info_text.delete("1.0", "end")
+        self.info_text.insert("1.0", "\n".join(lines))
+        self.info_text.configure(state="disabled")
+
+    def _highlight_from_map(self, label):
+        # Find first matching area and highlight its bounding box
+        target = None
+        for area in self._map_areas:
+            if area["label"] == label:
+                target = area
+                break
+        if not target:
+            return
+
+        shape = target["shape"]
+        coords = target["coords"]
+
+        if shape == "rect" and len(coords) >= 4:
+            l, t, r, b = coords[:4]
+        elif shape == "circle" and len(coords) >= 3:
+            cx, cy, rad = coords[:3]
+            l, t, r, b = cx - rad, cy - rad, cx + rad, cy + rad
+        elif shape == "poly" and len(coords) >= 6:
+            xs = coords[0::2]
+            ys = coords[1::2]
+            l, r = min(xs), max(xs)
+            t, b = min(ys), max(ys)
+        else:
+            return
+
+        lz, tz, rz, bz = l * self._zoom, t * self._zoom, r * self._zoom, b * self._zoom
+
+        if self._highlight_item is not None:
+            try:
+                self.canvas.delete(self._highlight_item)
+            except Exception:
+                pass
+            self._highlight_item = None
+
+        self._highlight_item = self.canvas.create_rectangle(lz, tz, rz, bz, outline="red", width=3)
+
 # ----------------------
 # Entrypoint
 # ----------------------
@@ -753,4 +1032,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
