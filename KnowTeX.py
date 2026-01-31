@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# KnowTeX_clickable.py
+# KnowTeX.py
 
 import os
 import re
