@@ -1,0 +1,156 @@
+\documentclass{article}
+\usepackage[x11names, svgnames, rgb]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+\usepackage{amsmath}
+%
+%
+
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{0pt}%
+
+%
+
+\begin{document}
+\pagestyle{empty}
+%
+%
+%
+
+\enlargethispage{100cm}
+% Start of code
+\begin{tikzpicture}[>=latex',line join=bevel,]
+%%
+\node (def_group) at (949.32bp,1423.4bp) [draw=Purple,fill=Lavender,rectangle] {group};
+  \node (def_abelian) at (902.32bp,1257.4bp) [draw=Purple,fill=Lavender,rectangle] {abelian};
+  \definecolor{fillcolor}{rgb}{0.93,0.85,0.77};
+  \node (ex_symmetric-group) at (104.32bp,512.37bp) [draw=Blue,fill=fillcolor,regular polygon, regular polygon sides=6] {symmetric group};
+  \node (prop_uniqueness) at (771.32bp,1257.4bp) [draw=Purple,fill=White,regular polygon, regular polygon sides=5] {uniqueness};
+  \node (prop_cancellation) at (214.32bp,911.04bp) [draw=Purple,fill=White,regular polygon, regular polygon sides=5] {cancellation};
+  \node (def_order) at (1085.3bp,1133.1bp) [draw=Purple,fill=Lavender,rectangle] {order};
+  \node (def_subgroup) at (996.32bp,1257.4bp) [draw=Purple,fill=Lavender,rectangle] {subgroup};
+  \node (def_homo) at (1559.3bp,672.06bp) [draw=Purple,fill=Lavender,rectangle] {homo};
+  \node (def_direct-product) at (1755.3bp,1257.4bp) [draw=Purple,fill=Lavender,rectangle] {direct product};
+  \definecolor{fillcolor}{rgb}{0.93,0.85,0.77};
+  \node (ex_integers) at (591.32bp,1133.1bp) [draw=Blue,fill=fillcolor,regular polygon, regular polygon sides=6] {integers};
+  \node (thm_cayley) at (236.32bp,377.38bp) [draw=Blue,fill=Lavender,circle, double] {cayley};
+  \node (thm_lagrange) at (375.32bp,672.06bp) [draw=Blue,fill=Lavender,circle, double] {lagrange};
+  \node (thm_cyclic-subgroup-order) at (430.32bp,911.04bp) [draw=Blue,fill=Lavender,circle, double] {cyclic subgroup order};
+  \node (def_quotient) at (1177.3bp,911.04bp) [draw=Purple,fill=Lavender,rectangle] {quotient};
+  \node (def_sylow) at (1379.3bp,512.37bp) [draw=Purple,fill=Lavender,rectangle] {sylow};
+  \node (def_cyclic-subgroup) at (1381.3bp,911.04bp) [draw=Purple,fill=Lavender,rectangle] {cyclic subgroup};
+  \node (def_coset) at (996.32bp,1133.1bp) [draw=Purple,fill=Lavender,rectangle] {coset};
+  \node (def_normal) at (1169.3bp,1133.1bp) [draw=Purple,fill=Lavender,rectangle] {normal};
+  \node (prop_subgroup-test) at (858.32bp,1133.1bp) [draw=Purple,fill=White,regular polygon, regular polygon sides=5] {subgroup test};
+  \node (thm_cyclic-classification) at (1327.3bp,175.44bp) [draw=Blue,fill=Lavender,circle, double] {cyclic classification};
+  \node (thm_iso-1) at (837.32bp,512.37bp) [draw=Blue,fill=Lavender,circle, double] {iso 1};
+  \node (thm_sylow-thm) at (1525.3bp,377.38bp) [draw=Blue,fill=Lavender,circle, double] {sylow thm};
+  \definecolor{fillcolor}{rgb}{0.93,0.85,0.77};
+  \node (ex_sylow-15) at (1591.3bp,18.0bp) [draw=Blue,fill=fillcolor,regular polygon, regular polygon sides=6] {sylow 15};
+  \node (thm_direct-order) at (1830.3bp,1133.1bp) [draw=Blue,fill=Lavender,circle, double] {direct order};
+  \definecolor{fillcolor}{rgb}{0.93,0.85,0.77};
+  \node (ex_nZ) at (591.32bp,911.04bp) [draw=Blue,fill=fillcolor,regular polygon, regular polygon sides=6] {nZ};
+  \definecolor{fillcolor}{rgb}{0.85,0.65,0.85};
+  \node (cor_order-divides) at (511.32bp,512.37bp) [draw=Blue,fill=fillcolor,ellipse] {order divides};
+  \definecolor{fillcolor}{rgb}{0.93,0.85,0.77};
+  \node (ex_Z-mod-n) at (1381.3bp,672.06bp) [draw=Blue,fill=fillcolor,regular polygon, regular polygon sides=6] {Z mod n};
+  \node (thm_iso-2) at (993.32bp,377.38bp) [draw=Blue,fill=Lavender,circle, double] {iso 2};
+  \node (thm_iso-3) at (884.32bp,377.38bp) [draw=Blue,fill=Lavender,circle, double] {iso 3};
+  \node (thm_cyclic-subgroup) at (1220.3bp,672.06bp) [draw=Blue,fill=Lavender,circle, double] {cyclic subgroup};
+  \node (thm_Zm-Zn) at (1659.3bp,175.44bp) [draw=Blue,fill=Lavender,circle, double] {Zm Zn};
+  \node (lem_coset-equality) at (743.32bp,911.04bp) [draw=Blue,fill=SkyBlue,diamond] {coset equality};
+  \node (prop_normal-equiv) at (994.32bp,911.04bp) [draw=Purple,fill=White,regular polygon, regular polygon sides=5] {normal equiv};
+  \definecolor{fillcolor}{rgb}{0.85,0.65,0.85};
+  \node (cor_sylow-normal) at (1523.3bp,175.44bp) [draw=Blue,fill=fillcolor,ellipse] {sylow normal};
+  \node (prop_ker-normal) at (790.32bp,672.06bp) [draw=Purple,fill=White,regular polygon, regular polygon sides=5] {ker normal};
+  \definecolor{fillcolor}{rgb}{0.85,0.65,0.85};
+  \node (cor_euler-phi) at (1327.3bp,18.0bp) [draw=Blue,fill=fillcolor,ellipse] {euler phi};
+  \definecolor{fillcolor}{rgb}{0.93,0.85,0.77};
+  \node (ex_normal-examples) at (591.32bp,672.06bp) [draw=Blue,fill=fillcolor,regular polygon, regular polygon sides=6] {normal examples};
+  \definecolor{fillcolor}{rgb}{0.85,0.65,0.85};
+  \node (cor_prime-cyclic) at (727.32bp,377.38bp) [draw=Blue,fill=fillcolor,ellipse] {prime cyclic};
+  \definecolor{fillcolor}{rgb}{0.85,0.65,0.85};
+  \node (cor_fermat-euler) at (439.32bp,377.38bp) [draw=Blue,fill=fillcolor,ellipse] {fermat euler};
+  \node (def_p-subgroup) at (575.32bp,377.38bp) [draw=Purple,fill=Lavender,rectangle] {p subgroup};
+  \node (rem_well-defined) at (962.32bp,672.06bp) [draw=Blue,fill=Pink,regular polygon, regular polygon sides=6] {well defined};
+  \node (def_kernel-image) at (1052.3bp,1423.4bp) [draw=Purple,fill=Lavender,rectangle] {kernel image};
+  \node (__legend__) at (1199.3bp,1423.4bp) [draw,draw=none] {<<<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">><<TR>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="10">>corollary<</FONT>><</TD>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="9">>ellipse<</FONT>><</TD>><<TD BGCOLOR="\#d9a6d9" BORDER="1" COLOR="Blue">><</TD>><</TR>><<TR>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="10">>definition<</FONT>><</TD>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="9">>box<</FONT>><</TD>><<TD BGCOLOR="Lavender" BORDER="1" COLOR="Purple">><</TD>><</TR>><<TR>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="10">>example<</FONT>><</TD>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="9">>hexagon<</FONT>><</TD>><<TD BGCOLOR="\#eed9c4" BORDER="1" COLOR="Blue">><</TD>><</TR>><<TR>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="10">>lemma<</FONT>><</TD>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="9">>diamond<</FONT>><</TD>><<TD BGCOLOR="SkyBlue" BORDER="1" COLOR="Blue">><</TD>><</TR>><<TR>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="10">>proposition<</FONT>><</TD>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="9">>pentagon<</FONT>><</TD>><<TD BGCOLOR="White" BORDER="1" COLOR="Purple">><</TD>><</TR>><<TR>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="10">>remark<</FONT>><</TD>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="9">>hexagon<</FONT>><</TD>><<TD BGCOLOR="Pink" BORDER="1" COLOR="Blue">><</TD>><</TR>><<TR>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="10">>theorem<</FONT>><</TD>><<TD ALIGN="LEFT">><<FONT POINT-SIZE="9">>doublecircle<</FONT>><</TD>><<TD BGCOLOR="Lavender" BORDER="1" COLOR="Blue">><</TD>><</TR>><<TR>><<TD COLSPAN="3">><<FONT POINT-SIZE="6">><</FONT>><</TD>><</TR>><<TR>><<TD ALIGN="LEFT" COLSPAN="3">><<FONT POINT-SIZE="9">>\&\#8212;\&\#8212; solid = from proof<</FONT>><</TD>><</TR>><<TR>><<TD ALIGN="LEFT" COLSPAN="3">><<FONT POINT-SIZE="9">>- - - dashed = from statement<</FONT>><</TD>><</TR>><<TR>><<TD ALIGN="LEFT" COLSPAN="3">><<FONT POINT-SIZE="9">>\&\#183;\&\#183;\&\#183;\&\#183; dotted = heuristic<</FONT>><</TD>><</TR>><</TABLE>>>>};
+  \draw [-stealth',dashed] (def_group) ..controls (936.18bp,1376.6bp) and (919.69bp,1319.0bp)  .. (def_abelian);
+  \draw [-stealth',dashed] (def_group) ..controls (770.18bp,1400.9bp) and (104.32bp,1310.2bp)  .. (104.32bp,1134.1bp) .. controls (104.32bp,1134.1bp) and (104.32bp,1134.1bp)  .. (104.32bp,910.04bp) .. controls (104.32bp,771.05bp) and (104.32bp,604.67bp)  .. (ex_symmetric-group);
+  \draw [-stealth',dashed] (def_group) ..controls (897.91bp,1375.1bp) and (830.47bp,1312.9bp)  .. (prop_uniqueness);
+  \draw [-stealth',dashed] (def_group) ..controls (848.95bp,1378.5bp) and (665.79bp,1294.8bp)  .. (525.32bp,1203.4bp) .. controls (420.21bp,1135.1bp) and (393.71bp,1115.8bp)  .. (305.32bp,1026.8bp) .. controls (276.58bp,997.92bp) and (248.15bp,960.2bp)  .. (prop_cancellation);
+  \draw [-stealth',dashed] (def_group) ..controls (955.64bp,1381.8bp) and (965.57bp,1339.5bp)  .. (988.32bp,1311.4bp) .. controls (1007.6bp,1287.5bp) and (1028.9bp,1300.0bp)  .. (1047.3bp,1275.4bp) .. controls (1072.5bp,1241.7bp) and (1081.0bp,1192.5bp)  .. (def_order);
+  \draw [-stealth',dashed] (def_group) ..controls (962.46bp,1376.6bp) and (978.94bp,1319.0bp)  .. (def_subgroup);
+  \draw [-stealth',dashed] (def_group) ..controls (953.83bp,1381.4bp) and (962.69bp,1337.5bp)  .. (988.32bp,1311.4bp) .. controls (1000.4bp,1299.1bp) and (1264.4bp,1212.0bp)  .. (1279.3bp,1203.4bp) .. controls (1386.5bp,1141.8bp) and (1431.5bp,1133.4bp)  .. (1494.3bp,1026.8bp) .. controls (1557.9bp,918.98bp) and (1561.7bp,763.11bp)  .. (def_homo);
+  \draw [-stealth',dashed] (def_group) ..controls (951.48bp,1379.9bp) and (958.72bp,1333.6bp)  .. (988.32bp,1311.4bp) .. controls (1050.1bp,1265.2bp) and (1605.0bp,1286.1bp)  .. (1681.3bp,1275.4bp) .. controls (1682.8bp,1275.2bp) and (1684.3bp,1275.0bp)  .. (def_direct-product);
+  \draw [-stealth',dashed] (def_abelian) ..controls (865.24bp,1241.3bp) and (862.24bp,1240.3bp)  .. (859.32bp,1239.4bp) .. controls (787.52bp,1217.6bp) and (763.35bp,1232.9bp)  .. (694.32bp,1203.4bp) .. controls (667.09bp,1191.8bp) and (639.42bp,1172.7bp)  .. (ex_integers);
+  \draw [-stealth',dotted] (ex_symmetric-group) ..controls (140.63bp,474.78bp) and (172.81bp,442.36bp)  .. (thm_cayley);
+  \draw [-stealth',solid] (prop_cancellation) ..controls (217.58bp,831.28bp) and (229.17bp,551.19bp)  .. (thm_cayley);
+  \draw [-stealth',solid] (prop_cancellation) ..controls (245.52bp,864.11bp) and (300.9bp,782.59bp)  .. (thm_lagrange);
+  \draw [-stealth',dashed] (def_order) ..controls (1069.0bp,1098.6bp) and (1053.6bp,1074.4bp)  .. (1032.3bp,1062.8bp) .. controls (938.86bp,1012.2bp) and (652.85bp,1069.1bp)  .. (555.32bp,1026.8bp) .. controls (541.57bp,1020.9bp) and (528.35bp,1012.7bp)  .. (thm_cyclic-subgroup-order);
+  \draw [-stealth',dashed] (def_order) ..controls (1108.6bp,1076.5bp) and (1147.2bp,984.14bp)  .. (def_quotient);
+  \draw [-stealth',dashed] (def_order) ..controls (1096.8bp,1098.7bp) and (1108.5bp,1074.9bp)  .. (1127.3bp,1062.8bp) .. controls (1189.0bp,1023.5bp) and (1403.3bp,1079.2bp)  .. (1454.3bp,1026.8bp) .. controls (1522.9bp,956.34bp) and (1520.7bp,672.64bp)  .. (1476.3bp,584.87bp) .. controls (1463.9bp,560.36bp) and (1438.8bp,542.19bp)  .. (def_sylow);
+  \draw [-stealth',dashed] (def_subgroup) ..controls (951.17bp,1241.0bp) and (948.21bp,1240.2bp)  .. (945.32bp,1239.4bp) .. controls (862.57bp,1217.9bp) and (828.18bp,1249.8bp)  .. (756.32bp,1203.4bp) .. controls (692.09bp,1162.0bp) and (718.24bp,1109.0bp)  .. (657.32bp,1062.8bp) .. controls (619.0bp,1033.8bp) and (596.52bp,1051.6bp)  .. (555.32bp,1026.8bp) .. controls (542.9bp,1019.4bp) and (530.65bp,1010.5bp)  .. (thm_cyclic-subgroup-order);
+  \draw [-stealth',dashed] (def_subgroup) ..controls (1085.4bp,1252.7bp) and (1161.0bp,1241.8bp)  .. (1212.3bp,1203.4bp) .. controls (1305.1bp,1133.9bp) and (1355.5bp,997.43bp)  .. (def_cyclic-subgroup);
+  \draw [-stealth',dashed] (def_subgroup) ..controls (996.32bp,1219.3bp) and (996.32bp,1185.4bp)  .. (def_coset);
+  \draw [-stealth',dashed] (def_subgroup) ..controls (1064.6bp,1237.1bp) and (1097.8bp,1223.5bp)  .. (1122.3bp,1203.4bp) .. controls (1136.6bp,1191.7bp) and (1148.3bp,1174.5bp)  .. (def_normal);
+  \draw [-stealth',solid] (def_subgroup) ..controls (952.56bp,1217.6bp) and (909.96bp,1179.9bp)  .. (prop_subgroup-test);
+  \draw [-stealth',dashed] (def_homo) ..controls (1524.0bp,595.72bp) and (1432.6bp,400.88bp)  .. (thm_cyclic-classification);
+  \draw [-stealth',dashed] (def_homo) ..controls (1535.7bp,633.76bp) and (1510.5bp,600.58bp)  .. (1479.3bp,584.87bp) .. controls (1374.7bp,532.17bp) and (1013.5bp,517.87bp)  .. (thm_iso-1);
+  \draw [-stealth',dashed] (def_homo) ..controls (1552.8bp,615.12bp) and (1541.5bp,517.63bp)  .. (thm_sylow-thm);
+  \draw [-stealth',dashed] (def_direct-product) ..controls (1747.8bp,1189.0bp) and (1732.3bp,1037.9bp)  .. (1732.3bp,912.04bp) .. controls (1732.3bp,912.04bp) and (1732.3bp,912.04bp)  .. (1732.3bp,376.38bp) .. controls (1732.3bp,240.84bp) and (1791.1bp,182.97bp)  .. (1713.3bp,72.0bp) .. controls (1697.9bp,50.066bp) and (1671.4bp,37.127bp)  .. (ex_sylow-15);
+  \draw [-stealth',dashed] (def_direct-product) ..controls (1771.9bp,1229.4bp) and (1780.1bp,1216.0bp)  .. (thm_direct-order);
+  \draw [-stealth',dashed] (ex_integers) ..controls (562.42bp,1092.6bp) and (532.85bp,1052.2bp)  .. (thm_cyclic-subgroup-order);
+  \draw [-stealth',dashed] (ex_integers) ..controls (591.32bp,1076.8bp) and (591.32bp,985.3bp)  .. (ex_nZ);
+  \draw [-stealth',dashed] (thm_lagrange) ..controls (430.6bp,613.11bp) and (453.71bp,594.92bp)  .. (478.32bp,584.87bp) .. controls (498.61bp,576.57bp) and (1170.6bp,528.23bp)  .. (def_sylow);
+  \draw [-stealth',solid] (thm_lagrange) ..controls (420.87bp,613.82bp) and (433.45bp,598.56bp)  .. (445.32bp,584.87bp) .. controls (459.19bp,568.85bp) and (475.3bp,551.38bp)  .. (cor_order-divides);
+  \draw [-stealth',solid] (thm_cyclic-subgroup-order) ..controls (333.24bp,807.21bp) and (318.87bp,783.73bp)  .. (310.32bp,759.25bp) .. controls (284.76bp,686.08bp) and (265.63bp,648.19bp)  .. (310.32bp,584.87bp) .. controls (337.96bp,545.7bp) and (389.02bp,527.86bp)  .. (cor_order-divides);
+  \draw [-stealth',dashed] (def_quotient) ..controls (1220.9bp,865.44bp) and (1274.3bp,809.55bp)  .. (1316.3bp,759.25bp) .. controls (1332.8bp,739.52bp) and (1350.3bp,716.2bp)  .. (ex_Z-mod-n);
+  \draw [-stealth',dashed] (def_quotient) ..controls (1158.6bp,865.02bp) and (1136.7bp,808.79bp)  .. (1124.3bp,759.25bp) .. controls (1093.5bp,635.65bp) and (1135.9bp,590.99bp)  .. (1081.3bp,475.87bp) .. controls (1069.1bp,450.09bp) and (1047.8bp,426.22bp)  .. (thm_iso-2);
+  \draw [-stealth',dashed] (def_quotient) ..controls (1154.1bp,864.96bp) and (1126.1bp,808.68bp)  .. (1106.3bp,759.25bp) .. controls (1076.0bp,683.42bp) and (1087.2bp,656.7bp)  .. (1048.3bp,584.87bp) .. controls (1011.8bp,517.49bp) and (952.98bp,449.97bp)  .. (thm_iso-3);
+  \draw [-stealth',dashed] (def_sylow) ..controls (1416.7bp,477.33bp) and (1446.0bp,450.64bp)  .. (thm_sylow-thm);
+  \draw [-stealth',solid] (def_cyclic-subgroup) ..controls (1430.1bp,839.12bp) and (1530.4bp,673.72bp)  .. (1446.3bp,584.87bp) .. controls (1396.3bp,532.01bp) and (864.8bp,555.43bp)  .. (792.32bp,548.87bp) .. controls (720.36bp,542.35bp) and (638.44bp,531.62bp)  .. (cor_order-divides);
+  \draw [-stealth',dashed] (def_cyclic-subgroup) ..controls (1381.3bp,852.45bp) and (1381.3bp,749.93bp)  .. (ex_Z-mod-n);
+  \draw [-stealth',dashed] (def_cyclic-subgroup) ..controls (1350.0bp,863.99bp) and (1308.8bp,803.29bp)  .. (thm_cyclic-subgroup);
+  \draw [-stealth',dashed] (def_cyclic-subgroup) ..controls (1475.0bp,870.59bp) and (1556.9bp,825.99bp)  .. (1596.3bp,759.25bp) .. controls (1648.7bp,670.61bp) and (1657.6bp,358.08bp)  .. (thm_Zm-Zn);
+  \draw [-stealth',dashed] (def_coset) ..controls (1015.2bp,1099.6bp) and (1030.4bp,1077.5bp)  .. (1048.3bp,1062.8bp) .. controls (1077.3bp,1039.2bp) and (1098.0bp,1053.4bp)  .. (1124.3bp,1026.8bp) .. controls (1148.6bp,1002.3bp) and (1163.1bp,964.56bp)  .. (def_quotient);
+  \draw [-stealth',dashed] (def_coset) ..controls (984.87bp,1099.9bp) and (974.78bp,1077.9bp)  .. (960.32bp,1062.8bp) .. controls (937.98bp,1039.6bp) and (924.3bp,1044.5bp)  .. (897.32bp,1026.8bp) .. controls (850.4bp,996.1bp) and (798.66bp,956.2bp)  .. (lem_coset-equality);
+  \draw [-stealth',dashed] (def_coset) ..controls (995.81bp,1076.8bp) and (994.98bp,985.3bp)  .. (prop_normal-equiv);
+  \draw [-stealth',dashed] (def_normal) ..controls (1171.3bp,1076.8bp) and (1174.7bp,985.3bp)  .. (def_quotient);
+  \draw [-stealth',dashed] (def_normal) ..controls (1149.2bp,1100.7bp) and (1135.4bp,1080.1bp)  .. (1122.3bp,1062.8bp) .. controls (1086.6bp,1015.9bp) and (1041.2bp,964.0bp)  .. (prop_normal-equiv);
+  \draw [-stealth',solid] (def_normal) ..controls (1266.8bp,1123.3bp) and (1407.3bp,1101.2bp)  .. (1494.3bp,1026.8bp) .. controls (1595.8bp,940.18bp) and (1599.2bp,888.98bp)  .. (1630.3bp,759.25bp) .. controls (1676.5bp,566.63bp) and (1655.8bp,503.8bp)  .. (1596.3bp,314.88bp) .. controls (1583.1bp,272.97bp) and (1557.5bp,228.77bp)  .. (cor_sylow-normal);
+  \draw [-stealth',dashed] (prop_subgroup-test) ..controls (806.7bp,1103.9bp) and (762.06bp,1080.4bp)  .. (722.32bp,1062.8bp) .. controls (681.03bp,1044.6bp) and (658.3bp,1059.7bp)  .. (627.32bp,1026.8bp) .. controls (604.75bp,1002.9bp) and (596.32bp,964.97bp)  .. (ex_nZ);
+  \draw [-stealth',solid] (prop_subgroup-test) ..controls (893.94bp,1103.0bp) and (927.66bp,1077.9bp)  .. (960.32bp,1062.8bp) .. controls (1015.1bp,1037.5bp) and (1050.8bp,1071.6bp)  .. (1091.3bp,1026.8bp) .. controls (1161.3bp,949.38bp) and (1089.6bp,891.35bp)  .. (1130.3bp,795.25bp) .. controls (1137.4bp,778.57bp) and (1147.2bp,762.03bp)  .. (thm_cyclic-subgroup);
+  \draw [-stealth',solid] (prop_subgroup-test) ..controls (832.16bp,1082.1bp) and (780.62bp,983.43bp)  .. (lem_coset-equality);
+  \draw [-stealth',solid] (prop_subgroup-test) ..controls (868.85bp,1071.8bp) and (891.28bp,916.86bp)  .. (859.32bp,795.25bp) .. controls (849.49bp,757.85bp) and (825.32bp,719.86bp)  .. (prop_ker-normal);
+  \draw [-stealth',dashed] (thm_cyclic-classification) ..controls (1413.1bp,90.775bp) and (1427.1bp,80.423bp)  .. (1441.3bp,72.0bp) .. controls (1471.8bp,53.883bp) and (1509.5bp,40.601bp)  .. (ex_sylow-15);
+  \draw [-stealth',solid] (thm_cyclic-classification) ..controls (1327.3bp,62.521bp) and (1327.3bp,53.932bp)  .. (cor_euler-phi);
+  \draw [-stealth',solid] (thm_iso-1) ..controls (692.14bp,490.15bp) and (371.9bp,443.18bp)  .. (361.32bp,439.87bp) .. controls (334.32bp,431.43bp) and (305.89bp,417.86bp)  .. (thm_cayley);
+  \draw [-stealth',solid] (thm_iso-1) ..controls (884.93bp,476.08bp) and (908.97bp,457.47bp)  .. (929.32bp,439.87bp) .. controls (939.81bp,430.8bp) and (950.84bp,420.5bp)  .. (thm_iso-2);
+  \draw [-stealth',solid] (thm_iso-1) ..controls (855.22bp,460.72bp) and (862.63bp,439.75bp)  .. (thm_iso-3);
+  \draw [-stealth',solid] (thm_sylow-thm) ..controls (1524.3bp,277.69bp) and (1523.9bp,232.32bp)  .. (cor_sylow-normal);
+  \draw [-stealth',dashed] (ex_nZ) ..controls (591.32bp,852.45bp) and (591.32bp,749.93bp)  .. (ex_normal-examples);
+  \draw [-stealth',solid] (cor_order-divides) ..controls (564.05bp,481.33bp) and (601.39bp,459.66bp)  .. (633.32bp,439.87bp) .. controls (654.12bp,426.98bp) and (677.11bp,411.96bp)  .. (cor_prime-cyclic);
+  \draw [-stealth',solid] (cor_order-divides) ..controls (489.74bp,471.51bp) and (467.87bp,431.11bp)  .. (cor_fermat-euler);
+  \draw [-stealth',dashed] (cor_order-divides) ..controls (530.5bp,471.51bp) and (549.94bp,431.11bp)  .. (def_p-subgroup);
+  \draw [-stealth',dashed] (ex_Z-mod-n) ..controls (1365.0bp,630.74bp) and (1349.1bp,587.46bp)  .. (1342.3bp,548.87bp) .. controls (1327.1bp,462.75bp) and (1323.8bp,363.76bp)  .. (thm_cyclic-classification);
+  \draw [-stealth',dashed] (thm_Zm-Zn) ..controls (1629.5bp,106.18bp) and (1613.6bp,69.989bp)  .. (ex_sylow-15);
+  \draw [-stealth',solid] (lem_coset-equality) ..controls (714.01bp,869.35bp) and (673.87bp,819.95bp)  .. (627.32bp,795.25bp) .. controls (554.48bp,756.61bp) and (515.96bp,801.79bp)  .. (445.32bp,759.25bp) .. controls (432.18bp,751.34bp) and (420.44bp,740.02bp)  .. (thm_lagrange);
+  \draw [-stealth',solid] (lem_coset-equality) ..controls (713.73bp,869.88bp) and (673.35bp,820.91bp)  .. (627.32bp,795.25bp) .. controls (567.81bp,762.08bp) and (520.46bp,812.78bp)  .. (478.32bp,759.25bp) .. controls (430.38bp,698.35bp) and (429.16bp,644.78bp)  .. (478.32bp,584.87bp) .. controls (498.11bp,560.74bp) and (698.81bp,531.56bp)  .. (thm_iso-1);
+  \draw [-stealth',dashed] (prop_normal-equiv) ..controls (960.59bp,872.06bp) and (911.51bp,821.58bp)  .. (859.32bp,795.25bp) .. controls (796.56bp,763.6bp) and (768.96bp,789.1bp)  .. (705.32bp,759.25bp) .. controls (671.71bp,743.49bp) and (638.44bp,716.71bp)  .. (ex_normal-examples);
+  \draw [-stealth',solid] (prop_normal-equiv) ..controls (948.71bp,857.06bp) and (851.76bp,744.44bp)  .. (prop_ker-normal);
+  \draw [-stealth',dashed] (prop_normal-equiv) ..controls (987.33bp,858.27bp) and (972.89bp,751.32bp)  .. (rem_well-defined);
+  \draw [-stealth',dashed] (cor_sylow-normal) ..controls (1542.5bp,130.56bp) and (1565.7bp,77.666bp)  .. (ex_sylow-15);
+  \draw [-stealth',solid] (prop_ker-normal) ..controls (800.99bp,635.24bp) and (814.23bp,590.84bp)  .. (thm_iso-1);
+  \draw [-stealth',dashed] (cor_prime-cyclic) ..controls (774.49bp,346.96bp) and (808.12bp,327.68bp)  .. (839.32bp,314.88bp) .. controls (964.69bp,263.45bp) and (1115.7bp,223.83bp)  .. (thm_cyclic-classification);
+%
+\end{tikzpicture}
+% End of code
+
+%
+\end{document}
+%
+
+

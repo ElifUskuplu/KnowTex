@@ -1,0 +1,633 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{geometry}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=red!60!black,
+    urlcolor=blue
+}
+
+% ---- Theorem environments ----
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{lemma}[definition]{Lemma}
+
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
+
+% ---- Shortcuts ----
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\Aut}{\operatorname{Aut}}
+\newcommand{\Inn}{\operatorname{Inn}}
+\newcommand{\Ker}{\operatorname{Ker}}
+\newcommand{\Img}{\operatorname{Im}}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\normal}{\trianglelefteq}
+
+\title{\textbf{Fundamentals of Group Theory}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%=============================================================================
+\section{Basic Definitions}\label{sec:basics}
+%=============================================================================
+
+\begin{definition}[Group]\label{def:group}
+A set $G$ together with a binary operation $\cdot \colon G \times G \to G$ is called
+a \emph{group}, denoted $(G, \cdot)$, if the following three axioms hold:
+\begin{enumerate}
+    \item \textbf{Associativity:} For all $a,b,c \in G$,
+        \begin{equation}\label{eq:assoc}
+            (a \cdot b) \cdot c = a \cdot (b \cdot c).
+        \end{equation}
+    \item \textbf{Identity element:} There exists an element $e \in G$ such that for all $a \in G$,
+        \begin{equation}\label{eq:identity}
+            e \cdot a = a \cdot e = a.
+        \end{equation}
+    \item \textbf{Inverse element:} For each $a \in G$, there exists $a^{-1} \in G$ such that
+        \begin{equation}\label{eq:inverse}
+            a \cdot a^{-1} = a^{-1} \cdot a = e.
+        \end{equation}
+\end{enumerate}
+\end{definition}
+
+\begin{definition}[Abelian Group]\label{def:abelian}
+A group $(G, \cdot)$ is called \emph{abelian}
+(or \emph{commutative}) if $a \cdot b = b \cdot a$ for all $a, b \in G$.
+\end{definition}
+
+\begin{example}\label{ex:integers}
+$(\Z, +)$ is an abelian group under addition.
+The identity element in the sense of \cref{eq:identity} is $0$,
+and the inverse of any $n$ in the sense of \cref{eq:inverse} is $-n$.
+
+\end{example}
+
+\begin{example}\label{ex:symmetric-group}
+The \emph{symmetric group} $S_n$ is the group of all permutations
+of $\{1, 2, \dots, n\}$ under composition, with $|S_n| = n!$.
+\end{example}
+
+\begin{proposition}[Uniqueness of Identity and Inverses]\label{prop:uniqueness}
+In a group $(G, \cdot)$, the identity element guaranteed
+by \cref{eq:identity} is unique. Moreover, for each $a \in G$, the inverse
+$a^{-1}$ guaranteed by \cref{eq:inverse} is unique.
+\end{proposition}
+
+\begin{proof}
+Suppose $e$ and $e'$ both satisfy \cref{eq:identity}. Then
+$e = e \cdot e' = e'$.
+For uniqueness of inverses: if $b$ and $c$ both satisfy \cref{eq:inverse} for $a$, then
+$b = b \cdot e = b \cdot (a \cdot c) = (b \cdot a) \cdot c = e \cdot c = c$,
+where we used associativity \cref{eq:assoc} in the third step.
+\end{proof}
+
+\begin{proposition}[Cancellation Law]\label{prop:cancellation}
+Let $(G, \cdot)$ be a group and $a, b, c \in G$. Then:
+\begin{enumerate}
+    \item $a \cdot b = a \cdot c \implies b = c$ \quad (left cancellation),
+    \item $b \cdot a = c \cdot a \implies b = c$ \quad (right cancellation).
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+In both cases, multiply from the appropriate side by $a^{-1}$
+(\cref{eq:inverse}) and apply associativity (\cref{eq:assoc})
+together with the identity property (\cref{eq:identity}).
+\end{proof}
+
+\begin{definition}[Order of an Element]\label{def:order}
+Let $G$ be a group and $a \in G$. If there exists a positive
+integer $n$ such that $a^n = e$ (where $e$ is the identity from \cref{eq:identity}),
+the smallest such $n$ is called the \emph{order} of $a$, denoted $\ord(a) = n$.
+If no such $n$ exists, we say $a$ has infinite order.
+\end{definition}
+
+
+%=============================================================================
+\section{Subgroups}\label{sec:subgroups}
+%=============================================================================
+
+\begin{definition}[Subgroup]\label{def:subgroup}
+Let $(G, \cdot)$ be a group. A nonempty subset $H \subseteq G$
+is called a \emph{subgroup} of $G$, written $H \leq G$, if $H$ itself forms a group
+under the operation inherited from $G$. In particular, $H$ must satisfy all three
+axioms of groups with respect to $\cdot$.
+Every group has at least two subgroups: $\{e\}$ and $G$ itself.
+\end{definition}
+
+\begin{proposition}[Subgroup Test]\label{prop:subgroup-test}
+For a nonempty subset $H \subseteq G$, the following are equivalent:
+\begin{enumerate}
+    \item $H \leq G$ \quad (i.e., $H$ is a subgroup in the sense of \cref{def:subgroup}),
+    \item $a \cdot b^{-1} \in H$ for all $a, b \in H$ \quad (one-step test),
+    \item $a \cdot b \in H$ and $a^{-1} \in H$ for all $a, b \in H$ \quad (two-step test).
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+$(1) \Rightarrow (3)$: Immediate from \cref{def:subgroup}, since $H$ is a group
+and therefore closed under the operation and inversion (\cref{eq:inverse}).
+$(3) \Rightarrow (2)$: $b \in H \implies b^{-1} \in H$ by hypothesis, so
+$a \cdot b^{-1} \in H$ by closure.
+$(2) \Rightarrow (1)$: Pick $a \in H$ (nonempty). Then $e = a \cdot a^{-1} \in H$
+satisfies \cref{eq:identity}, and $a^{-1} = e \cdot a^{-1} \in H$ satisfies
+\cref{eq:inverse}. Associativity (\cref{eq:assoc}) is inherited from $G$.
+\end{proof}
+
+\begin{example}\label{ex:nZ}
+For every $n \in \Z^+$, the set $n\Z = \{nk : k \in \Z\}$ is a subgroup of
+the abelian group $(\Z, +)$ from \cref{ex:integers}.
+This is verified by the one-step test of \cref{prop:subgroup-test}: for any
+$na, nb \in n\Z$, we have $na - nb = n(a - b) \in n\Z$.
+The subgroups $n\Z$ are in fact the \emph{only} subgroups of $\Z$.
+\end{example}
+
+\begin{definition}[Cyclic Subgroup Generated by an Element]\label{def:cyclic-subgroup}
+Let $G$ be a group and $a \in G$. The set
+\begin{equation}\label{eq:generated}
+    \langle a \rangle = \{a^n : n \in \Z\}
+\end{equation}
+is a subgroup of $G$, called the \emph{cyclic subgroup
+generated by $a$}. If $G = \langle a \rangle$, we say $G$ is a \emph{cyclic group}.
+\end{definition}
+
+\begin{theorem}\label{thm:cyclic-subgroup-order}
+Let $G$ be a group and $a \in G$ with order $\ord(a)$.
+\begin{enumerate}
+    \item If $\ord(a) = n < \infty$, then the cyclic subgroup
+          satisfies $\langle a \rangle = \{e, a, a^2, \dots, a^{n-1}\}$
+          and $|\langle a \rangle| = n$.
+    \item If $\ord(a) = \infty$, then $\langle a \rangle \cong (\Z, +)$
+          (cf.\ \cref{ex:integers}).
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(1) If $a^i = a^j$ with $0 \leq i < j < n$, then $a^{j-i} = e$ with $0 < j - i < n$,
+contradicting $\ord(a) = n$.
+(2) The map $\varphi \colon \Z \to \langle a \rangle$, $k \mapsto a^k$ is a
+homomorphism with trivial kernel, hence injective.
+Since it is surjective by definition, it is an isomorphism.
+\end{proof}
+
+
+%=============================================================================
+\section{Lagrange's Theorem and Its Consequences}\label{sec:lagrange}
+%=============================================================================
+
+\begin{definition}[Coset]\label{def:coset}
+Let $G$ be a group, $H \leq G$ be a subgroup, and $a \in G$.
+The sets
+\begin{align}
+    aH &= \{a \cdot h : h \in H\}  \quad \text{(left coset)}, \label{eq:left-coset}\\
+    Ha &= \{h \cdot a : h \in H\}  \quad \text{(right coset)} \label{eq:right-coset}
+\end{align}
+are called the left and right \emph{cosets} of $H$ containing $a$.
+\end{definition}
+
+\begin{lemma}\label{lem:coset-equality}
+Let $H \leq G$ be a subgroup and $a, b \in G$.
+The following are equivalent:
+(i) $aH = bH$ (\cref{eq:left-coset}), \;
+(ii) $a^{-1}b \in H$, \;
+(iii) $aH \cap bH \neq \varnothing$.
+In particular, distinct left cosets are disjoint, so the cosets partition $G$.
+\end{lemma}
+
+\begin{proof}
+$(i) \Rightarrow (ii)$: If $aH = bH$, then $a = ae \in aH = bH$, so $a = bh$ for some
+$h \in H$, giving $b^{-1}a = h \in H$ and $a^{-1}b = h^{-1} \in H$ (using
+\cref{eq:inverse} and the fact that $H$ is closed under inversion by
+\cref{prop:subgroup-test}).
+The other implications follow by similar arguments.
+\end{proof}
+
+\begin{theorem}[Lagrange]\label{thm:lagrange}
+Let $G$ be a finite group and $H \leq G$ be a subgroup.
+Then $|H|$ divides $|G|$. More precisely,
+\begin{equation}\label{eq:lagrange}
+    |G| = [G : H] \cdot |H|
+\end{equation}
+where $[G : H]$ denotes the number of distinct left cosets of
+$H$ in $G$, called the \emph{index} of $H$ in $G$.
+\end{theorem}
+
+\begin{proof}
+By \cref{lem:coset-equality}, the left cosets partition $G$ into disjoint subsets.
+Each coset $aH$ has exactly $|H|$ elements: the map $H \to aH$, $h \mapsto ah$ is a
+bijection by the cancellation law (\cref{prop:cancellation}).
+Therefore \cref{eq:lagrange} follows.
+\end{proof}
+
+\begin{corollary}\label{cor:order-divides}
+If $G$ is a finite group and $a \in G$, then $\ord(a)$ divides $|G|$.
+\end{corollary}
+
+\begin{proof}
+By \cref{thm:cyclic-subgroup-order}, $|\langle a \rangle| = \ord(a)$, where
+$\langle a \rangle$ is the cyclic subgroup from \cref{def:cyclic-subgroup}.
+Since $\langle a \rangle \leq G$ (\cref{def:subgroup}), Lagrange's theorem
+(\cref{thm:lagrange}) gives $\ord(a) \mid |G|$.
+\end{proof}
+
+\begin{corollary}\label{cor:prime-cyclic}
+Every group of prime order is cyclic.
+\end{corollary}
+
+\begin{proof}
+Let $|G| = p$ (prime) and pick $a \in G$ with $a \neq e$ (\cref{eq:identity}).
+By \cref{cor:order-divides}, $\ord(a) \mid p$. Since $a \neq e$, we have
+$\ord(a) \neq 1$, so $\ord(a) = p$.
+Then $|\langle a \rangle| = p = |G|$ by \cref{thm:cyclic-subgroup-order},
+hence $G = \langle a \rangle$.
+\end{proof}
+
+\begin{corollary}[Fermat--Euler]\label{cor:fermat-euler}
+If $G$ is a finite group with $|G| = n$ and $a \in G$, then $a^n = e$.
+\end{corollary}
+
+\begin{proof}
+By \cref{cor:order-divides}, $\ord(a) = d \mid n$, so $n = dk$ for some
+$k \in \Z^+$. Then $a^n = (a^d)^k = e^k = e$, where $a^d = e$ follows from
+\cref{def:order}.
+\end{proof}
+
+
+%=============================================================================
+\section{Normal Subgroups and Quotient Groups}\label{sec:normal}
+%=============================================================================
+
+\begin{definition}[Normal Subgroup]\label{def:normal}
+Let $G$ be a group and $N \leq G$ be a subgroup. If
+\begin{equation}\label{eq:normal}
+    gNg^{-1} = N
+\end{equation}
+for every $g \in G$, then $N$ is called a \emph{normal subgroup} of $G$,
+written $N \normal G$.
+\end{definition}
+
+\begin{proposition}\label{prop:normal-equiv}
+For $N \leq G$ subgroup, the following are equivalent:
+\begin{enumerate}
+    \item $N \normal G$ (\cref{def:normal}),
+    \item $gN = Ng$ for all $g \in G$
+          (i.e., left and right cosets from coincide),
+    \item $gng^{-1} \in N$ for all $g \in G$ and $n \in N$
+          (closure under conjugation).
+\end{enumerate}
+Condition (3) is the form most commonly verified in practice.
+\end{proposition}
+
+\begin{proof}
+$(1) \Leftrightarrow (3)$: The set equality $gNg^{-1} = N$ in \cref{eq:normal}
+holds for all $g$ if and only if $gng^{-1} \in N$ for all $g$ and $n$
+(together with the reverse inclusion from $g^{-1}$).
+$(1) \Leftrightarrow (2)$: $gNg^{-1} = N$ is equivalent to $gN = Ng$
+(multiply \cref{eq:normal} by $g$ on the right).
+\end{proof}
+
+\begin{example}\label{ex:normal-examples}
+For any group $G$, the trivial subgroup $\{e\}$
+and $G$ itself are normal.
+Furthermore, in an abelian group, every subgroup is normal
+since $gng^{-1} = gg^{-1}n = n \in N$ for all $g, n$, so
+\cref{prop:normal-equiv}(3) is automatically satisfied.
+In particular, all subgroups $n\Z \leq \Z$ from \cref{ex:nZ} are normal.
+\end{example}
+
+\begin{definition}[Quotient Group]\label{def:quotient}
+Let $N \normal G$ be a normal subgroup. The set of left cosets
+\begin{equation}\label{eq:quotient-set}
+    G/N = \{aN : a \in G\}
+\end{equation}
+equipped with the operation
+\begin{equation}\label{eq:quotient-op}
+    (aN)(bN) = (ab)N
+\end{equation}
+forms a group called the \emph{quotient group} (or factor group).
+Its order satisfies $|G/N| = [G : N] = |G|/|N|$ by \cref{eq:lagrange}.
+The natural projection
+$\pi \colon G \to G/N$, $g \mapsto gN$, is a surjective homomorphism
+with $\Ker(\pi) = N$.
+\end{definition}
+
+\begin{remark}\label{rem:well-defined}
+The operation in \cref{eq:quotient-op} requires normality:
+if $aN = a'N$ and $bN = b'N$, we need $(ab)N = (a'b')N$.
+This uses $gN = Ng$ (\cref{prop:normal-equiv}(2)) to move elements of $N$
+past group elements. Without normality, the product would depend on
+the choice of coset representatives.
+\end{remark}
+
+\begin{example}\label{ex:Z-mod-n}
+Since $n\Z \normal \Z$ (\cref{ex:nZ,ex:normal-examples}), the quotient group
+\[
+    \Z / n\Z = \{\bar{0}, \bar{1}, \dots, \overline{n-1}\}
+\]
+is well-defined. It is a cyclic group of order $n$
+generated by $\bar{1}$.
+\end{example}
+
+
+%=============================================================================
+\section{Group Homomorphisms}\label{sec:homomorphisms}
+%=============================================================================
+
+\begin{definition}[Homomorphism]\label{def:homo}
+Let $(G, \cdot)$ and $(H, *)$ be groups.
+A function $\varphi \colon G \to H$ is called a \emph{group homomorphism} if
+for all $a, b \in G$,
+\begin{equation}\label{eq:homo}
+    \varphi(a \cdot b) = \varphi(a) * \varphi(b).
+\end{equation}
+A bijective homomorphism is called an \emph{isomorphism}; if such a map exists,
+we write $G \cong H$.
+\end{definition}
+
+\begin{definition}[Kernel and Image]\label{def:kernel-image}
+Let $\varphi \colon G \to H$ be a homomorphism.
+\begin{align}
+    \Ker(\varphi) &= \{g \in G : \varphi(g) = e_H\}, \label{eq:ker}\\
+    \Img(\varphi) &= \{\varphi(g) : g \in G\}. \label{eq:img}
+\end{align}
+The kernel measures the failure of $\varphi$ to be injective,
+while the image is the ``effective range'' of $\varphi$.
+\end{definition}
+
+\begin{proposition}\label{prop:ker-normal}
+Let $\varphi \colon G \to H$ be a homomorphism. Then:
+\begin{enumerate}
+    \item $\Ker(\varphi) \normal G$: the kernel (\cref{eq:ker}) is a normal subgroup
+          of $G$ (\cref{def:normal}).
+    \item $\Img(\varphi) \leq H$: the image (\cref{eq:img}) is a subgroup
+          of $H$.
+    \item $\varphi$ is injective $\iff$ $\Ker(\varphi) = \{e_G\}$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(1) We verify \cref{prop:normal-equiv}(3): for $n \in \Ker(\varphi)$ and $g \in G$,
+$\varphi(gng^{-1}) = \varphi(g)\varphi(n)\varphi(g)^{-1} = \varphi(g) e_H \varphi(g)^{-1} = e_H$,
+where $\varphi(n) = e_H$ by \cref{eq:ker} and we used \cref{eq:homo} twice.
+(2) The image is nonempty ($\varphi(e_G) = e_H$) and closed under the operation
+and inversion, so it passes the subgroup test (\cref{prop:subgroup-test}).
+(3) $(\Rightarrow)$: Clear. $(\Leftarrow)$: If $\varphi(a) = \varphi(b)$,
+then $\varphi(ab^{-1}) = e_H$ by \cref{eq:homo}, so $ab^{-1} \in \Ker(\varphi) = \{e_G\}$,
+giving $a = b$.
+\end{proof}
+
+\begin{theorem}[First Isomorphism Theorem]\label{thm:iso-1}
+If $\varphi \colon G \to H$ is a group homomorphism, then
+\begin{equation}\label{eq:iso-1}
+    G / \Ker(\varphi) \cong \Img(\varphi).
+\end{equation}
+That is, the quotient of $G$ by the kernel is isomorphic to the image.
+\end{theorem}
+
+\begin{proof}
+Let $K = \Ker(\varphi)$. Since $K \normal G$ by \cref{prop:ker-normal}(1),
+the quotient $G/K$ is a well-defined group (\cref{def:quotient,rem:well-defined}).
+Define $\bar{\varphi} \colon G/K \to \Img(\varphi)$ by $gK \mapsto \varphi(g)$.
+This is well-defined: if $gK = g'K$, then $g^{-1}g' \in K$ by
+\cref{lem:coset-equality}, so $\varphi(g) = \varphi(g')$.
+The map $\bar{\varphi}$ preserves the operation by \cref{eq:homo,eq:quotient-op}.
+It is injective since $\Ker(\bar{\varphi}) = \{K\}$ (\cref{prop:ker-normal}(3)),
+and surjective by definition of $\Img(\varphi)$ (\cref{eq:img}).
+\end{proof}
+
+\begin{theorem}[Second Isomorphism Theorem]\label{thm:iso-2}
+Let $G$ be a group, $H \leq G$ be a subgroup, and
+$N \normal G$ be normal. Then $HN \leq G$, $H \cap N \normal H$, and
+\begin{equation}\label{eq:iso-2}
+    H / (H \cap N) \cong HN / N.
+\end{equation}
+Both sides are quotient groups in the sense of \cref{def:quotient}.
+\end{theorem}
+
+\begin{proof}
+Define the homomorphism $\varphi \colon H \to HN/N$ by
+$h \mapsto hN$. Its image (\cref{eq:img}) is $HN/N$, and its kernel (\cref{eq:ker})
+is $H \cap N$. The result follows from the first isomorphism theorem (\cref{thm:iso-1}).
+\end{proof}
+
+\begin{theorem}[Third Isomorphism Theorem]\label{thm:iso-3}
+Let $G$ be a group with $K \normal N \normal G$ (then $K \normal G$ is also normal).
+Then $N/K \normal G/K$ and
+\begin{equation}\label{eq:iso-3}
+    (G/K) / (N/K) \cong G/N.
+\end{equation}
+All three quotients are groups in the sense of \cref{def:quotient}.
+\end{theorem}
+
+\begin{proof}
+The natural projection $\pi \colon G/K \to G/N$ defined by $gK \mapsto gN$ is a
+surjective homomorphism with $\Ker(\pi) = N/K$ (\cref{eq:ker}).
+The first isomorphism theorem (\cref{thm:iso-1}) yields the result.
+\end{proof}
+
+
+%=============================================================================
+\section{Cyclic Groups}\label{sec:cyclic}
+%=============================================================================
+
+\begin{theorem}\label{thm:cyclic-subgroup}
+Every subgroup of a cyclic group is cyclic.
+\end{theorem}
+
+\begin{proof}
+Let $G = \langle a \rangle$ (\cref{eq:generated}) and $H \leq G$ with $H \neq \{e\}$.
+Set $m = \min\{k \in \Z^+ : a^k \in H\}$ (well-defined since $H \neq \{e\}$).
+If $a^n \in H$, write $n = mq + r$ with $0 \leq r < m$ by the division algorithm.
+Then $a^r = a^n(a^m)^{-q} \in H$ (using closure under the operation and inversion,
+\cref{prop:subgroup-test}).
+By minimality of $m$, we get $r = 0$, so every element of $H$ is a power of $a^m$,
+giving $H = \langle a^m \rangle$.
+\end{proof}
+
+\begin{theorem}[Classification of Cyclic Groups]\label{thm:cyclic-classification}
+\begin{enumerate}
+    \item Every infinite cyclic group is isomorphic
+          to $(\Z, +)$ (\cref{ex:integers}).
+    \item Every cyclic group of order $n$ is isomorphic to the quotient group
+          $(\Z/n\Z, +)$ from \cref{ex:Z-mod-n}.
+\end{enumerate}
+In particular, up to isomorphism (\cref{def:homo}), there is exactly one cyclic group
+of each order. Combined with \cref{cor:prime-cyclic}, this shows that for each
+prime $p$, there is a unique group of order $p$.
+\end{theorem}
+
+\begin{corollary}\label{cor:euler-phi}
+If $G = \langle a \rangle$ is a cyclic group with $|G| = n$, then the
+number of generators of $G$ equals $\phi(n)$, where $\phi$ is Euler's totient function.
+\end{corollary}
+
+\begin{proof}
+By \cref{thm:cyclic-classification}, $G \cong \Z/n\Z$ (\cref{ex:Z-mod-n}).
+Under this isomorphism, $\bar{k} \in \Z/n\Z$ generates $G$ if and only if the order
+$\ord(\bar{k}) = n$, which holds precisely when $\gcd(k, n) = 1$.
+\end{proof}
+
+
+%=============================================================================
+\section{Direct Products}\label{sec:direct}
+%=============================================================================
+
+\begin{definition}[External Direct Product]\label{def:direct-product}
+Let $(G, \cdot_G)$ and $(H, \cdot_H)$ be groups.
+The \emph{external direct product}
+\begin{equation}\label{eq:direct}
+    G \times H = \{(g, h) : g \in G, \; h \in H\}
+\end{equation}
+with the componentwise operation $(g_1, h_1)(g_2, h_2) = (g_1 \cdot_G g_2, \; h_1 \cdot_H h_2)$
+is a group. The identity is $(e_G, e_H)$ (\cref{eq:identity}), and inverses
+are given by $(g, h)^{-1} = (g^{-1}, h^{-1})$ (\cref{eq:inverse}).
+\end{definition}
+
+\begin{theorem}\label{thm:direct-order}
+If $G$ and $H$ are finite groups, then
+$|G \times H| = |G| \cdot |H|$ for the direct product in \cref{def:direct-product}.
+\end{theorem}
+
+\begin{theorem}[Direct Product of Cyclic Groups]\label{thm:Zm-Zn}
+For the cyclic groups $\Z/m\Z$ and $\Z/n\Z$ (\cref{ex:Z-mod-n,thm:cyclic-classification}),
+\begin{equation}\label{eq:Zm-Zn}
+    \Z/m\Z \times \Z/n\Z \cong \Z/mn\Z
+    \quad \Longleftrightarrow \quad
+    \gcd(m, n) = 1.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+$(\Rightarrow)$: If $d = \gcd(m,n) > 1$, then every element $(a,b)$ of the direct
+product satisfies $\text{lcm}(m,n) \cdot (a,b) = (0,0)$
+with $\text{lcm}(m,n) < mn$, so the maximum order of an element 
+is less than $mn$ and the group cannot be cyclic.
+$(\Leftarrow)$: If $\gcd(m,n) = 1$, the element $(\bar{1}, \bar{1})$ has
+$\ord(\bar{1}, \bar{1}) = \text{lcm}(m,n) = mn$, so it
+generates the entire group.
+\end{proof}
+
+
+%=============================================================================
+\section{Cayley's Theorem}\label{sec:cayley}
+%=============================================================================
+
+\begin{theorem}[Cayley]\label{thm:cayley}
+Every group is isomorphic to a subgroup of a symmetric group. 
+More precisely, if $|G| = n$, then $G$ embeds into $S_n$.
+\end{theorem}
+
+\begin{proof}
+For each $g \in G$, define the left multiplication map $\lambda_g \colon G \to G$,
+$x \mapsto gx$. By the cancellation law (\cref{prop:cancellation}), $\lambda_g$ is
+a bijection, so $\lambda_g \in S_G$.
+Define $\Phi \colon G \to S_G$ by $g \mapsto \lambda_g$.
+This is a homomorphism: $\Phi(gh)(x) = ghx = \lambda_g(\lambda_h(x))$
+for all $x$, so $\Phi(gh) = \Phi(g) \circ \Phi(h)$, verifying \cref{eq:homo}.
+Moreover, $\Phi$ is injective: if $\lambda_g = \lambda_h$, then $gx = hx$ for all $x$,
+so $g = h$ by \cref{prop:cancellation}. Equivalently, $\Ker(\Phi) = \{e\}$
+(\cref{eq:ker,prop:ker-normal}(3)).
+Thus $G \cong \Img(\Phi) \leq S_G$ by the first isomorphism theorem (\cref{thm:iso-1}).
+\end{proof}
+
+
+%=============================================================================
+\section{The Sylow Theorems}\label{sec:sylow}
+%=============================================================================
+
+\begin{definition}[$p$-Subgroup]\label{def:p-subgroup}
+Let $p$ be a prime. A group whose order is a power of $p$ is
+called a \emph{$p$-group}. If $G$ is a finite group and a subgroup $P \leq G$
+is a $p$-group, then $P$ is a \emph{$p$-subgroup} of $G$.
+By \cref{cor:order-divides}, every element of a $p$-group has order equal to a power of $p$.
+\end{definition}
+
+\begin{definition}[Sylow $p$-Subgroup]\label{def:sylow}
+Let $|G| = p^k m$ with $p \nmid m$. A subgroup $P \leq G$
+of order $p^k$ is called a \emph{Sylow $p$-subgroup} of $G$. In other words,
+a Sylow $p$-subgroup is a $p$-subgroup of the largest
+possible order allowed by Lagrange's theorem (\cref{thm:lagrange}).
+The set of all Sylow $p$-subgroups is denoted $\text{Syl}_p(G)$,
+and their number is denoted $n_p$.
+\end{definition}
+
+\begin{theorem}[Sylow Theorems]\label{thm:sylow-thm}
+Let $G$ be a finite group with $|G| = p^k m$ where
+$p \nmid m$ and $p$ is prime.
+\begin{enumerate}
+    \item \textbf{Existence:} $\text{Syl}_p(G) \neq \varnothing$
+          (\cref{def:sylow}); that is, at least one Sylow $p$-subgroup
+          exists. \label{item:sylow-existence}
+    \item \textbf{Conjugacy:} If $P, Q \in \text{Syl}_p(G)$, then there exists
+          $g \in G$ such that $Q = gPg^{-1}$. In particular, all Sylow
+          $p$-subgroups are isomorphic (\cref{def:homo}).
+          \label{item:sylow-conjugacy}
+    \item \textbf{Counting condition:}
+          \begin{equation}\label{eq:sylow-count}
+              n_p \mid m \quad \text{and} \quad n_p \equiv 1 \pmod{p}.
+          \end{equation}
+          The divisibility $n_p \mid m$ combined with $n_p \mid |G|$
+          (\cref{eq:lagrange}) provides strong restrictions.
+          \label{item:sylow-count}
+\end{enumerate}
+\end{theorem}
+
+\begin{corollary}\label{cor:sylow-normal}
+If $n_p = 1$, the unique Sylow $p$-subgroup is normal in $G$.
+\end{corollary}
+
+\begin{proof}
+Let $P$ be the unique Sylow $p$-subgroup.
+By part~\ref{item:sylow-conjugacy} of \cref{thm:sylow-thm}, for any $g \in G$,
+$gPg^{-1}$ is also a Sylow $p$-subgroup. Since $P$ is the only one,
+$gPg^{-1} = P$ for all $g$, which is precisely the normality condition
+\cref{eq:normal} from \cref{def:normal}.
+\end{proof}
+
+\begin{example}\label{ex:sylow-15}
+Let $|G| = 15 = 3 \cdot 5$.
+By \cref{eq:sylow-count} applied to $p = 3$: $n_3 \mid 5$ and
+$n_3 \equiv 1 \pmod{3}$, which forces $n_3 = 1$.
+Similarly, for $p = 5$: $n_5 \mid 3$ and $n_5 \equiv 1 \pmod{5}$,
+giving $n_5 = 1$.
+By \cref{cor:sylow-normal}, the unique Sylow $3$-subgroup $P_3 \normal G$
+and the unique Sylow $5$-subgroup $P_5 \normal G$ (\cref{def:normal}).
+Since $|P_3| = 3$ and $|P_5| = 5$ are both prime, $P_3$ and $P_5$ are cyclic
+by \cref{cor:prime-cyclic}. We have $P_3 \cap P_5 = \{e\}$
+(by \cref{thm:lagrange}, since $\gcd(3,5) = 1$) and
+$|P_3 P_5| = |P_3| \cdot |P_5| / |P_3 \cap P_5| = 15 = |G|$,
+so $G \cong P_3 \times P_5 \cong \Z/3\Z \times \Z/5\Z$
+(\cref{def:direct-product}). Since $\gcd(3,5) = 1$,
+\cref{thm:Zm-Zn} gives $G \cong \Z/15\Z$
+(\cref{thm:cyclic-classification}).
+\end{example}
+
+\end{document}
