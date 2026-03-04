@@ -1,110 +1,109 @@
 # KnowTeX: Knowledge Dependency from TeX
 
-**KnowTeX** is a standalone Python GUI tool that analyzes LaTeX projects to construct **knowledge dependency graphs** among mathematical statements and proofs.  
-It expands your TeX project, parses the document structure, extracts labeled environments, and visualizes how results depend on one another via `\uses{...}` and `\proves{...}` annotations.
+**KnowTeX** is a standalone Python GUI tool that analyzes LaTeX projects to construct **knowledge dependency graphs** among mathematical statements and proofs.
+It expands your TeX project, parses the document structure, extracts labeled environments, and visualizes how results depend on one another.
 
-Derived from [Patrick Massot’s *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph), KnowTeX provides similar functionality **without requiring PlasTeX or Lean blueprints**. 
+Derived from [Patrick Massot's *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph), KnowTeX provides similar functionality **without requiring PlasTeX or Lean blueprints**.
 
 **Artificial Intelligence Disclosure (AID)**
 
-Portions of the KnowTeX project were developed with the assistance of generative AI tools (ChatGPT, OpenAI GPT-5). These tools were used to help draft Python code, suggest refactoring patterns, and improve documentation clarity. All generated code was reviewed, tested, and validated by the author, who assumes full responsibility for the final implementation and design decisions.
+Portions of the KnowTeX project were developed with the assistance of generative AI tools (Claude Opus 4.6). These tools were used to help draft Python code, suggest refactoring patterns, and improve documentation clarity. All generated code was reviewed, tested, and validated by the author, who assumes full responsibility for the final implementation and design decisions.
+
+---
+
+## Two Modes of Operation
+
+KnowTeX offers two complementary modes for constructing dependency graphs:
+
+### Manual Mode
+
+Uses explicit **annotation commands** that authors embed in their LaTeX source:
+
+- `\uses{label1,label2,...}` -- declares that the current statement or proof depends on the listed labels.
+- `\proves{label}` -- declares that the current proof establishes a particular labeled statement.
+
+Edges from `\uses{}` in a **statement** appear as **dashed arrows**; edges from `\uses{}` in a **proof** appear as **solid arrows**. If `\proves{}` is omitted, the proof is assumed to prove the most recent statement.
+
+### Infer Mode
+
+Automatically infers dependencies by analyzing the document content using a layered system of **deterministic rules** and **heuristic rules**:
+
+| Rule | Type | Description |
+| ---- | ---- | ----------- |
+| **D1** | Deterministic | `\ref`/`\Cref`/`\eqref` inside a **proof** creates an edge to the proved statement |
+| **D2** | Deterministic | `\ref`/`\Cref`/`\eqref` inside a **statement** creates an edge to the referencing statement |
+| **D3** | Deterministic | Explicit proof target from `\begin{proof}[Proof of Theorem \ref{...}]` |
+| **D4** | Deterministic | **Defined-term matching** -- terms introduced via `\emph{}`/`\textit{}`/`\textbf{}` or `\index{}` in definition environments are matched in subsequent statements via stemming |
+| **H1** | Heuristic | Each proof is associated with the nearest preceding statement |
+| **H2** | Heuristic | A corollary without any `\ref` is linked to the nearest preceding theorem/proposition |
+| **H3** | Heuristic | A lemma is linked to the next theorem/proposition within a configurable gap |
+| **H4** | Heuristic | **Index-term matching** -- `\index{}` entries are matched across statements using longest-match-first strategy with `\|see{}` alias resolution |
 
 ---
 
 ## Features
 
-- Parses a full LaTeX project following:
-  - `\input`, `\include`, `\import`, `\subimport`, and `\includeonly`.
-- Detects canonical mathematical environments and aliases.
-- Tracks logical dependencies between results through:
-  - `\uses{...}`, and `\proves{...}`.
-- Generates:
-  - **Graphviz DOT** and **TikZ** output (`.dot`, `.tex`),
-  - Optional **zoomable PNG preview**.
-- GUI features:
-  - Chapter selection dialog (only scan chosen `\chapter{...}` sections),
-  - Environment inclusion toggles,
-  - Transitive reduction toggle (for simpler graphs),
-  - Interactive zoom/pan of dependency graph.
+- **LaTeX project expansion**: follows `\input`, `\include`, `\import`, `\subimport`, `\subfile`, and `\includeonly`.
+- **Document class detection**: supports both `book`-class (chapters) and `article`-class (sections) documents.
+- **Environment recognition**: detects canonical mathematical environments and their aliases (see table below).
+- **Defined-term extraction**: extracts terms from `\emph{}`, `\textit{}`, `\textbf{}`, `\demph{}`, and `\index{}` entries; uses Snowball stemming for language-aware matching.
+- **Cycle detection**: identifies cyclic dependencies using Tarjan's SCC algorithm and highlights them in red.
+- **Transitive reduction**: optional simplification of the graph by removing redundant edges.
+- **Macro/Micro views**: macro view shows the full graph; micro view focuses on a single section/chapter.
+- **Output formats**:
+  - **Graphviz DOT** (`.dot`)
+  - **TikZ** (`.tex` via `dot2tex`)
+  - **Zoomable PNG preview** in the GUI with clickable nodes
+- **GUI features**:
+  - Chapter/section selection dialog
+  - Per-environment inclusion toggles with customizable shapes, border colors, and fill colors
+  - Interactive zoom/pan (Ctrl+scroll, left-drag)
+  - "Fit" and "100%" view reset buttons
 
 ---
 
 ## Supported Environments
 
-KnowTeX recognizes the following canonical theorem-like environments (case-insensitive, with aliases such as `defn`, `thm`, `lem`, etc.):
+KnowTeX automatically discovers all `\begin{...}...\end{...}` theorem-like environments in the scanned LaTeX project. Well-known non-theorem environments (e.g. `figure`, `equation`, `align`, `tikzpicture`, etc.) are skipped.
 
+After scanning, the **Environment Configuration** dialog lets users:
 
-| Canonical | Common Aliases | Shape | Border Color | Fill Color |
-|------------|----------------|--------|---------------|-------------|
-| **definition** | `definition`, `defn`, `def` | ▢ box | Purple | Lavender |
-| **theorem** | `theorem`, `thm`, `th`, `thrm` | ◎ doublecircle | Blue | SkyBlue |
-| **lemma** | `lemma`, `lem`, `ilemma`, `alemma` | ◯ ellipse | Blue | SkyBlue |
-| **proposition** | `proposition`, `prop`, `propn`, `prp` | ◆ diamond | Blue | SkyBlue |
-| **corollary** | `corollary`, `cor`, `corol`, `corl` | ◯ ellipse | Blue | White |
-| **construction** | `construction`, `const`, `constn`, `constr` | ◆ diamond | Purple | White |
-| **example** | `example`, `examples`, `iexample` | ◯ ellipse | DimGray | White |
-| **remark** | `remark`, `remarks` | ◯ ellipse | DimGray | White |
+- **Include/exclude** each discovered environment from the graph.
+- Choose **shape** (`ellipse`, `box`, `diamond`, `doublecircle`), **border color**, and **fill color** per environment.
+- In Infer mode, mark which environments are **definition-like** (used by the D4 defined-term matching rule).
 
-This legend determines how nodes are drawn in the dependency graph.
+Available shape options: `ellipse`, `circle`, `doublecircle`, `box`, `diamond`, `triangle`, `pentagon`, `hexagon`, `octagon`.
+Colors can be selected from a preset list or picked via a custom color chooser.
 
 ---
 
-## `\uses{...}` and `\proves{...}` Commands
+## Project Structure
 
-### `\uses{label1,label2,...}`
-Declares that the current **statement** (or **proof**) *depends on* or *uses* previously labeled results.
-
-- In a **statement environment** (`theorem`, `lemma`, etc.):  
-  Indicates conceptual dependency — the result builds upon these labels.
-  Edges from `\uses{...}` in a statement appear as **dashed arrows** in the dependency graph.
-- In a **proof environment**:  
-  Indicates logical references used *within the proof* of the current result.
-  Edges from `\uses{...}` in a proof appear as **solid arrows** in the dependency graph.
-
-
-### `\proves{label}`
-Declares that the current **proof** *establishes* a particular labeled statement.
-
-- Typically appears **inside a proof environment** (e.g. `\begin{proof}...\end{proof}`).
-- If omitted, the proof is assumed to prove the **most recent statement** encountered.
-
----
-
-## Example
-
-```latex
-\begin{definition}\label{def:ring}
-A ring is a set with two operations satisfying ...
-\end{definition}
-
-\begin{lemma}\label{lem:ring-unit}
-\uses{def:ring}
-In a ring, if $1=0$ then every element is zero.
-\end{lemma}
-
-\begin{proof}
-Trivial from the axioms.
-\end{proof}
-
-\begin{corollary}\label{cor:trivial-ring}
-\uses{def-ring}
-If a ring satisfies $1 = 0$, then it is the trivial ring $\{0\}$.
-\end{corollary}
-
-\begin{proof}
-\uses{lem:ring-unit}
-By Lemma~\ref{lem:ring-unit}, if $1 = 0$, then every element equals $0$.  
-Hence the ring contains only one element, $0$, and is therefore the trivial ring.
-\end{proof}
+```text
+KnowTex/
+├── KnowTeX.py              # Entry point
+├── knowtex/
+│   ├── core/
+│   │   ├── constants.py     # Regex patterns, skip sets, GUI constants
+│   │   ├── data.py          # Data classes: NodeInfo, ProofInfo, DependencyEdge
+│   │   ├── parser.py        # LaTeX parsing and environment extraction
+│   │   ├── file_expand.py   # \input/\include/\subfile expansion
+│   │   ├── structure.py     # Document class, chapter/section detection
+│   │   ├── graph.py         # Graphviz graph construction
+│   │   ├── cycles.py        # Tarjan's SCC cycle detection
+│   │   └── utils.py         # Utility functions
+│   ├── deps/
+│   │   ├── manual.py        # Manual mode: \uses{}/\proves{} extraction
+│   │   ├── infer.py         # Infer mode: D1-D4, H2-H4 rules
+│   │   ├── term_extraction.py  # Stemming and term extraction for D4/H4
+│   │   └── index_registry.py   # \index{} registry for H4
+│   └── gui/
+│       ├── app.py           # Main Tkinter application
+│       ├── dialogs.py       # Chapter selection, environment config dialogs
+│       └── preview.py       # Zoomable graph preview with clickable nodes
+├── test_knowtex.py          # Test suite (pytest)
+└── example/                 # Example LaTeX files with and without annotations
 ```
-
-Produces a graph with:
-- a **Definition node** (“def:ring”),
-- a **Lemma node** (“lem:ring-unit”),
-- a **Corolllary node** ("cor:trivial-ring),
-- a **dashed edge** from the definition node to the lemma node.
-- a **dashed edge** from the definition node to the corollary node.
-- a **solid edge** from the lemma node to the corollary node.
 
 ---
 
@@ -112,16 +111,16 @@ Produces a graph with:
 
 **Requirements**
 
-- Python ≥ 3.8  
-- Packages:  
+- Python >= 3.8
+- Packages:
   ```bash
-  pip install pylatexenc pygraphviz dot2tex Pillow
+  pip install pylatexenc pygraphviz dot2tex Pillow PyStemmer
   ```
 - [Graphviz](https://graphviz.org/download/) (must be on system `PATH`)
 
 **Linux**
 ```bash
-sudo apt install graphviz
+sudo apt install graphviz libgraphviz-dev
 ```
 **macOS**
 ```bash
@@ -140,23 +139,66 @@ python KnowTeX.py
 ```
 
 ### 2. Select your main `.tex` file
-- The program expands all `\input` / `\include` files.
-- Optionally select which `\chapter{...}` sections to include.
 
-### 3. Choose environments and scan
-- Check which categories (theorems, lemmas, etc.) to include.
+- The program expands all `\input` / `\include` / `\subfile` files.
+- For book-class documents, optionally select which chapters to include.
+
+### 3. Choose mode and environments
+
+- Select **Manual** or **Infer** mode.
+- Check which environment categories to include in the graph.
 
 ### 4. Visualize or export
-- **Preview**: opens a zoomable graph in the GUI.  
-- **Generate DOT + TikZ**: saves `dep_graph.dot` and `dep_graph.tex`, but user can edit the name of the output files.
+
+- **Preview**: opens a zoomable graph in the GUI with clickable nodes.
+- **Generate DOT + TikZ**: saves `.dot` and `.tex` files with user-configurable names.
+
+---
+
+## Example
+
+```latex
+\begin{definition}\label{def:ring}
+A \emph{ring} is a set with two operations satisfying ...
+\end{definition}
+
+\begin{lemma}\label{lem:ring-unit}
+\uses{def:ring}
+In a ring, if $1=0$ then every element is zero.
+\end{lemma}
+
+\begin{proof}
+Trivial from the axioms.
+\end{proof}
+
+\begin{corollary}\label{cor:trivial-ring}
+\uses{def:ring}
+If a ring satisfies $1 = 0$, then it is the trivial ring $\{0\}$.
+\end{corollary}
+
+\begin{proof}
+\uses{lem:ring-unit}
+By Lemma~\ref{lem:ring-unit}, if $1 = 0$, then every element equals $0$.
+Hence the ring contains only one element, $0$, and is therefore the trivial ring.
+\end{proof}
+```
+
+In **Manual mode**, this produces:
+
+- **Definition** node (`def:ring`), **Lemma** node (`lem:ring-unit`), **Corollary** node (`cor:trivial-ring`)
+- **Dashed edges** from `def:ring` to `lem:ring-unit` and `cor:trivial-ring` (statement-level `\uses{}`)
+- **Solid edge** from `lem:ring-unit` to `cor:trivial-ring` (proof-level `\uses{}`)
+
+In **Infer mode**, the same dependencies would be discovered automatically through D1 (proof `\ref`), D2 (statement `\ref`), and D4 (the defined term "ring").
 
 ---
 
 ## Notes
 
-- When `\includeonly{...}` is used, only those chapters are loaded.
-- The “Nonreduced” option disables transitive reduction (keeps all edges).
+- When `\includeonly{...}` is used, only those files are loaded.
+- The "Nonreduced" option disables transitive reduction (keeps all edges).
+- Cycle edges are highlighted in **red** in the graph.
 - Zoom/pan gestures:
   - Ctrl + scroll = zoom
   - Left-drag = pan
-  - “Fit” and “100%” buttons reset view.
+  - "Fit" and "100%" buttons reset view.
