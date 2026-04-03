@@ -224,8 +224,8 @@ def load_all_definitions():
 def _md_to_latex_body(body, slug_to_label):
     """Convert markdown body to LaTeX text.
 
-    - **bold** → \\emph{} (these typically mark the defined term)
-    - [linked text](chicago/TARGET) → \\emph{linked text} (marks usage of other terms)
+    - **bold** → plain text (strip asterisks; the definition title is used as \\emph{} instead)
+    - [linked text](chicago/TARGET) → linked text~\\ref{label} (marks usage of other terms)
     - $math$ stays as-is
     - Strip Wikidata line
     """
@@ -237,7 +237,7 @@ def _md_to_latex_body(body, slug_to_label):
     # then wrap the whole thing in one \emph{}.
     def replace_bold(m):
         inner = m.group(1)
-        # Convert Chicago links inside bold spans to \ref{}
+        # Convert links inside bold spans to \ref{} but don't wrap in \emph{}
         def bold_link(lm):
             link_text = lm.group(1)
             target_slug = lm.group(2)
@@ -246,7 +246,7 @@ def _md_to_latex_body(body, slug_to_label):
                 return f"{link_text}~\\ref{{{label}}}"
             return link_text
         inner = LINK_RX.sub(bold_link, inner)
-        return f"\\emph{{{inner}}}"
+        return inner  # plain text, no \emph{}
 
     text = re.sub(r"\*\*([^*]+)\*\*", replace_bold, text)
 
@@ -360,9 +360,10 @@ def generate_latex(defs):
             continue
 
         lines.append(f"\\begin{{definition}}[{safe_title}]\\label{{{d.label}}}")
-        # Add \emph{} for the defined term itself in the first line
-        # The **bold** in markdown was already converted to \emph{}
-        lines.append(body)
+        # Use the full title as the defined term for D4 extraction.
+        # For multi-word titles, D4 uses contiguous phrase matching
+        # which is much more precise than single-word stem matching.
+        lines.append(f"\\emph{{{safe_title}}}. {body}")
         lines.append(r"\end{definition}")
         lines.append("")
 

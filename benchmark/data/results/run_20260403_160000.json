@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-03-27T00:25:20",
+  "timestamp": "2026-04-03T16:00:00",
   "ground_truth_total": 1660,
   "combined": {
-    "precision": 0.624764772299586,
+    "precision": 0.8038740920096852,
     "recall": 1.0,
-    "f1": 0.7690525828121382,
+    "f1": 0.8912751677852349,
     "tp": 1660,
-    "fp": 997,
+    "fp": 405,
     "fn": 0,
-    "inferred_total": 2657
+    "inferred_total": 2065
   },
   "per_rule": {
     "D2": {
@@ -25,9 +25,9 @@
       "recall": 0.0,
       "f1": 0.0,
       "tp": 0,
-      "fp": 997,
+      "fp": 405,
       "fn": 1660,
-      "inferred_total": 997
+      "inferred_total": 405
     }
   }
 }
