@@ -1,6 +1,6 @@
 # Inferred vs Manual Dependency Graph Comparison
 
-This report compares the **inferred** dependency graph (`group_theory-knowtex/inferred-graph-groups.dot`) against the **manual** (gold standard) dependency graph (`group_theory_with_uses-knowtex/manuel-graph-groups.dot`) for a group theory document.
+This report compares the **inferred** dependency graph (`group_theory-knowtex/inferred-graph-groups.dot`) against the **manual** (gold standard) dependency graph (`group_theory_with_uses-knowtex/manual-graph-groups.dot`) for a group theory document.
 
 The manual graph was constructed using explicit `\uses` annotations in the LaTeX source, while the inferred graph was produced automatically by KnowTeX's heuristic analysis.
 

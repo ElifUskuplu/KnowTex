@@ -1,6 +1,6 @@
 # Inferred vs Manual Dependency Graph Comparison — BCT (Basic Category Theory)
 
-This report compares the **inferred** dependency graph (`BCT-knowtex/inferred-graph-BCT.dot`) against the **manual** (gold standard) dependency graph (`BCT_with_uses-knowtex/manuel-graph-BCT.dot`) for Leinster's *Basic Category Theory* (condensed version).
+This report compares the **inferred** dependency graph (`BCT-knowtex/inferred-graph-BCT.dot`) against the **manual** (gold standard) dependency graph (`BCT_with_uses-knowtex/manual-graph-BCT.dot`) for Leinster's *Basic Category Theory* (condensed version).
 
 The manual graph was constructed using explicit `\uses` annotations in the LaTeX source, while the inferred graph was produced automatically by KnowTeX's heuristic analysis.
 
