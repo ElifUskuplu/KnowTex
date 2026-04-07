@@ -99,14 +99,14 @@ digraph "" {
 		style=filled,
 		tooltip="defn:repr-func"];
 	"defn:isomorphism" -> "defn:repr-func"	[style=dashed];
-	"contra-repr-func"	[URL="contra-repr-func",
+	"defn:contra-repr-func"	[URL="defn:contra-repr-func",
 		color=Purple,
 		fillcolor=Lavender,
-		label="Defn 157",
+		label="contra repr func",
 		shape=box,
 		style=filled,
-		tooltip="contra-repr-func"];
-	"defn:isomorphism" -> "contra-repr-func"	[style=dashed];
+		tooltip="defn:contra-repr-func"];
+	"defn:isomorphism" -> "defn:contra-repr-func"	[style=dashed];
 	"lemma:ff-refl-isos"	[URL="lemma:ff-refl-isos",
 		color=Blue,
 		fillcolor=SkyBlue,
@@ -265,7 +265,7 @@ digraph "" {
 		style=filled,
 		tooltip="defn:contra-yon-emb"];
 	"defn:hom-func" -> "defn:contra-yon-emb"	[style=dashed];
-	"defn:contra-hom-func" -> "contra-repr-func"	[style=dashed];
+	"defn:contra-hom-func" -> "defn:contra-repr-func"	[style=dashed];
 	"thm:yoneda"	[URL="thm:yoneda",
 		color=Blue,
 		fillcolor=Lavender,
