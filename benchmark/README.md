@@ -80,14 +80,17 @@ the phrase "abelian group" in the ring definition and adds
 false positive.
 
 Other D4 false positives are genuine over-matching. Single-word defined
-terms are the main source: the term *functional* alone produces 31 edges to
-any definition whose text contains that word. The current benchmark cannot
+terms are the main source: the term *functional* alone produces 74 edges,
+because its stem "function" matches any definition whose text contains that
+word. The current benchmark cannot
 separate these two kinds of false positive automatically.
 
 ### What could measure D4 honestly
 
-Neither of these is implemented; they are recorded here so that the
-limitation is not mistaken for an oversight.
+The ablation is not implemented. The manual review was carried out for
+the paper (arXiv:2601.15294v2, Section 5.3): 236 of the 405 D4 edges were
+judged genuine dependencies, 169 spurious. The per-edge classification file
+from that review is not yet in this repository.
 
 - **Recall via ablation**: generate the LaTeX with links reduced to plain
   text (no `\ref{}`) and run D4 alone against the same ground truth. The
