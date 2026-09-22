@@ -1,0 +1,406 @@
+source_label,target_label,source_wikidata,target_wikidata,classification,gt_reachable,note
+def:abelian-group,def:abelianization,Q181296,Q318598,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:basis-for-abelian-group,Q181296,Q810193,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:divisible-group,Q181296,Q1782332,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:elementary-abelian-p-group,Q181296,Q1017231,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:exponent-of-a-finite-group,Q181296,Q32998717,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:module-over-a-ring,Q181296,Q18848,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:p-primary-component-of-an-abelian-group,Q181296,Q286972,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:rank-of-a-finitely-generated-abelian-group,Q181296,Q1260803,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:ring,Q181296,Q161172,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:rng,Q181296,Q17102802,genuine,unreachable,manual review; no ground-truth path
+def:abelian-group,def:torsion-subgroup,Q181296,Q2293759,genuine,unreachable,manual review; no ground-truth path
+def:abelianization,def:pontryagin-dual,Q318598,Q1632419,spurious,unreachable,manual review; no dependency
+def:absolute-continuity,def:absolute-continuity-of-measure,Q332504,Q20827138,spurious,unreachable,manual review; no dependency
+def:absolute-continuity,def:radon-nikodym-derivative,Q332504,Q1191319,spurious,unreachable,manual review; no dependency
+def:absolute-value,def:essentially-bounded,Q120812,Q1969054,spurious,unreachable,manual review; no dependency
+def:absolute-value,def:jacobian-determinant,Q120812,Q1474543,spurious,unreachable,manual review; no dependency
+def:algebra-homomorphism,def:lie-algebra-homomorphism,Q382497,Q3882299,genuine,unreachable,manual review; no ground-truth path
+def:associative,def:adjoint-representation-of-a-lie-group,Q177251,Q1017106,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:associative,def:associate-elements-in-an-integral-domain,Q177251,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:associative,def:division-algebra,Q177251,Q1231309,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:associative,def:faithful-group-action,Q177251,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:associative,def:generate-an-associative-algebra,Q177251,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:associative,def:polynomial-ring,Q177251,Q1455652,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:associative,def:quaternion-algebra,Q177251,Q173853,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:associative,def:unique-factorization-domain,Q177251,Q1052579,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:associative-algebra,def:generate-an-associative-algebra,Q744960,,genuine,unreachable,manual review; no ground-truth path
+def:automorphism,def:characteristic-subgroup,Q782566,Q747027,genuine,unreachable,manual review; no ground-truth path
+def:automorphism,def:fixed-field,Q782566,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:automorphism,def:galois-extension,Q782566,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:automorphism,def:semidirect-product,Q782566,Q291126,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:basis,def:basis-for-abelian-group,Q189569,Q810193,spurious,unreachable,manual review; no dependency
+def:basis,def:generate-a-topology,Q189569,,spurious,unreachable,manual review; no dependency
+def:basis,def:hamel-basis,Q189569,Q189569,genuine,unreachable,manual review; no ground-truth path
+def:basis,def:product-topology,Q189569,,spurious,unreachable,manual review; no dependency
+def:basis,def:symmetric-derivative,Q189569,Q3773126,spurious,unreachable,manual review; no dependency
+def:basis,def:topological-basis,Q189569,,spurious,unreachable,manual review; no dependency
+def:borel-space,def:borel-function,Q3058218,,genuine,unreachable,manual review; no ground-truth path
+def:boundary,def:boundary-points-of-a-manifold,Q875399,Q875399,genuine,unreachable,manual review; no ground-truth path
+def:boundary,def:embedded-m-dimensional-manifold-with-boundary,Q875399,Q1333611,spurious,unreachable,manual review; no dependency
+def:boundary,def:interior-points-of-a-manifold,Q875399,Q862761,spurious,unreachable,manual review; no dependency
+def:boundary,def:orientable,Q875399,Q2748415,spurious,unreachable,manual review; no dependency
+def:boundary,def:orientation,Q875399,Q2748415,spurious,unreachable,manual review; no dependency
+def:boundary,def:oriented-manifold,Q875399,,spurious,unreachable,manual review; no dependency
+def:boundary,def:outward-pointing,Q875399,Q2748415,spurious,unreachable,manual review; no dependency
+def:boundary,def:smooth-topological-m-dimensional-manifold-with-boundary,Q875399,Q78338964,spurious,unreachable,manual review; no dependency
+def:boundary,def:topological-m-dimensional-manifold-with-boundary,Q875399,Q203920,spurious,unreachable,manual review; no dependency
+def:bounded,def:totally-bounded,Q726212,Q1362228,spurious,unreachable,manual review; no dependency
+def:class,def:fundamental-group,Q2138760,Q662830,spurious,unreachable,manual review; no dependency
+def:class,def:orientation,Q2138760,Q2748415,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:closed,def:differentiability-in-closed-half-space,Q320357,,spurious,unreachable,manual review; no dependency
+def:closed,def:embedded-m-dimensional-manifold-with-boundary,Q320357,Q1333611,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:closed,def:interior-points-of-a-manifold,Q320357,Q862761,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:closed,def:matrix-lie-group,Q320357,Q622679,genuine,unreachable,manual review; no ground-truth path
+def:closed,def:topological-m-dimensional-manifold-with-boundary,Q320357,Q203920,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:closed-half-space,def:differentiability-in-closed-half-space,Q644719,,genuine,unreachable,manual review; no ground-truth path
+def:commutative,def:abelianization,Q165474,Q318598,spurious,unreachable,manual review; no dependency
+def:commutative,def:commutator-subgroup,Q165474,Q522216,spurious,unreachable,manual review; no dependency
+def:commutative,def:lie-algebra,Q165474,Q664495,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:commutative,def:lower-central-series,Q165474,Q109314515,spurious,unreachable,manual review; no dependency
+def:compact,def:compact-symplectic-group,Q381892,Q78484790,genuine,unreachable,manual review; no ground-truth path
+def:compact,def:locally-compact-group,Q381892,Q2147620,genuine,unreachable,manual review; no ground-truth path
+def:compact,def:locally-finite-graph,Q381892,,genuine,unreachable,manual review; no ground-truth path
+def:compact,def:partition-of-unity,Q381892,Q191690,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:compact,def:pontryagin-dual,Q381892,Q1632419,genuine,unreachable,manual review; no ground-truth path
+def:compact,def:schwartz-space,Q381892,Q1369621,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:compact,def:sequentially-compact,Q381892,Q1135427,spurious,unreachable,manual review; no dependency
+def:complex-numbers,def:complexification-of-a-vector-space,,Q445569,genuine,unreachable,manual review; no ground-truth path
+def:complex-numbers,def:matrix,,Q44337,spurious,unreachable,manual review; no dependency
+def:complex-numbers,def:multiplicative-character,,Q17099189,spurious,unreachable,manual review; no dependency
+def:connected,def:identity-component,Q1491995,Q5988368,genuine,unreachable,manual review; no ground-truth path
+def:connected,def:locally-path-connected,Q1491995,Q16671984,spurious,unreachable,manual review; no dependency
+def:connected,def:semi-locally-simply-connected,Q1491995,Q7449310,spurious,unreachable,manual review; no dependency
+def:connected,def:simply-connected,Q1491995,Q912058,spurious,unreachable,manual review; no dependency
+def:connected,def:totally-disconnected,Q1491995,Q1544261,spurious,unreachable,manual review; no dependency
+def:continuous,def:uniformly-continuous,Q170058,Q741865,spurious,unreachable,manual review; no dependency
+def:contractible,def:contracting-sequence-of-sets-in-a-metric-space,Q230689,Q1131116,spurious,unreachable,manual review; no dependency
+def:contractible,def:contraction-mapping,Q230689,Q515173,spurious,unreachable,manual review; no dependency
+def:countable,def:measure-zero,,Q1201815,genuine,unreachable,manual review; no ground-truth path
+def:countable,def:partition-of-unity,,Q191690,genuine,unreachable,manual review; no ground-truth path
+def:countable,def:second-countable,,Q1363919,genuine,unreachable,manual review; no ground-truth path
+def:countable,def:separable-metric-space,,Q680081,genuine,unreachable,manual review; no ground-truth path
+def:countable,def:σ-finite,,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:dense,def:meager,Q673444,Q1747745,spurious,unreachable,manual review; no dependency
+def:dense,def:nowhere-dense,Q673444,Q1991405,genuine,unreachable,manual review; no ground-truth path
+def:derivation,def:class,Q451323,Q2138760,spurious,unreachable,manual review; no dependency
+def:derivation,def:derived-series-of-a-group,Q451323,,spurious,unreachable,manual review; no dependency
+def:derivation,def:derived-series-of-a-lie-algebra,Q451323,,spurious,unreachable,manual review; no dependency
+def:derivation,def:descending-central-series,Q451323,Q109314515,spurious,unreachable,manual review; no dependency
+def:derivation,def:directional-derivative,Q451323,Q383851,spurious,unreachable,manual review; no dependency
+def:derivation,def:embedded-m-dimensional-manifold-with-boundary,Q451323,Q1333611,spurious,unreachable,manual review; no dependency
+def:derivation,def:embedding,Q451323,Q980509,spurious,unreachable,manual review; no dependency
+def:derivation,def:gradient,Q451323,Q173582,spurious,unreachable,manual review; no dependency
+def:derivation,def:jacobian-matrix,Q451323,Q506041,spurious,unreachable,manual review; no dependency
+def:derivation,def:laplacian,Q451323,Q203484,spurious,unreachable,manual review; no dependency
+def:derivation,def:logarithmic-derivative,Q451323,,spurious,unreachable,manual review; no dependency
+def:derivation,def:orientation-preserving,Q451323,,spurious,unreachable,manual review; no dependency
+def:derivation,def:partial-derivative,Q451323,Q186475,spurious,unreachable,manual review; no dependency
+def:derivation,def:radon-nikodym-derivative,Q451323,Q1191319,spurious,unreachable,manual review; no dependency
+def:derivation,def:smooth,Q451323,Q868473,spurious,unreachable,manual review; no dependency
+def:derivation,def:solvable-lie-algebra,Q451323,Q7558992,spurious,unreachable,manual review; no dependency
+def:derivation,def:symmetric-derivative,Q451323,Q3773126,spurious,unreachable,manual review; no dependency
+def:derivation,def:tangent-space,Q451323,Q909601,spurious,unreachable,manual review; no dependency
+def:determinant,def:lower-sum,Q178546,,spurious,unreachable,manual review; no dependency
+def:determinant,def:orientation,Q178546,Q2748415,spurious,unreachable,manual review; no dependency
+def:determinant,def:upper-sum,Q178546,,spurious,unreachable,manual review; no dependency
+def:determined,def:jacobian-determinant,,Q1474543,spurious,unreachable,manual review; no dependency
+def:determined,def:lower-sum,,,spurious,unreachable,manual review; no dependency
+def:determined,def:orientation,,Q2748415,spurious,unreachable,manual review; no dependency
+def:determined,def:orientation-preserving,,,spurious,unreachable,manual review; no dependency
+def:determined,def:special-linear-group,,Q2140900,spurious,unreachable,manual review; no dependency
+def:determined,def:special-orthogonal-group,,Q3117934,spurious,unreachable,manual review; no dependency
+def:determined,def:special-unitary-group,,Q684363,spurious,unreachable,manual review; no dependency
+def:determined,def:upper-sum,,,spurious,unreachable,manual review; no dependency
+def:differentiable,def:differential-k-form,Q636889,Q1047080,spurious,unreachable,manual review; no dependency
+def:differentiable,def:symmetric-derivative,Q636889,Q3773126,spurious,unreachable,manual review; no dependency
+def:embedded-m-dimensional-manifold,def:embedded-m-dimensional-manifold-with-boundary,Q203920,Q1333611,genuine,unreachable,manual review; no ground-truth path
+def:embedded-m-dimensional-manifold,def:orientable,Q203920,Q2748415,genuine,unreachable,manual review; no ground-truth path
+def:embedded-m-dimensional-manifold,def:orientation,Q203920,Q2748415,genuine,unreachable,manual review; no ground-truth path
+def:embedded-m-dimensional-manifold,def:oriented-manifold,Q203920,,genuine,unreachable,manual review; no ground-truth path
+def:embedding,def:orientable,Q980509,Q2748415,genuine,unreachable,manual review; no ground-truth path
+def:embedding,def:orientation,Q980509,Q2748415,genuine,unreachable,manual review; no ground-truth path
+def:embedding,def:oriented-manifold,Q980509,,genuine,unreachable,manual review; no ground-truth path
+def:embedding,def:tangent-space,Q980509,Q909601,genuine,unreachable,manual review; no ground-truth path
+def:endomorphism,def:frobenius-endomorphism,Q1340800,,spurious,unreachable,manual review; no dependency
+def:field,def:abelian-extension,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:adjoint-of-a-linear-transformation,Q190109,Q2858846,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:algebraic-extension,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:cyclotomic-field,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:degree-of-field-extension,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:derivation,Q190109,Q451323,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:galois-extension,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:generate-a-field,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:linear-transformation,Q190109,Q207643,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:quadratic-field-extension,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:simple-field-extension,Q190109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:field,def:vector-subspace,Q190109,Q728435,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:free-group,def:free-group-action,Q431078,,spurious,unreachable,manual review; no dependency
+def:free-module,def:torsion-free-module,Q1292333,Q7827200,spurious,unreachable,manual review; no dependency
+def:functional,def:almost-uniform-convergence,Q579600,Q25377974,spurious,unreachable,manual review; no dependency
+def:functional,def:analytic-function,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:baire-class,Q579600,Q2976036,spurious,unreachable,manual review; no dependency
+def:functional,def:borel-function,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:category-of-topological-spaces,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:character-of-a-representation,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:character-table,Q579600,Q11498021,spurious,unreachable,manual review; no dependency
+def:functional,def:class,Q579600,Q2138760,spurious,unreachable,manual review; no dependency
+def:functional,def:compact-support,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:complex-integral,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:complex-line-integral,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:component-function,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:continuous,Q579600,Q170058,spurious,unreachable,manual review; no dependency
+def:functional,def:continuous-group-representation,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:contraction-mapping,Q579600,Q515173,spurious,unreachable,manual review; no dependency
+def:functional,def:convergence-in-measure,Q579600,Q768656,spurious,unreachable,manual review; no dependency
+def:functional,def:diffeomorphism,Q579600,Q1058314,spurious,unreachable,manual review; no dependency
+def:functional,def:differentiability-in-closed-half-space,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:differentiable,Q579600,Q636889,spurious,unreachable,manual review; no dependency
+def:functional,def:directional-derivative,Q579600,Q383851,spurious,unreachable,manual review; no dependency
+def:functional,def:embedded-m-dimensional-manifold,Q579600,Q203920,spurious,unreachable,manual review; no dependency
+def:functional,def:embedding,Q579600,Q980509,spurious,unreachable,manual review; no dependency
+def:functional,def:essential-supremum,Q579600,Q1969054,spurious,unreachable,manual review; no dependency
+def:functional,def:graph-of-a-function,Q579600,Q182598,spurious,unreachable,manual review; no dependency
+def:functional,def:harmonic-function,Q579600,Q599027,spurious,unreachable,manual review; no dependency
+def:functional,def:harmonic-polynomial,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:homeomorphism,Q579600,Q202906,spurious,unreachable,manual review; no dependency
+def:functional,def:isolated-singularity,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:isometry,Q579600,Q740207,spurious,unreachable,manual review; no dependency
+def:functional,def:jacobian-determinant,Q579600,Q1474543,spurious,unreachable,manual review; no dependency
+def:functional,def:l2-inner-product-on-group-functions,Q579600,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:functional,def:laurent-series,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:lebesgue-integral,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:lebesgue-integral-of-a-simple-function,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:lebesgue-integral-of-characteristic-function,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:lebesgue-measurable-function,Q579600,Q516776,spurious,unreachable,manual review; no dependency
+def:functional,def:logarithmic-derivative,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:lower-integral,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:lower-sum,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:lp-space,Q579600,Q305936,spurious,unreachable,manual review; no dependency
+def:functional,def:lusin-function,Q579600,Q1361393,spurious,unreachable,manual review; no dependency
+def:functional,def:mean-value-property,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:measurable-function,Q579600,Q516776,spurious,unreachable,manual review; no dependency
+def:functional,def:measure-space,Q579600,Q3058212,spurious,unreachable,manual review; no dependency
+def:functional,def:metric-space,Q579600,Q180953,spurious,unreachable,manual review; no dependency
+def:functional,def:negative-variation,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:orientation,Q579600,Q2748415,spurious,unreachable,manual review; no dependency
+def:functional,def:p-norm,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:partial-derivative,Q579600,Q186475,spurious,unreachable,manual review; no dependency
+def:functional,def:partition-of-unity,Q579600,Q191690,spurious,unreachable,manual review; no dependency
+def:functional,def:path,Q579600,Q1366002,spurious,unreachable,manual review; no dependency
+def:functional,def:path-connected,Q579600,Q3487687,spurious,unreachable,manual review; no dependency
+def:functional,def:positive-variation,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:projection,Q579600,Q519967,spurious,unreachable,manual review; no dependency
+def:functional,def:quotient-of-topological-spaces,Q579600,Q1139111,spurious,unreachable,manual review; no dependency
+def:functional,def:radon-nikodym-derivative,Q579600,Q1191319,spurious,unreachable,manual review; no dependency
+def:functional,def:rectifiable,Q579600,Q3038340,spurious,unreachable,manual review; no dependency
+def:functional,def:residue,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:riemann-integrable,Q579600,Q697181,spurious,unreachable,manual review; no dependency
+def:functional,def:schwartz-space,Q579600,Q1369621,spurious,unreachable,manual review; no dependency
+def:functional,def:signed-measure,Q579600,Q1764371,spurious,unreachable,manual review; no dependency
+def:functional,def:simple-function,Q579600,Q913022,spurious,unreachable,manual review; no dependency
+def:functional,def:simple-region,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:smooth,Q579600,Q868473,spurious,unreachable,manual review; no dependency
+def:functional,def:smooth-topological-m-dimensional-manifold-with-boundary,Q579600,Q78338964,spurious,unreachable,manual review; no dependency
+def:functional,def:tangent-space,Q579600,Q909601,spurious,unreachable,manual review; no dependency
+def:functional,def:total-variation,Q579600,Q1936288,spurious,unreachable,manual review; no dependency
+def:functional,def:transition-function,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:uniformly-continuous,Q579600,Q741865,spurious,unreachable,manual review; no dependency
+def:functional,def:upper-integral,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:upper-sum,Q579600,,spurious,unreachable,manual review; no dependency
+def:functional,def:volume-of-a-rectifiable-set,Q579600,Q39297,spurious,unreachable,manual review; no dependency
+def:functional,def:volume-of-compact-topological-space,Q579600,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:functional,def:σ-finite,Q579600,,spurious,unreachable,manual review; no dependency
+def:group,def:abelian-extension,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:abelianization,Q83478,Q318598,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:adjoint-representation-of-a-lie-group,Q83478,Q1017106,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:alternating-group,Q83478,Q438814,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:basis-for-abelian-group,Q83478,Q810193,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:compact-lie-group,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:complex-lie-group,Q83478,Q5156554,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:complex-orthogonal-group,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:continuous-group-representation,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:cycle,Q83478,Q212130,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:cycle-type,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:fundamental-group,Q83478,Q662830,genuine,unreachable,manual review; no ground-truth path
+def:group,def:g-harmonic-polynomial,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:galois-group-of-a-polynomial,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:haar-integral,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:homomorphism-of-lie-groups,Q83478,Q868169,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:identity-component,Q83478,Q5988368,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:induced-homomorphism-on-fundamental-group,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:irreducible-representation,Q83478,Q13690522,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:isomorphism-of-group-representations,Q83478,Q189112,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:isomorphism-of-lie-groups,Q83478,Q189112,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:l2-inner-product-on-group-functions,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:lie-correspondence,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:linearly-independent-group-elements,Q83478,Q27670,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:locally-compact-group,Q83478,Q2147620,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:primitive-root-of-unity,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:ring-homomorphism,Q83478,Q1194212,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:schur-polynomials,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:semi-locally-simply-connected,Q83478,Q7449310,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:simply-connected,Q83478,Q912058,genuine,unreachable,manual review; no ground-truth path
+def:group,def:symmetric-group,Q83478,Q849512,genuine,unreachable,manual review; no ground-truth path
+def:group,def:unitary-group-representation,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:group,def:young-subgroup,Q83478,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:image,def:compactly-closed,Q860623,,spurious,unreachable,manual review; no dependency
+def:image,def:lusin-function,Q860623,Q1361393,genuine,unreachable,manual review; no ground-truth path
+def:image,def:quotient-of-topological-spaces,Q860623,Q1139111,spurious,unreachable,manual review; no dependency
+def:image,def:rank,Q860623,Q656784,genuine,unreachable,manual review; no ground-truth path
+def:infimum,def:essential-infimum,,Q1969054,spurious,unreachable,manual review; no dependency
+def:inner-product,def:hilbert-space,Q23924662,Q190056,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:inner-product,def:l2-inner-product-on-group-functions,Q23924662,,genuine,unreachable,manual review; no ground-truth path
+def:inner-product,def:orthonormal,Q23924662,Q1411166,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:interval,def:component-interval,Q185148,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:interval,def:mesh,Q185148,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:interval,def:subinterval,Q185148,,genuine,unreachable,manual review; no ground-truth path
+def:interval,def:subrectangle,Q185148,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:interval,def:volume,Q185148,Q39297,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:interval,def:width,Q185148,Q35059,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:lie-algebra,def:isotypic-component,Q664495,Q17098238,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:lie-algebra,def:linear-lie-algebra,Q664495,Q16977077,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:lie-group,def:orthogonal-group,Q622679,Q1783179,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:lie-group,def:special-linear-group,Q622679,Q2140900,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:lie-group,def:special-orthogonal-group,Q622679,Q3117934,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:lie-group,def:special-unitary-group,Q622679,Q684363,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:lie-group,def:unitary-group,Q622679,Q1500617,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:linearly-independent,def:basis-for-abelian-group,Q27670,Q810193,genuine,unreachable,manual review; no ground-truth path
+def:linearly-independent,def:linearly-independent-group-elements,Q27670,Q27670,genuine,unreachable,manual review; no ground-truth path
+def:lower-sum,def:upper-sum,,,spurious,unreachable,manual review; no dependency
+def:manifold,def:orientable,Q203920,Q2748415,genuine,unreachable,manual review; no ground-truth path
+def:manifold,def:orientation,Q203920,Q2748415,genuine,unreachable,manual review; no ground-truth path
+def:manifold,def:oriented-manifold,Q203920,,genuine,unreachable,manual review; no ground-truth path
+def:manifold,def:outward-pointing,Q203920,Q2748415,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:manifold,def:smooth-topological-m-dimensional-manifold-with-boundary,Q203920,Q78338964,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:manifold,def:topological-m-dimensional-manifold-with-boundary,Q203920,Q203920,genuine,unreachable,manual review; no ground-truth path
+def:matrix,def:compact-symplectic-group,Q44337,Q78484790,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:matrix,def:complex-lie-group,Q44337,Q5156554,genuine,unreachable,manual review; no ground-truth path
+def:matrix,def:elementary-matrix,Q44337,Q609566,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:matrix,def:hessian-matrix,Q44337,Q620495,genuine,unreachable,manual review; no ground-truth path
+def:matrix,def:identity-component,Q44337,Q5988368,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:matrix,def:jacobian-determinant,Q44337,Q1474543,genuine,unreachable,manual review; no ground-truth path
+def:matrix,def:jacobian-matrix,Q44337,Q506041,genuine,unreachable,manual review; no ground-truth path
+def:matrix,def:matrix-lie-group,Q44337,Q622679,genuine,unreachable,manual review; no ground-truth path
+def:matrix,def:orthogonal-group,Q44337,Q1783179,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:matrix,def:special-linear-group,Q44337,Q2140900,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:matrix,def:symplectic-algebra,Q44337,,genuine,unreachable,manual review; no ground-truth path
+def:matrix,def:unitary-group,Q44337,Q1500617,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:measurable,def:almost-everywhere,,Q1139334,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:almost-uniform-convergence,,Q25377974,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:measurable,def:borel-function,,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:measurable,def:bounded-measure-space,,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:complex-line-integral,,,spurious,unreachable,manual review; no dependency
+def:measurable,def:convergence-in-measure,,Q768656,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:essential-infimum,,Q1969054,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:essential-supremum,,Q1969054,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:haar-integral,,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:hardy-littlewood-maximal-operator,,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:l2-inner-product-on-group-functions,,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:lebesgue-integral,,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:measurable,def:lebesgue-measurable-function,,Q516776,genuine,unreachable,manual review; no ground-truth path
+def:measurable,def:locally-finite-measure,,Q2136937,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:lp-space,,Q305936,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:lusin-function,,Q1361393,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:p-norm,,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:measurable,def:radon-measure,,Q2126650,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:regular,,Q1428110,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:symmetric-derivative,,Q3773126,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:measurable,def:vitali-covering,,Q3229352,spurious,unreachable,manual review; no dependency
+def:measurable-function,def:almost-uniform-convergence,Q516776,Q25377974,genuine,unreachable,manual review; no ground-truth path
+def:measurable-function,def:lebesgue-measurable-function,Q516776,Q516776,genuine,unreachable,manual review; no ground-truth path
+def:measure-space,def:negative-variation,Q3058212,,genuine,unreachable,manual review; no ground-truth path
+def:measure-space,def:positive-variation,Q3058212,,genuine,unreachable,manual review; no ground-truth path
+def:measure-space,def:signed-measure,Q3058212,Q1764371,genuine,unreachable,manual review; no ground-truth path
+def:measure-space,def:simple-function,Q3058212,Q913022,genuine,unreachable,manual review; no ground-truth path
+def:measure-space,def:total-variation,Q3058212,Q1936288,genuine,unreachable,manual review; no ground-truth path
+def:monic,def:quadratic-integers,,Q803531,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:neighborhood,def:partition-of-unity,Q2478475,Q191690,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:neighborhood,def:topological-m-dimensional-manifold-with-boundary,Q2478475,Q203920,genuine,unreachable,manual review; no ground-truth path
+def:nilpotent,def:nilpotent-group,Q840023,Q1755242,spurious,unreachable,manual review; no dependency
+def:nilpotent,def:nilpotent-lie-algebra,Q840023,Q15148889,spurious,unreachable,manual review; no dependency
+def:norm,def:banach-space,Q956437,Q194397,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:norm,def:compact-linear-transformation,Q956437,Q1780743,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:norm,def:dual-space,Q956437,Q752487,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:norm,def:hilbert-space,Q956437,Q190056,genuine,unreachable,manual review; no ground-truth path
+def:norm,def:weak-convergence,Q956437,Q20850777,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:normal-subgroup,def:upper-central-series,Q743179,,genuine,unreachable,manual review; no ground-truth path
+def:open,def:opposite-topology,Q213363,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:open,def:outward-pointing,Q213363,Q2748415,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:orientable,def:oriented-manifold,Q2748415,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:orientable,def:outward-pointing,Q2748415,Q2748415,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:orientation,def:outward-pointing,Q2748415,Q2748415,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:orthogonal,def:complex-orthogonal-group,Q215067,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:orthogonal,def:generalized-orthogonal-group,Q215067,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:orthogonal,def:lorentz-group,Q215067,Q1334417,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:orthogonal,def:orthogonal-complement,Q215067,Q1780921,genuine,unreachable,manual review; no ground-truth path
+def:orthogonal,def:orthogonal-group,Q215067,Q1783179,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:orthogonal,def:orthogonal-matrix,Q215067,Q333871,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:orthogonal,def:special-orthogonal-group,Q215067,Q3117934,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:outer-measure,def:lebesgue-measure,Q258374,Q827230,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:p-group,def:basis-for-abelian-group,Q286972,Q810193,genuine,unreachable,manual review; no ground-truth path
+def:p-group,def:elementary-abelian-p-group,Q286972,Q1017231,genuine,unreachable,manual review; no ground-truth path
+def:p-group,def:linearly-independent-group-elements,Q286972,Q27670,genuine,unreachable,manual review; no ground-truth path
+def:permutation,def:alternating-group,Q161519,Q438814,genuine,unreachable,manual review; no ground-truth path
+def:permutation,def:sign-of-permutation,Q161519,Q1064405,genuine,unreachable,manual review; no ground-truth path
+def:permutation,def:symmetric-group,Q161519,Q849512,genuine,unreachable,manual review; no ground-truth path
+def:permutation,def:transposition,Q161519,Q2666112,genuine,unreachable,manual review; no ground-truth path
+def:projection,def:real-projective-space,Q519967,,spurious,unreachable,manual review; no dependency
+def:rank,def:embedded-m-dimensional-manifold-with-boundary,Q656784,Q1333611,genuine,unreachable,manual review; no ground-truth path
+def:rectangle,def:strong-differential-basis,Q209,,genuine,unreachable,manual review; no ground-truth path
+def:regular,def:radon-measure,Q1428110,Q2126650,spurious,unreachable,manual review; no dependency
+def:regular,def:regular-family,Q1428110,,spurious,unreachable,manual review; no dependency
+def:residue,def:typical,,,spurious,unreachable,manual review; no dependency
+def:ring,def:algebraic-integer,Q161172,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:annihilator-of-a-submodule,Q161172,Q567083,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:field,Q161172,Q190109,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:field-embedding,Q161172,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:generate-an-algebra-ideal,Q161172,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:module-over-a-lie-algebra,Q161172,Q18848,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:monic,Q161172,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:semisimple-module,Q161172,Q1485102,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:simple-module,Q161172,Q956233,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:submodule,Q161172,Q2498094,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring,def:topological-field,Q161172,Q10260753,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:ring-homomorphism,def:field-embedding,Q1194212,,genuine,unreachable,manual review; no ground-truth path
+def:simple-module,def:multiplicity-of-simple-module-in-semisimple-module,Q956233,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:subgroup,def:abelianization,Q466109,Q318598,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:subgroup,def:derived-series-of-a-group,Q466109,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:subgroup,def:matrix-lie-group,Q466109,Q622679,genuine,unreachable,manual review; no ground-truth path
+def:subgroup,def:quotient-by-normal-subgroup,Q466109,Q1138961,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:sum-of-modules,def:direct-sum-of-module-homomorphisms,,,genuine,unreachable,manual review; no ground-truth path
+def:support,def:partition-of-unity,Q1136376,Q191690,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:support,def:schwartz-space,Q1136376,Q1369621,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:supremum,def:essential-infimum,,Q1969054,spurious,unreachable,manual review; no dependency
+def:supremum,def:essential-supremum,,Q1969054,spurious,unreachable,manual review; no dependency
+def:supremum,def:essentially-bounded,,Q1969054,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:symmetric,def:alternating-group,Q621461,Q438814,spurious,unreachable,manual review; no dependency
+def:symmetric,def:automorphism-group,Q621461,Q60790315,spurious,unreachable,manual review; no dependency
+def:symmetric,def:baire-property,Q621461,Q803931,spurious,unreachable,manual review; no dependency
+def:symmetric,def:cycle,Q621461,Q212130,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:symmetric,def:cycle-type,Q621461,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:symmetric,def:faithful-group-action,Q621461,,spurious,unreachable,manual review; no dependency
+def:symmetric,def:group-action,Q621461,Q288465,spurious,unreachable,manual review; no dependency
+def:symmetric,def:schur-polynomials,Q621461,,spurious,unreachable,manual review; no dependency
+def:symmetric,def:symmetric-derivative,Q621461,Q3773126,spurious,unreachable,manual review; no dependency
+def:symmetric,def:symmetric-difference,Q621461,Q1147242,spurious,unreachable,manual review; no dependency
+def:symmetric,def:symmetric-group,Q621461,Q849512,spurious,unreachable,manual review; no dependency
+def:symmetric,def:symmetric-power-of-group-representations,Q621461,Q55643402,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:symmetric,def:symmetric-power-of-vector-spaces,Q621461,,genuine,reachable,"marked spurious in manual review, reclassified genuine by reachability analysis"
+def:symmetric,def:young-subgroup,Q621461,,spurious,unreachable,manual review; no dependency
+def:topological-space,def:wedge-sum,Q179899,Q1781358,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:transitive,def:orbit,Q64861,Q17859776,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:transitive,def:smooth-topological-m-dimensional-manifold-with-boundary,Q64861,Q78338964,spurious,unreachable,manual review; no dependency
+def:transitive,def:transition-function,Q64861,,spurious,unreachable,manual review; no dependency
+def:transitive,def:transitive-group-action,Q64861,,spurious,unreachable,manual review; no dependency
+def:vector-space,def:direct-sum-decomposition-of-a-lie-algebra,Q125977,Q13582243,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:vector-space,def:exterior-power-of-group-representations,Q125977,Q13408581,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:vector-space,def:multilinear,Q125977,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:vector-space,def:symmetric-power-of-group-representations,Q125977,Q55643402,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:vector-space,def:tensor-product-of-group-representations,Q125977,Q48995828,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:vector-space,def:tensor-product-of-vector-spaces,Q125977,,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:volume,def:centroid,Q39297,Q511093,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:volume,def:volume-of-compact-topological-space,Q39297,,spurious,unreachable,manual review; no dependency
+def:σ-algebra,def:borel-space,Q217357,Q3058218,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:σ-algebra,def:product-measure,Q217357,Q1572094,genuine,reachable,manual review; target reachable from source via ground-truth path
+def:σ-algebra,def:radon-measure,Q217357,Q2126650,genuine,reachable,manual review; target reachable from source via ground-truth path

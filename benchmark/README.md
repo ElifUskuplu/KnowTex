@@ -87,10 +87,20 @@ separate these two kinds of false positive automatically.
 
 ### What could measure D4 honestly
 
-The ablation is not implemented. The manual review was carried out for
-the paper (arXiv:2601.15294v2, Section 5.3): 236 of the 405 D4 edges were
-judged genuine dependencies, 169 spurious. The per-edge classification file
-from that review is not yet in this repository.
+The manual review was carried out for the paper (arXiv:2601.15294v2,
+Section 5.3) and its per-edge result is in
+`data/results/fp_classification.csv`: one row per D4 edge flagged as a false
+positive, with `classification` (`genuine` or `spurious`), `gt_reachable`
+(whether the target is reachable from the source through ground-truth
+edges), and a `note` giving the review stage. Counts: 236 genuine (155
+reachable, 81 not), 169 spurious. Among the 169 spurious edges, 160 come
+from single-word terms; the largest sources are `def:functional` (72),
+`def:derivation` (18) and `def:symmetric` (10).
+
+The ablation below has been run once by hand (links stripped to plain text,
+same ground truth, D4 alone): 1411 edges, 1005 true positives, precision
+0.712, recall 0.605, F1 0.655. This is the number to quote for D4, not the
+0.0 in the per-rule table. The ablation is not yet a flag of the script.
 
 - **Recall via ablation**: generate the LaTeX with links reduced to plain
   text (no `\ref{}`) and run D4 alone against the same ground truth. The
@@ -145,4 +155,5 @@ benchmark/
       tp_edges.csv       # True Positive edges
       fp_edges.csv       # False Positive edges
       fn_edges.csv       # False Negative edges
+      fp_classification.csv  # Manual review of the 405 FP edges (genuine / spurious)
 ```
