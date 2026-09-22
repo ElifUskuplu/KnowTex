@@ -40,4 +40,4 @@ Thumbs.db
 *.latexmlpost.log
 
 # Project-specific
-hidden examples/
+hidden-examples/

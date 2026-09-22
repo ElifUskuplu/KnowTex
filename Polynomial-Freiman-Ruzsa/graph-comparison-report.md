@@ -4,7 +4,7 @@ This report compares three dependency graphs for the PFR Blueprint project (Tere
 
 1. **Manual (KnowTeX)**: produced by KnowTeX in manual mode, using explicit `\uses` annotations in the LaTeX source (`with_uses/print-knowtex/pfr_manual_graph.dot`). The original LaTeX source files provided by the Blueprint authors were used directly without any modification or intervention.
 2. **Inferred (KnowTeX)**: produced by KnowTeX in infer mode, using heuristic analysis only (`without_uses/print-knowtex/pfr_infer_graph.dot`). The only modification made to the original LaTeX source was removing all `\uses` commands; no other changes were applied.
-3. **Blueprint (Lean)**: the dependency graph from the official Lean Blueprint website, extracted from the SVG embedded in the dependency graph HTML page (`Dependency graph.html`).
+3. **Blueprint (Lean)**: the dependency graph from the official Lean Blueprint website, extracted from the SVG embedded in the dependency graph HTML page (`Dependency-graph.html`).
 
 The Blueprint graph represents the formalized mathematical structure as curated by the project authors and is treated as the primary reference. The Manual graph uses the same LaTeX source with `\uses` annotations that mirror the Blueprint's dependency structure. The Inferred graph attempts to recover dependencies automatically from the LaTeX text alone.
 
