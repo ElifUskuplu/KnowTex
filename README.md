@@ -7,7 +7,7 @@ Derived from [Patrick Massot's *plastexdepgraph* plugin](https://github.com/Patr
 
 **Artificial Intelligence Disclosure (AID)**
 
-Portions of the KnowTeX project were developed with the assistance of generative AI tools (Claude Opus 4.6). These tools were used to help draft Python code, suggest refactoring patterns, and improve documentation clarity. All generated code was reviewed, tested, and validated by the author, who assumes full responsibility for the final implementation and design decisions.
+Portions of the KnowTeX project were developed with the assistance of generative AI tools (Claude). These tools were used to help draft Python code, suggest refactoring patterns, and improve documentation clarity. All generated code was reviewed, tested, and validated by the author, who assumes full responsibility for the final implementation and design decisions.
 
 ---
 
