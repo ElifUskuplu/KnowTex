@@ -3,24 +3,24 @@
 Chicago Notes Benchmark for KnowTex
 ====================================
 
-Downloads MathGloss Chicago Notes definitions (~611 math definitions),
-converts them to LaTeX with \\ref{} cross-references, runs KnowTex
-inference (D2 + D4), and evaluates against ground truth dependency
-edges extracted from inter-definition hyperlinks in the markdown source.
+Downloads the MathGloss Chicago Notes definitions (611 markdown files),
+reads them with KnowTex's Markdown front-end, runs the inference rules
+(all rules; only D2 and D4 fire, because the corpus has no proofs) and
+evaluates the result against the ground truth dependency edges given by
+the inter-definition hyperlinks in the markdown source.
 
 Usage:
     python3 benchmark/chicago_benchmark.py
 
 Requirements:
-    - Internet access (for first run to download data)
-    - KnowTex dependencies (pylatexenc, PyStemmer)
+    - Internet access (for the first run, to download the data)
+    - KnowTex dependencies (PyStemmer or snowballstemmer)
 """
 
 import argparse
 import csv
 from datetime import datetime
 import json
-import heapq
 import re
 import sys
 import urllib.request
@@ -32,7 +32,9 @@ from collections import defaultdict
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from knowtex.core.parser import parse_latex_structure
+from knowtex.core.data import DependencyEdge
+from knowtex.core.formats import markdown_files, read_markdown_files
+from knowtex.core.text_parser import parse_text_structure, slugify
 from knowtex.deps.infer import run_inference
 
 # ---------------------------------------------------------------------------
@@ -42,7 +44,6 @@ from knowtex.deps.infer import run_inference
 DATA_DIR = Path(__file__).resolve().parent / "data"
 CHICAGO_MD_DIR = DATA_DIR / "chicago_md"
 MAPPINGS_FILE = DATA_DIR / "chicago_mappings.csv"
-GENERATED_TEX = DATA_DIR / "chicago_notes.tex"
 
 GITHUB_API_TREE = "https://api.github.com/repos/MathGloss/MathGloss/git/trees/main"
 GITHUB_RAW = "https://raw.githubusercontent.com/MathGloss/MathGloss/main"
@@ -50,9 +51,18 @@ MAPPINGS_URL = f"{GITHUB_RAW}/data/alignments/chicago_mappings.csv"
 
 # Regex to extract inter-definition links from markdown
 # Pattern: [link text](https://mathgloss.github.io/MathGloss/chicago/TERM_NAME)
+# The link text may be empty ("[](.../chicago/infimum)") and the target may
+# carry a sub-path ("chicago/definitions/vector_space"); ``_link_key``
+# reduces a target to the last path segment, lower-cased, so that it can be
+# compared with the file slugs ("Borel_space" vs "borel_space").
 LINK_RX = re.compile(
-    r"\[([^\]]+)\]\(https?://mathgloss\.github\.io/MathGloss/chicago/([^)]+)\)"
+    r"\[([^\]]*)\]\(https?://mathgloss\.github\.io/MathGloss/chicago/([^)\s]+)\)"
 )
+
+
+def _link_key(target):
+    """Normalise a link target to the key used for slug lookup."""
+    return target.rstrip("/").rsplit("/", 1)[-1].lower()
 
 # YAML frontmatter
 FRONTMATTER_RX = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
@@ -221,180 +231,21 @@ def load_all_definitions():
 # Markdown → LaTeX conversion
 # ---------------------------------------------------------------------------
 
-def _md_to_latex_body(body, slug_to_label):
-    """Convert markdown body to LaTeX text.
-
-    - **bold** → plain text (strip asterisks; the definition title is used as \\emph{} instead)
-    - [linked text](chicago/TARGET) → linked text~\\ref{label} (marks usage of other terms)
-    - $math$ stays as-is
-    - Strip Wikidata line
-    """
-    # Remove the Wikidata ID line
-    text = re.sub(r"Wikidata ID:.*$", "", body, flags=re.MULTILINE).strip()
-
-    # First pass: replace **bold with [link](...)** inside bold
-    # to avoid nested \emph. Extract bold spans, replace links inside them,
-    # then wrap the whole thing in one \emph{}.
-    def replace_bold(m):
-        inner = m.group(1)
-        # Convert links inside bold spans to \ref{} but don't wrap in \emph{}
-        def bold_link(lm):
-            link_text = lm.group(1)
-            target_slug = lm.group(2)
-            label = slug_to_label.get(target_slug)
-            if label:
-                return f"{link_text}~\\ref{{{label}}}"
-            return link_text
-        inner = LINK_RX.sub(bold_link, inner)
-        return inner  # plain text, no \emph{}
-
-    text = re.sub(r"\*\*([^*]+)\*\*", replace_bold, text)
-
-    # Replace Chicago inter-definition links with text~\ref{label}.
-    # This enables D2 (cross-reference rule) to fire on these dependencies.
-    def replace_link(m):
-        link_text = m.group(1)
-        target_slug = m.group(2)
-        label = slug_to_label.get(target_slug)
-        if label:
-            return f"{link_text}~\\ref{{{label}}}"
-        return link_text
-    text = LINK_RX.sub(replace_link, text)
-
-    # Note: We intentionally do NOT convert *italic* markdown to \emph{}.
-    # The `*` character appears in LaTeX math environments (e.g. align*, V^*)
-    # and a naive regex would break them. The few italic uses (~4 instances
-    # like *not*) are not critical for D4 term matching.
-
-    # Replace remaining markdown links (including empty-text links)
-    text = re.sub(r"\[[^\]]*\]\([^)]+\)", lambda m: re.search(r"\[([^\]]*)\]", m.group()).group(1), text)
-
-    # Clean up markdown formatting
-    text = re.sub(r"^#+\s+", "", text, flags=re.MULTILINE)  # headers
-    text = text.replace("\\|", "|")  # escaped pipes
-
-    return text.strip()
-
-
-def _topological_sort(defs):
-    """Sort definitions so that depended-upon definitions come first.
-
-    Uses Kahn's algorithm. Definitions with no dependencies come first,
-    then definitions whose dependencies are all already placed, etc.
-    Ties are broken alphabetically. Cycles are broken arbitrarily.
-    """
-    slug_set = {d.slug for d in defs}
-    slug_to_def = {d.slug: d for d in defs}
-
-    # Build adjacency: for each def, which slugs does it depend on?
-    deps_of = {}  # slug -> set of slugs it depends on
-    dependents_of = defaultdict(set)  # slug -> set of slugs that depend on it
-    for d in defs:
-        dep_slugs = set()
-        for _link_text, target_slug in d.links:
-            if target_slug in slug_set and target_slug != d.slug:
-                dep_slugs.add(target_slug)
-        deps_of[d.slug] = dep_slugs
-        for dep in dep_slugs:
-            dependents_of[dep].add(d.slug)
-
-    # Kahn's algorithm with a min-heap for efficient sorted extraction
-    in_degree = {d.slug: len(deps_of[d.slug]) for d in defs}
-    heap = [(slug_to_def[s].title.lower(), s) for s, deg in in_degree.items() if deg == 0]
-    heapq.heapify(heap)
-    result = []
-    while heap:
-        _key, slug = heapq.heappop(heap)
-        result.append(slug_to_def[slug])
-        for dep in dependents_of[slug]:
-            in_degree[dep] -= 1
-            if in_degree[dep] == 0:
-                heapq.heappush(heap, (slug_to_def[dep].title.lower(), dep))
-
-    # Append any remaining (cycle members) alphabetically
-    placed = {d.slug for d in result}
-    remaining = sorted(
-        [d for d in defs if d.slug not in placed],
-        key=lambda d: d.title.lower(),
-    )
-    result.extend(remaining)
-    return result
-
-
-def generate_latex(defs):
-    """Generate a complete LaTeX document from parsed definitions."""
-    slug_to_label = {d.slug: d.label for d in defs}
-
-    lines = [
-        r"\documentclass[12pt,a4paper]{article}",
-        r"\usepackage[utf8]{inputenc}",
-        r"\usepackage[T1]{fontenc}",
-        r"\usepackage{amsmath,amssymb,amsthm}",
-        r"\usepackage{hyperref}",
-        "",
-        r"\theoremstyle{definition}",
-        r"\newtheorem{definition}{Definition}",
-        "",
-        r"\title{Chicago Notes -- MathGloss Definitions}",
-        r"\author{Auto-generated for KnowTex Benchmark}",
-        r"\date{}",
-        "",
-        r"\begin{document}",
-        r"\maketitle",
-        "",
-    ]
-
-    # Topological sort: definitions that are depended upon come first.
-    # This ensures D4's forward-reference guard (src_index < ni.index)
-    # doesn't cause systematic false negatives.
-    sorted_defs = _topological_sort(defs)
-
-    for d in sorted_defs:
-        # Convert title to a LaTeX-safe display name
-        safe_title = d.title.replace("_", " ")
-        safe_title = safe_title.replace("\\", r"\textbackslash{}")
-        safe_title = re.sub(r"([#%&_{}~^$])", r"\\\1", safe_title)
-
-        body = _md_to_latex_body(d.body, slug_to_label)
-        if not body:
-            continue
-
-        lines.append(f"\\begin{{definition}}[{safe_title}]\\label{{{d.label}}}")
-        # Use the full title as the defined term for D4 extraction.
-        # For multi-word titles, D4 uses contiguous phrase matching
-        # which is much more precise than single-word stem matching.
-        lines.append(f"\\emph{{{safe_title}}}. {body}")
-        lines.append(r"\end{definition}")
-        lines.append("")
-
-    lines.append(r"\end{document}")
-    tex = "\n".join(lines)
-
-    GENERATED_TEX.parent.mkdir(parents=True, exist_ok=True)
-    GENERATED_TEX.write_text(tex, encoding="utf-8")
-    print(f"Generated LaTeX file: {GENERATED_TEX} ({len(sorted_defs)} definitions)")
-    return tex
-
-
-# ---------------------------------------------------------------------------
-# Ground truth extraction
-# ---------------------------------------------------------------------------
-
 def build_ground_truth(defs):
     """Build the ground truth edge set from inter-definition links.
 
     An edge (def:A, def:B) means "B depends on (uses) A".
     This is derived from B's markdown linking to A.
     """
-    # Build slug lookup
-    slug_set = {d.slug for d in defs}
-    slug_to_def = {d.slug: d for d in defs}
+    # Build slug lookup (case-insensitive, last path segment only)
+    slug_to_def = {d.slug.lower(): d for d in defs}
 
     edges = set()
     for d in defs:
-        for _link_text, target_slug in d.links:
-            if target_slug in slug_set and target_slug != d.slug:
-                source_label = slug_to_def[target_slug].label
+        for _link_text, target in d.links:
+            key = _link_key(target)
+            if key in slug_to_def and key != d.slug.lower():
+                source_label = slug_to_def[key].label
                 target_label = d.label
                 edges.add((source_label, target_label))
 
@@ -406,26 +257,57 @@ def build_ground_truth(defs):
 # KnowTex inference
 # ---------------------------------------------------------------------------
 
-def run_knowtex_inference(tex):
-    """Run KnowTex's parser and inference (all rules) on the LaTeX text."""
-    nodes, node_by_index, label_to_node, proofs, envs = parse_latex_structure(tex)
+# Markdown links, kept as their text: "[abelian group](…/abelian_group)" -> "abelian group"
+MD_LINK_RX = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 
+RUN_SUFFIX = ""   # "_d4-only" for the ablation run
+
+
+def run_knowtex(defs, d4_only=False):
+    """Run KnowTex's Markdown front-end and inference rules on the files.
+
+    The folder is read exactly as the GUI reads a folder of Markdown files
+    (``formats.read_markdown_files``: file-name order, a blank line between
+    files) and parsed by ``knowtex.core.text_parser``, which reads
+    the YAML ``title:`` as the defined term and the hyperlinks as
+    references.  The front-end labels nodes ``definition:<slug>``; they
+    are mapped to the ``def:<slug>`` labels of the ground truth here.
+
+    With *d4_only* the hyperlinks are reduced to their text before parsing,
+    so D2 has nothing to read and every ground-truth edge is left for D4
+    to find (or miss).  The text and the ground truth stay the author's;
+    only the signal D2 uses is removed.
+    """
+    text = read_markdown_files(markdown_files(CHICAGO_MD_DIR))
+    if d4_only:
+        text = MD_LINK_RX.sub(r"\1", text)
+    nodes, node_by_index, label_to_node, proofs, envs = parse_text_structure(text)
     print(f"KnowTex parsed: {len(nodes)} nodes, {len(proofs)} proofs")
-    print(f"  Environments found: {envs}")
+    # Several files, no reading order: D4 matches in every entry.
+    edges = run_inference(nodes, node_by_index, label_to_node, proofs,
+                          definition_envs={"definition"}, ordered=False)
 
-    edges = run_inference(
-        nodes, node_by_index, label_to_node, proofs,
-        definition_envs={"definition"},
-    )
-    all_edge_rules = defaultdict(int)
-    for e in edges:
-        all_edge_rules[e.rule] += 1
+    # The Markdown front-end slugifies titles (apostrophes dropped, case
+    # folded); do the same to the ground-truth side so labels line up.
+    title_slug_to_gt = {}
+    for d in defs:
+        title_slug_to_gt[slugify(d.title)] = d.label
+        title_slug_to_gt[slugify(d.slug)] = d.label
 
-    print(f"KnowTex inferred {len(edges)} total edges:")
-    for rule, count in sorted(all_edge_rules.items()):
+    def to_gt(label):
+        slug = label.split(":", 1)[1]
+        return title_slug_to_gt.get(slug, "def:" + slug)
+
+    mapped = [DependencyEdge(to_gt(e.source), to_gt(e.target),
+                             e.edge_type, e.location, e.rule) for e in edges
+              if not d4_only or e.rule == "D4"]
+    counts = defaultdict(int)
+    for e in mapped:
+        counts[e.rule] += 1
+    print(f"KnowTex inferred {len(mapped)} total edges:")
+    for rule, count in sorted(counts.items()):
         print(f"  {rule}: {count}")
-
-    return edges
+    return mapped
 
 
 # ---------------------------------------------------------------------------
@@ -511,6 +393,8 @@ def evaluate(all_edges, ground_truth, defs, output_csv=False):
             "inferred_total": len(all_inferred),
         },
         "per_rule": per_rule,
+        "note": ("The ground truth holds hyperlink edges only, so every D4 "
+                 "edge counts as a false positive here; see benchmark/README.md."),
     }
 
     # Save results JSON
@@ -542,7 +426,7 @@ def _save_run_json(result):
     out_dir = DATA_DIR / "results"
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    outpath = out_dir / f"run_{ts}.json"
+    outpath = out_dir / f"run_{ts}{RUN_SUFFIX}.json"
     with open(outpath, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
     print(f"  Saved results to {outpath}")
@@ -559,7 +443,7 @@ def _write_results_csv(tp, fp, fn, defs, edge_to_rules=None):
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for name, edge_set in [("tp", tp), ("fp", fp), ("fn", fn)]:
-        outpath = out_dir / f"{name}_edges.csv"
+        outpath = out_dir / f"{name}_edges{RUN_SUFFIX}.csv"
         with open(outpath, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow([
@@ -587,7 +471,7 @@ def _write_results_csv(tp, fp, fn, defs, edge_to_rules=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Chicago Notes Benchmark for KnowTex (D2 + D4 rules)"
+        description="Chicago Notes Benchmark for KnowTex (Markdown front-end; only D2 and D4 fire on this corpus)"
     )
     parser.add_argument(
         "--skip-download", action="store_true",
@@ -600,6 +484,12 @@ def main():
     parser.add_argument(
         "--force-download", action="store_true",
         help="Force re-download of all files",
+    )
+    parser.add_argument(
+        "--d4-only", action="store_true",
+        help="Ablation: reduce the hyperlinks to their text so that D2 finds "
+             "nothing, and score D4 alone against the same ground truth "
+             "(outputs get the suffix _d4-only)",
     )
     args = parser.parse_args()
 
@@ -615,13 +505,13 @@ def main():
     # Step 3: Build ground truth from inter-definition links
     ground_truth = build_ground_truth(defs)
 
-    # Step 4: Generate LaTeX
-    tex = generate_latex(defs)
+    # Step 4: Run KnowTex on the markdown
+    if args.d4_only:
+        global RUN_SUFFIX
+        RUN_SUFFIX = "_d4-only"
+    all_edges = run_knowtex(defs, d4_only=args.d4_only)
 
-    # Step 5: Run KnowTex inference
-    all_edges = run_knowtex_inference(tex)
-
-    # Step 6: Evaluate
+    # Step 5: Evaluate
     results = evaluate(all_edges, ground_truth, defs, output_csv=args.output_csv)
 
     return results

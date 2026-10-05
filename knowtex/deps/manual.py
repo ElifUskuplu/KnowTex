@@ -1,7 +1,8 @@
-"""Extract dependency edges from explicit \\uses{} and \\proves{} commands.
+"""Extract dependency edges from explicit \\uses{} commands.
 
-This is the KnowTeX mode: the author has already annotated their LaTeX
-with \\uses{label1, label2} commands.
+This is the manual mode: the author has already annotated their LaTeX
+with \\uses{label1, label2}.  (\\proves{} is read by the parser, which
+uses it to retarget a proof.)
 """
 
 from knowtex.core.constants import USES_RX

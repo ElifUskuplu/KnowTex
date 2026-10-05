@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
-"""Entry point for the unified KnowTeX application.
+"""Start KnowTeX: the web page served locally, opened in your browser.
 
 Usage:
     python KnowTeX.py
-    python -m knowtex
+    python -m knowtex serve --port 8765
 """
 
-from knowtex.gui.app import KnowTex
+import sys
 
-
-def main():
-    app = KnowTex()
-    app.mainloop()
-
+from knowtex.serve import main
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv[1:]))

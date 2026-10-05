@@ -41,3 +41,9 @@ Thumbs.db
 
 # Project-specific
 hidden-examples/
+benchmark/data/chicago_md/
+benchmark/data/chicago_mappings.csv
+
+# Web smoke-test screenshots
+shot.png
+web/*.png

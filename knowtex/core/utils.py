@@ -1,9 +1,9 @@
-"""Utility functions: path handling, comment stripping, geometry helpers."""
+"""Utility functions: path handling and comment stripping."""
 
 import os
 import re
 
-from knowtex.core.constants import COMMENT_RX, EPSILON
+from knowtex.core.constants import COMMENT_RX
 
 
 def is_within_project(abs_path, project_dir):
@@ -71,21 +71,3 @@ def ensure_tex_ext(path):
 def norm_join(base_dir, rel):
     """Join paths and normalize."""
     return os.path.normpath(os.path.join(base_dir, rel))
-
-
-def point_in_poly(x, y, poly):
-    """Determine if point (x, y) lies inside polygon using ray casting."""
-    inside = False
-    n = len(poly)
-    if n < 3:
-        return False
-    j = n - 1
-    for i in range(n):
-        xi, yi = poly[i]
-        xj, yj = poly[j]
-        intersect = ((yi > y) != (yj > y)) and \
-                    (x < (xj - xi) * (y - yi) / (yj - yi + EPSILON) + xi)
-        if intersect:
-            inside = not inside
-        j = i
-    return inside

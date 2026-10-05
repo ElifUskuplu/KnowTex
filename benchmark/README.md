@@ -1,73 +1,118 @@
 # Chicago Notes Benchmark
 
-Runs KnowTex's dependency inference rules (D2, D4) on the MathGloss Chicago
-Notes dataset and compares the result against the hyperlinks in the source.
+Runs KnowTex's dependency inference rules on the MathGloss Chicago Notes
+dataset, read directly with the Markdown front-end, and compares the result
+against the hyperlinks in the source. All rules run; only D2 and D4 fire,
+because the corpus has no proofs.
 
 **Read [Interpreting the results](#interpreting-the-results) before quoting
 any number from this benchmark.** The D2 figures validate the pipeline; they
 are not an accuracy measurement. The per-rule D4 figures are not meaningful
-as currently computed.
+as computed.
+
+The results of the earlier version of this benchmark, which converted the
+markdown to LaTeX first and is the version described in the paper
+(arXiv:2601.15294v2, Section 5.3), are kept unchanged in
+[`old_version/`](old_version/) together with its README and the manual
+review of its D4 edges.
 
 ## Dataset
 
-~611 mathematics definitions from the
+611 mathematics definitions from the
 [MathGloss](https://github.com/MathGloss/MathGloss) project's `chicago/`
-directory. Each definition is a markdown file containing hyperlinks to other
-definitions. These hyperlinks form the ground truth dependency edges.
+directory. Each definition is a markdown file with a YAML `title:` and
+hyperlinks to other definitions. These hyperlinks form the ground truth
+dependency edges (1667 edges). A link counts even when its text is empty
+(`[](.../chicago/infimum)`) or its target has a sub-path
+(`chicago/definitions/vector_space`, only the last path segment names the
+definition); target slugs are matched case-insensitively (`Borel_space` vs.
+`borel_space`).
 
 ## Method
 
-1. **Download**: Markdown files and a Wikidata mapping CSV are fetched from
-   the MathGloss repository.
-2. **Parse**: Each markdown file is parsed to extract the title, body,
-   inter-definition links, and Wikidata ID.
-3. **LaTeX generation**: Definitions are topologically sorted and converted
-   into LaTeX `definition` environments. The conversion is kept as literal
-   as possible; every decision is listed here so the reader can judge it:
-   - Each inter-definition hyperlink becomes `linked text~\ref{label}`.
-     This preserves the link that is already in the source; nothing is
-     added.
-   - The page title is placed at the start of the body as `\emph{title}`.
-     The markdown marks the defined term in **bold**; the page title is
-     the same term, so this is the LaTeX convention for the same markup.
-     Bold markers themselves are stripped.
-   - `*italic*` is **not** converted to `\emph{}`, because `*` also appears
-     inside math and a naive rewrite would break it.
-   - Math (`$...$`) and the rest of the text are copied verbatim.
-   - The Wikidata line is removed.
-4. **KnowTex inference**: `parse_latex_structure` and `run_inference` are
-   executed on the generated LaTeX.
-5. **Evaluation**: Inferred edges are compared against the ground truth.
-   Precision, recall, and F1 are reported per rule (D2, D4) and combined.
-   See the next section for what these numbers do and do not mean.
+1. **Download**: the markdown files and a Wikidata mapping CSV are fetched
+   from the MathGloss repository into `data/`.
+2. **Parse**: each markdown file is read to extract the title, body,
+   inter-definition links and Wikidata ID; the links give the ground truth.
+3. **KnowTex**: the files are concatenated in file-name order, with a
+   blank line between them, and handed to KnowTex's Markdown front-end
+   (`knowtex/core/text_parser.py`) as one document. Nothing is converted,
+   rewritten or reordered. The front-end reads the YAML `title:` as the
+   defined term of each entry and the hyperlinks as references;
+   `run_inference` then runs every rule with `definition` as the
+   definition-like kind and `ordered=False`: a set of files has no reading
+   order, so D4's "the definition comes before the statement that uses the
+   term" check is switched off and a term is matched in every other entry.
+   No other rule is changed.
+4. **Evaluation**: inferred edges are compared against the ground truth.
+   Precision, recall and F1 are reported per rule and combined. The
+   front-end labels nodes `definition:<slug>`; the script maps them to the
+   `def:<slug>` labels of the ground truth.
+
+## Results
+
+Run `run_20260929_192840.json`, ground truth 1667 edges:
+
+| Rule | Inferred | TP | FP | FN | Precision | Recall | F1 |
+| ---- | -------- | -- | -- | -- | --------- | ------ | -- |
+| D2 | 1667 | 1667 | 0 | 0 | 1.000 | 1.000 | 1.000 |
+| D4 | 616 | 0 | 616 | 1667 | 0.000 | 0.000 | 0.000 |
+| All rules | 2283 | 1667 | 616 | 0 | 0.730 | 1.000 | 0.844 |
+
+### D4 alone (ablation)
+
+`--d4-only` reduces every hyperlink to its text before parsing, so D2 finds
+nothing and every ground-truth edge is left for D4 to find or miss. The
+text and the ground truth stay the author's; only the signal D2 uses is
+removed. Run `run_20260929_193416_d4-only.json`:
+
+| Rule | Inferred | TP | FP | FN | Precision | Recall | F1 |
+| ---- | -------- | -- | -- | -- | --------- | ------ | -- |
+| D4 alone | 1884 | 1268 | 616 | 399 | 0.673 | 0.761 | 0.714 |
+
+This is the number to quote for D4. The 616 false positives are the same
+616 edges that appear as D4 in the full run; the 1268 true positives are
+the edges D2 owns there.
+
+What the ablation shows (from the `*_d4-only.csv` files):
+
+- **Misses (399)**: in 381 of them the defined term does not occur in the
+  target's text at all. The author linked a page under a different wording
+  than its title, e.g. `[modules](…/module_over_a_ring)` or
+  `[algebra](…/algebra_over_a_field)`; the link text is a fragment or an
+  inflection of a multi-word title. The largest sources of misses are
+  `module-over-a-ring` (23), `dimension-of-vector-space` (18),
+  `polynomial-ring` (18) and `algebra-over-a-field` (14). Only 18 misses
+  have the title verbatim in the text.
+- **False positives (616)**: 517 come from single-word terms; `functional`
+  alone gives 108 (its stem "function" matches everywhere), then `group`
+  (33), `measurable` (25), `derivation` (21), `closed` (20), `class` (18).
+  182 of the 616 targets are reachable from the source through
+  ground-truth links, i.e. the dependency exists in the corpus but was
+  never written as a direct link.
 
 ## Interpreting the results
 
 ### D2: a pipeline validation, not an accuracy measurement
 
-The ground truth edges and the `\ref{}` commands that D2 reads are the same
-information in two encodings. Both come from the hyperlink list of each
-markdown file: one copy is written into the ground truth set, the other is
-written into the generated LaTeX. D2 then reads the second copy and is
-compared against the first.
-
-Consequently, D2 reaching precision 1.0 and recall 1.0 is expected by
-construction. It does **not** say that D2 finds dependencies well in real
-documents. What it does say is useful, but different: on 611 definitions and
-1660 edges, the LaTeX generation, the parser, label resolution, and edge
-direction lost nothing and inverted nothing. Quote the D2 result as a
-pipeline check, never as an accuracy figure.
+The ground truth edges and the references that D2 reads are the same
+information: both are the hyperlinks of the markdown files. D2 reaching
+precision 1.0 and recall 1.0 is therefore expected by construction. It does
+**not** say that D2 finds dependencies well in real documents. What it does
+say is useful, but different: on 611 definitions and 1667 links, the Markdown
+front-end, label resolution and edge direction lost nothing and inverted
+nothing. Quote the D2 result as a pipeline check, never as an accuracy
+figure.
 
 ### D4: the per-rule numbers are not meaningful as computed
 
 `run_inference` deduplicates edges by `(source, target)` and the first rule
-to add an edge owns it. D2 runs before D4. Every ground truth edge has a
-`\ref{}`, so D2 has already claimed it before D4 runs. The only edges that
-can be attributed to D4 are therefore edges that D2 did not produce, and
-those are, by construction, outside the ground truth.
-
-This makes `D4: tp = 0, precision = 0.0` a certainty of the setup, not a
-measurement. Do not read it as "D4 does not work".
+to add an edge owns it. D2 runs before D4. Every ground truth edge is a link,
+so D2 has already claimed it before D4 runs. The only edges that can be
+attributed to D4 are therefore edges that D2 did not produce, and those are,
+by construction, outside the ground truth. `tp = 0, precision = 0.0` for D4
+in the full run is a certainty of the setup, not a measurement. Do not read
+it as "D4 does not work"; the `--d4-only` ablation above measures D4.
 
 ### D4 false positives are an upper bound on errors
 
@@ -79,37 +124,11 @@ the phrase "abelian group" in the ring definition and adds
 `abelian-group → ring`, which is mathematically correct but is counted as a
 false positive.
 
-Other D4 false positives are genuine over-matching. Single-word defined
-terms are the main source: the term *functional* alone produces 74 edges,
-because its stem "function" matches any definition whose text contains that
-word. The current benchmark cannot
-separate these two kinds of false positive automatically.
-
-### What could measure D4 honestly
-
-The manual review was carried out for the paper (arXiv:2601.15294v2,
-Section 5.3) and its per-edge result is in
-`data/results/fp_classification.csv`: one row per D4 edge flagged as a false
-positive, with `classification` (`genuine` or `spurious`), `gt_reachable`
-(whether the target is reachable from the source through ground-truth
-edges), and a `note` giving the review stage. Counts: 236 genuine (155
-reachable, 81 not), 169 spurious. Among the 169 spurious edges, 160 come
-from single-word terms; the largest sources are `def:functional` (72),
-`def:derivation` (18) and `def:symmetric` (10).
-
-The ablation below has been run once by hand (links stripped to plain text,
-same ground truth, D4 alone): 1411 edges, 1005 true positives, precision
-0.712, recall 0.605, F1 0.655. This is the number to quote for D4, not the
-0.0 in the per-rule table. The ablation is not yet a flag of the script.
-
-- **Recall via ablation**: generate the LaTeX with links reduced to plain
-  text (no `\ref{}`) and run D4 alone against the same ground truth. The
-  text and the ground truth stay the author's; only the signal D2 uses is
-  removed. This mirrors the PFR comparison, where `\uses{}` was removed to
-  evaluate infer mode.
-- **Precision via manual annotation**: label a random sample of D4 false
-  positives by hand as "real dependency, unlinked by the author" or
-  "spurious match", and report the fraction.
+Other D4 false positives are genuine over-matching, mostly from single-word
+defined terms such as *functional*, whose stem "function" matches any
+definition whose text contains that word. The benchmark cannot separate
+these two kinds of false positive automatically; `fp_edges.csv` lists them
+for manual review.
 
 ## Usage
 
@@ -120,25 +139,36 @@ python3 benchmark/chicago_benchmark.py
 # Skip download (when data/ already exists)
 python3 benchmark/chicago_benchmark.py --skip-download
 
+# Download all files again, overwriting existing ones
+python3 benchmark/chicago_benchmark.py --force-download
+
 # Also write detailed edge-level CSVs
-python3 benchmark/chicago_benchmark.py --output-csv
+python3 benchmark/chicago_benchmark.py --skip-download --output-csv
+
+# Ablation: links reduced to text, D4 scored alone (outputs get _d4-only)
+python3 benchmark/chicago_benchmark.py --skip-download --output-csv --d4-only
 ```
 
 ## Outputs
 
 Each run saves a timestamped JSON file to `data/results/`
-(e.g. `run_20260326_143012.json`) containing:
+(e.g. `run_20260929_192840.json`, or `run_*_d4-only.json` for the ablation)
+containing:
 
-- Per-rule metrics (precision, recall, F1)
-- Combined metrics
-- Edge counts (TP, FP, FN)
-- Timestamp
+- `timestamp` and `ground_truth_total`
+- `combined`: precision, recall, F1 and edge counts (TP, FP, FN, inferred total)
+- `per_rule`: the same metrics for each rule that fired
+- `note`: a reminder that the ground truth holds hyperlink edges only
 
-With the `--output-csv` flag, three additional files are written:
+With `--output-csv`, three additional files are written (with the suffix
+`_d4-only` in the ablation run):
 
 - `tp_edges.csv` -- True Positive edges
 - `fp_edges.csv` -- False Positive edges
 - `fn_edges.csv` -- False Negative edges
+
+Each row has `source_label`, `target_label`, the two Wikidata IDs,
+`classification` (TP/FP/FN) and the `rules` that produced the edge.
 
 ## Directory Structure
 
@@ -146,14 +176,18 @@ With the `--output-csv` flag, three additional files are written:
 benchmark/
   chicago_benchmark.py   # Main benchmark script
   README.md              # This file
+  old_version/           # Results and README of the LaTeX-conversion version (paper)
+    README.md
+    results/
+      run_20260403_160000.json
+      tp_edges.csv, fp_edges.csv, fn_edges.csv
+      fp_classification.csv  # Manual review of that run's 433 D4 edges
   data/
     chicago_md/          # Downloaded markdown files
     chicago_mappings.csv # Wikidata mappings
-    chicago_notes.tex    # Generated LaTeX file
     results/
-      run_*.json         # Per-run metrics
-      tp_edges.csv       # True Positive edges
-      fp_edges.csv       # False Positive edges
-      fn_edges.csv       # False Negative edges
-      fp_classification.csv  # Manual review of the 405 FP edges (genuine / spurious)
+      run_*.json         # Per-run metrics (run_*_d4-only.json: ablation)
+      tp_edges*.csv      # True Positive edges (with --output-csv)
+      fp_edges*.csv      # False Positive edges
+      fn_edges*.csv      # False Negative edges
 ```

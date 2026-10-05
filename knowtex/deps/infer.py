@@ -1,29 +1,71 @@
 """Inference engine: D1-D4 and H1-H4 rules.
 
 Applies deterministic and heuristic rules to infer dependency edges
-from \\ref/\\Cref/\\eqref cross-references and structural patterns.
+from \\ref/\\cref/\\Cref/\\eqref cross-references (or the ``refs`` a
+non-LaTeX front-end resolved), defined-term matching and structural patterns.
 """
 
 import re
 from collections import defaultdict
 
 from knowtex.core.constants import (
-    REF_RX, EQREF_RX, EMPH_RX,
+    REF_RX, EQREF_RX,
     PROOF_BEGIN_STRIP_RX, PROOF_END_STRIP_RX,
     COROLLARY_RX, H2_TARGET_RX, LEMMA_RX,
     H3_MAX_GAP,
 )
 from knowtex.core.data import DependencyEdge
 from knowtex.deps.term_extraction import (
-    _strip_latex_to_words, _stem, _stem_words,
+    node_words, redefinition_term_strings, _stem, _stem_words,
     _contains_phrase,
     build_defined_term_registry,
 )
 
 
+def node_refs(node):
+    """Labels referenced by a statement node.
+
+    Non-LaTeX front-ends store them in ``refs``; LaTeX nodes are scanned
+    for \\ref/\\Cref/\\cref/\\eqref.
+    """
+    stored = getattr(node, "refs", None)
+    if stored is not None:
+        return list(stored)
+    out = []
+    for rx in (REF_RX, EQREF_RX):
+        for rm in rx.finditer(node.snippet):
+            out.append(rm.group(1).strip())
+    return out
+
+
+def proof_refs(proof):
+    """Labels referenced inside a proof body (header excluded)."""
+    stored = getattr(proof, "refs", None)
+    if stored is not None:
+        return list(stored)
+    inner = proof.snippet
+    begin_match = PROOF_BEGIN_STRIP_RX.match(inner)
+    if begin_match:
+        inner = inner[begin_match.end():]
+    end_match = PROOF_END_STRIP_RX.search(inner)
+    if end_match:
+        inner = inner[:end_match.start()]
+    out = []
+    for rx in (REF_RX, EQREF_RX):
+        for rm in rx.finditer(inner):
+            out.append(rm.group(1).strip())
+    return out
+
+
 def run_inference(nodes, node_by_index, label_to_node, proofs,
-                  index_registry=None, definition_envs=None):
-    """Apply D1-D4 and H2-H3 rules, plus H4 if index_registry is provided."""
+                  index_registry=None, definition_envs=None, ordered=True):
+    """Apply D1-D4 and H2-H3 rules, plus H4 if index_registry is provided.
+
+    ``ordered=False`` is for several Markdown files loaded together (a
+    glossary, one entry per file): the files have no reading order, so
+    D4's "the definition comes before the statement that uses the term"
+    check is switched off.  Nothing else changes.
+    """
     edges = []
     seen = set()
 
@@ -48,35 +90,15 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
             continue
         parent_label = tgt_node.label
 
-        proof_snippet = p.snippet
-        inner = proof_snippet
-        begin_match = PROOF_BEGIN_STRIP_RX.match(inner)
-        if begin_match:
-            inner = inner[begin_match.end():]
-        end_match = PROOF_END_STRIP_RX.search(inner)
-        if end_match:
-            inner = inner[:end_match.start()]
-
-        for rx in (REF_RX, EQREF_RX):
-            for rm in rx.finditer(inner):
-                ref_label = rm.group(1).strip()
-                if ref_label in all_labels and ref_label != parent_label:
-                    add_edge(ref_label, parent_label,
-                             "deterministic", "proof", "D1")
+        for ref_label in proof_refs(p):
+            if ref_label in all_labels and ref_label != parent_label:
+                add_edge(ref_label, parent_label,
+                         "deterministic", "proof", "D1")
 
     # --- D2: Process each statement ---
     for ni in nodes:
-        snippet = ni.snippet
         label = ni.label
-
-        for rm in REF_RX.finditer(snippet):
-            ref_label = rm.group(1).strip()
-            if ref_label in all_labels and ref_label != label:
-                add_edge(ref_label, label,
-                         "deterministic", "statement", "D2")
-
-        for rm in EQREF_RX.finditer(snippet):
-            ref_label = rm.group(1).strip()
+        for ref_label in node_refs(ni):
             if ref_label in all_labels and ref_label != label:
                 add_edge(ref_label, label,
                          "deterministic", "statement", "D2")
@@ -90,7 +112,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
         node_stem_set_cache = {}
         node_stem_seq_cache = {}
         for ni in nodes:
-            words = _strip_latex_to_words(ni.snippet)
+            words = node_words(ni)
             stems = _stem_words(words)
             node_stem_set_cache[ni.label] = set(stems)
             node_stem_seq_cache[ni.label] = stems
@@ -102,15 +124,9 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
         node_defined_terms = {}
         for ni in nodes:
             defined = set()
-            for m in EMPH_RX.finditer(ni.snippet):
-                raw = m.group(1).strip()
-                if raw.startswith("\\") or raw.startswith("$"):
-                    continue
-                cleaned = re.sub(r"\\[a-zA-Z@]+\*?(?:\{[^}]*\})?", " ", raw)
-                cleaned = cleaned.replace("{", " ").replace("}", " ")
-                cleaned = " ".join(cleaned.split()).strip().lower()
-                if len(cleaned) >= 2:
-                    words = cleaned.split()
+            for raw in redefinition_term_strings(ni):
+                words = raw.lower().split()
+                if words:
                     defined.add(tuple(_stem(w) for w in words))
             node_defined_terms[ni.label] = defined
 
@@ -121,7 +137,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
             for src_label, src_index, _raw_term, term_stems in term_registry:
                 if src_label == ni.label:
                     continue
-                if src_index >= ni.index:
+                if ordered and src_index >= ni.index:
                     continue
                 if tuple(term_stems) in target_defined:
                     continue
@@ -138,9 +154,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
     for ni in nodes:
         if not COROLLARY_RX.fullmatch(ni.env):
             continue
-        has_ref = (bool(REF_RX.search(ni.snippet))
-                   or bool(EQREF_RX.search(ni.snippet)))
-        if has_ref:
+        if node_refs(ni):
             continue
         already_has_dep = any(
             e.target == ni.label and e.rule != "D4"
@@ -202,7 +216,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
         node_words_set_cache = {}
         node_stem_seq_cache_h4 = {}
         for ni in nodes:
-            words = _strip_latex_to_words(ni.snippet)
+            words = node_words(ni)
             node_words_set_cache[ni.label] = set(words)
             node_stem_seq_cache_h4[ni.label] = _stem_words(words)
 

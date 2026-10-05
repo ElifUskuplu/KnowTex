@@ -6,7 +6,8 @@ import re
 # Environment name matchers
 # ============================================================
 
-PROOF_ALIAS_RX = re.compile(r"^(proof|pr|pf|prf|pfof|pfoftheorem)$", re.I)
+PROOF_ALIASES = ("proof", "pr", "pf", "prf", "pfof", "pfoftheorem")
+PROOF_ALIAS_RX = re.compile(r"^(" + "|".join(PROOF_ALIASES) + r")\*?$", re.I)
 COROLLARY_RX = re.compile(r"^(corollary|cor|corol|corl)$", re.I)
 H2_TARGET_RX = re.compile(
     r"^(theorem|thm|th|thrm|proposition|propn|prop|prp)$", re.I
@@ -37,7 +38,8 @@ EMPH_RX = re.compile(
 
 # D3: explicit proof target, e.g. \begin{proof}[Proof of Theorem \ref{thm:X}]
 PROOF_OF_REF_RX = re.compile(
-    r"\\begin\{(?:proof|pf|pr|prf)\}\s*\[.*?\\(?:ref|Cref|cref)\{([^}]+)\}.*?\]",
+    r"\\begin\{(?:" + "|".join(PROOF_ALIASES) + r")\*?\}"
+    r"\s*\[.*?\\(?:ref|Cref|cref)\{([^}]+)\}.*?\]",
     re.I | re.S,
 )
 
@@ -48,7 +50,8 @@ PROOF_OF_REF_RX = re.compile(
 INPUT_BRACED_RX = re.compile(r"\\input\s*\{([^}]+)\}")
 INPUT_SPACEFORM_RX = re.compile(r"\\input\s+([^\s%]+)")
 INCLUDE_RX = re.compile(r"\\include\s*\{([^}]+)\}")
-INCLUDEONLY_RX = re.compile(r"\\includeonly\s*\{([^}]*)\}")
+# one level of nested braces allowed: \includeonly{a,\ifbool{x}{b}{c},d}
+INCLUDEONLY_RX = re.compile(r"\\includeonly\s*\{((?:[^{}]|\{[^{}]*\})*)\}")
 IMPORT_RX = re.compile(r"\\import\s*\{([^}]+)\}\s*\{([^}]+)\}")
 SUBIMPORT_RX = re.compile(r"\\subimport\s*\{([^}]+)\}\s*\{([^}]+)\}")
 SUBFILE_RX = re.compile(r"\\subfile\s*\{([^}]+)\}")
@@ -68,8 +71,6 @@ SECTION_RX = re.compile(
     r"\\section\*?\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}", re.M
 )
 
-ENV_BEGIN_RX = re.compile(r"\\begin\{([^}]+)\}")
-
 # ============================================================
 # Well-known non-theorem environments to SKIP during scanning
 # ============================================================
@@ -87,32 +88,22 @@ SKIP_ENVS = frozenset({
     "tikzcd", "tikzcd*", "cd", "displaymath", "flalign", "flalign*",
     "subequations", "adjustbox", "wrapfigure", "landscape", "sideways",
     "eqnarray", "eqnarray*", "list",
+    # inner math / float variants
+    "aligned", "alignat", "alignat*", "alignedat", "gathered",
+    "smallmatrix", "Bmatrix", "Vmatrix", "dcases", "rcases", "multlined",
+    "figure*", "table*", "tabular*", "longtable", "tabu", "sidewaystable",
+    "sidewaysfigure", "subfigure", "subtable", "algorithm", "algorithmic",
+    "algorithm*", "algorithmic*", "lstlisting*", "comment", "small", "footnotesize",
+    "tiny", "large", "Large", "LARGE", "huge", "Huge", "spacing", "singlespace",
+    "doublespace", "onehalfspace", "flushright*", "tcolorbox", "mdframed",
+    "framed", "shaded", "sloppypar", "samepage", "appendices", "multicols",
+    "multicols*", "enumerate*", "itemize*", "description*", "tasks", "verbatim*",
+    "xy", "warning", "slogan", "displaytext",
 })
 
 # ============================================================
-# GUI and rendering constants
+# Inference constants
 # ============================================================
-
-ZOOM_MIN = 0.05
-ZOOM_MAX = 8.0
-ZOOM_STEP_IN = 1.111111
-ZOOM_STEP_OUT = 0.9
-ZOOM_FIT_MARGIN = 0.95
-
-EPSILON = 1e-12
-SNIPPET_MAX_DISPLAY_LEN = 1000
-CLICK_DRAG_THRESHOLD = 4  # pixels
-PREVIEW_DPI = "96"
-EXPORT_DPI = "150"
-
-SHAPE_OPTIONS = [
-    "ellipse", "circle", "doublecircle", "box", "diamond",
-    "triangle", "pentagon", "hexagon", "octagon",
-]
-PRESET_COLORS = [
-    "Blue", "Purple", "DimGray", "SkyBlue", "Lavender", "White",
-    "Red", "Green", "Orange", "Yellow", "Pink", "Cyan", "Black",
-]
 
 # Matches definition-like environment names (auto-checked in config dialog)
 DEFN_ENV_RX = re.compile(
@@ -134,6 +125,7 @@ H3_MAX_GAP = 3  # max node gap for H3 lemma->theorem heuristic
 # LaTeX-to-plaintext stripping patterns
 # ============================================================
 
+MATH_DOLLAR_DISPLAY_RX = re.compile(r"\$\$.*?\$\$", re.S)  # strip before MATH_INLINE_RX
 MATH_INLINE_RX = re.compile(r"\$[^$]+\$")
 MATH_DISPLAY_RX = re.compile(r"\\\[.+?\\\]", re.S)
 MATH_PAREN_RX = re.compile(r"\\\(.+?\\\)", re.S)

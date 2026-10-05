@@ -1,4 +1,10 @@
-"""Index registry for index-based inference rule (H4)."""
+"""Index registry for the index/emphasis inference rule (H4).
+
+``term_to_first_node`` maps each normalized ``\\index{}`` or emphasized
+(``\\emph``, ``\\textit``, ``\\textbf``, ``\\demph``) term to the label of
+the first node, in document order, whose statement contains it.
+Built for LaTeX input only.
+"""
 
 from knowtex.core.constants import INDEX_RX, INDEX_SEE_RX
 from knowtex.core.utils import normalize_index_term
@@ -31,49 +37,33 @@ def build_index_registry(nodes, proofs, tex):
             current = nxt
         return current
 
-    # Collect index terms from nodes (first occurrence wins)
+    # One pass over the nodes in document order so that an \emph in an
+    # early node beats an \index in a later one.  A cross-reference entry
+    # (\index{x|see{y}}) is not a use of y.
     term_to_first_node = {}
-    node_index_terms = {}
     all_hierarchy_terms = set()
-
     for ni in nodes:
-        terms = []
         for m in INDEX_RX.finditer(ni.snippet):
             raw = m.group(1)
+            if "|see" in raw.lower():
+                continue
             norm = resolve(normalize_index_term(raw))
             if norm:
-                terms.append(norm)
-                if norm not in term_to_first_node:
-                    term_to_first_node[norm] = ni.label
+                term_to_first_node.setdefault(norm, ni.label)
                 all_hierarchy_terms.add(norm)
-        node_index_terms[ni.label] = terms
+        for et in _extract_emph_terms(ni.snippet):
+            term_to_first_node.setdefault(et, ni.label)
 
-    # Also collect emphasized terms (\emph, \textit, etc.)
-    node_emph_terms = {}
-    for ni in nodes:
-        eterms = _extract_emph_terms(ni.snippet)
-        new_terms = []
-        for et in eterms:
-            if et not in term_to_first_node:
-                term_to_first_node[et] = ni.label
-                new_terms.append(et)
-            elif term_to_first_node[et] != ni.label:
-                new_terms.append(et)
-        node_emph_terms[ni.label] = new_terms
-
-    # Collect index terms from proofs
-    proof_index_terms = {}
     for p in proofs:
-        terms = []
         for m in INDEX_RX.finditer(p.snippet):
             raw = m.group(1)
+            if "|see" in raw.lower():
+                continue
             norm = resolve(normalize_index_term(raw))
             if norm:
-                terms.append(norm)
                 all_hierarchy_terms.add(norm)
-        proof_index_terms[p.index] = terms
 
-    # Build parent-child links from hierarchical terms (e.g. algebra!group)
+    # Parent-child links from hierarchical terms (e.g. algebra!group)
     hierarchy_links = []
     for term in all_hierarchy_terms:
         if "!" not in term:

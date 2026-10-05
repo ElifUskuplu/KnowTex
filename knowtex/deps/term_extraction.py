@@ -1,55 +1,65 @@
-"""Term extraction and stemming utilities for inference rules D4 and H4."""
+"""Term extraction and stemming for the D4 and H4 rules.
+
+Works on two kinds of node:
+
+* LaTeX nodes (``NodeInfo.text is None``): words, defined terms and
+  references are derived from the LaTeX ``snippet`` with regexes.
+* Nodes from the Markdown front-end: the front-end has
+  already filled ``text``, ``defined_terms`` and ``refs``; nothing is
+  parsed here.
+"""
 
 import re
 
 from knowtex.core.constants import (
-    EMPH_RX, INDEX_RX,
-    MATH_INLINE_RX, MATH_DISPLAY_RX, MATH_PAREN_RX,
+    EMPH_RX, INDEX_RX, MATH_INLINE_RX, MATH_DISPLAY_RX, MATH_PAREN_RX,
+    MATH_DOLLAR_DISPLAY_RX,
     INDEX_NTN_RX, LATEX_CMD_RX, SPECIAL_CHARS_RX,
 )
 from knowtex.core.utils import normalize_index_term
 
-import Stemmer as PyStemmer
+# PyStemmer (C extension) is fast; snowballstemmer is the same algorithm
+# in pure Python and is what the browser build (Pyodide) uses.
+try:
+    import Stemmer as _PyStemmer
+    _stemmer = _PyStemmer.Stemmer("english")
 
-_stemmer = PyStemmer.Stemmer("english")
+    def _stem(word):
+        return _stemmer.stemWord(word.lower())
+except ImportError:  # pragma: no cover - depends on the environment
+    import snowballstemmer as _snowball
+    _stemmer = _snowball.stemmer("english")
 
-
-def _stem(word):
-    """Stem a single word using Snowball stemmer."""
-    return _stemmer.stemWord(word.lower())
+    def _stem(word):
+        return _stemmer.stemWord(word.lower())
 
 
 def _stem_words(text_words):
-    """Stem a list of words. Returns list of stems."""
     return [_stem(w) for w in text_words]
 
 
 def _contains_phrase(stem_sequence, phrase_stems):
     """Check if *phrase_stems* appears as a contiguous subsequence in
-    *stem_sequence*.  Both arguments are lists of stemmed words."""
-    plen = len(phrase_stems)
-    if plen == 0:
+    *stem_sequence*."""
+    n = len(phrase_stems)
+    if n == 0:
         return False
-    for i in range(len(stem_sequence) - plen + 1):
-        if stem_sequence[i:i + plen] == phrase_stems:
+    if n == 1:
+        return phrase_stems[0] in stem_sequence
+    for i in range(len(stem_sequence) - n + 1):
+        if stem_sequence[i:i + n] == phrase_stems:
             return True
     return False
 
 
-def _strip_latex_to_words(snippet):
-    """Strip LaTeX commands and math mode from a snippet, return lowercase words."""
-    text = snippet
-    text = MATH_INLINE_RX.sub(" ", text)
-    text = MATH_DISPLAY_RX.sub(" ", text)
-    text = MATH_PAREN_RX.sub(" ", text)
-    text = INDEX_NTN_RX.sub(" ", text)
-    text = LATEX_CMD_RX.sub(" ", text)
-    text = text.replace("{", " ").replace("}", " ")
-    text = SPECIAL_CHARS_RX.sub(" ", text)
+def words_from_plain(text):
+    """Tokenize markup-free text into lowercase words.
+
+    A word ending in ".", ",", "?" or ";" is followed by a "." boundary
+    token so that phrase matching cannot span a sentence or clause.
+    """
     words = []
     for w in text.split():
-        # Preserve sentence-ending punctuation as a boundary marker
-        # so that phrase matching cannot span across sentences.
         has_boundary = w[-1] in ".,?;" if w else False
         w = w.strip(".,;:!?()[]\"'")
         if len(w) >= 2:
@@ -57,6 +67,37 @@ def _strip_latex_to_words(snippet):
         if has_boundary:
             words.append(".")
     return words
+
+
+def _strip_latex_to_words(snippet):
+    """Strip LaTeX commands and math mode from a snippet, return lowercase words."""
+    text = snippet
+    text = MATH_DOLLAR_DISPLAY_RX.sub(" ", text)
+    text = MATH_INLINE_RX.sub(" ", text)
+    text = MATH_DISPLAY_RX.sub(" ", text)
+    text = MATH_PAREN_RX.sub(" ", text)
+    text = INDEX_NTN_RX.sub(" ", text)
+    text = LATEX_CMD_RX.sub(" ", text)
+    text = text.replace("{", " ").replace("}", " ")
+    text = SPECIAL_CHARS_RX.sub(" ", text)
+    return words_from_plain(text)
+
+
+def node_words(node):
+    """Lowercase word list of a node or proof, whatever its source format."""
+    text = getattr(node, "text", None)
+    if text is not None:
+        return words_from_plain(text)
+    return _strip_latex_to_words(node.snippet)
+
+
+def _clean_emph(raw):
+    raw = raw.strip()
+    if raw.startswith("\\") or raw.startswith("$"):
+        return ""
+    cleaned = re.sub(r"\\[a-zA-Z@]+\*?(?:\{[^}]*\})?", " ", raw)
+    cleaned = cleaned.replace("{", " ").replace("}", " ")
+    return " ".join(cleaned.split()).strip()
 
 
 def _extract_emph_terms(snippet):
@@ -67,50 +108,15 @@ def _extract_emph_terms(snippet):
     """
     terms = []
     for m in EMPH_RX.finditer(snippet):
-        raw = m.group(1).strip()
-        if raw.startswith("\\") or raw.startswith("$"):
-            continue
-        cleaned = re.sub(r"\\[a-zA-Z@]+\*?(?:\{[^}]*\})?", " ", raw)
-        cleaned = cleaned.replace("{", " ").replace("}", " ")
-        cleaned = " ".join(cleaned.split()).lower().strip()
+        cleaned = _clean_emph(m.group(1)).lower()
         if len(cleaned) >= 2:
             terms.append(cleaned)
     return terms
 
 
-def extract_defined_terms(node):
-    """Extract defined terms from a definition environment's snippet.
-
-    Returns a list of (raw_term, stems) tuples.
-    """
+def _extract_index_terms(snippet):
     terms = []
-    seen = set()
-    for m in EMPH_RX.finditer(node.snippet):
-        raw = m.group(1).strip()
-        if raw.startswith("\\") or raw.startswith("$") or len(raw) < 2:
-            continue
-        cleaned = re.sub(r"\\[a-zA-Z@]+\*?(?:\{[^}]*\})?", " ", raw)
-        cleaned = cleaned.replace("{", " ").replace("}", " ")
-        cleaned = " ".join(cleaned.split()).strip()
-        if len(cleaned) < 2:
-            continue
-
-        lower = cleaned.lower()
-        if lower in seen:
-            continue
-        seen.add(lower)
-
-        words = lower.split()
-        if not words:
-            continue
-        stems = _stem_words(words)
-        if not all(len(s) >= 2 for s in stems):
-            continue
-
-        terms.append((cleaned, stems))
-
-    # Extract from \index{} entries as well
-    for idx_m in INDEX_RX.finditer(node.snippet):
+    for idx_m in INDEX_RX.finditer(snippet):
         raw_idx = idx_m.group(1)
         if "|see" in raw_idx.lower():
             continue
@@ -119,20 +125,71 @@ def extract_defined_terms(node):
             continue
         if "!" in norm:
             parts = norm.split("!")
-            term_text = " ".join(reversed(parts))
-        else:
-            term_text = norm
-        if term_text in seen:
+            norm = " ".join(reversed(parts))
+        terms.append(norm)
+    return terms
+
+
+def defined_term_strings(node):
+    """Raw defined-term strings of a node (case preserved, deduplicated).
+
+    LaTeX nodes: \\emph{}/\\textit{}/\\textbf{}/\\demph{} then \\index{}.
+    Other nodes: whatever the front-end stored in ``defined_terms``.
+    """
+    stored = getattr(node, "defined_terms", None)
+    if stored is not None:
+        raw_terms = [" ".join(t.split()) for t in stored]
+    else:
+        raw_terms = []
+        for m in EMPH_RX.finditer(node.snippet):
+            cleaned = _clean_emph(m.group(1))
+            if len(cleaned) >= 2:
+                raw_terms.append(cleaned)
+        raw_terms.extend(_extract_index_terms(node.snippet))
+
+    out, seen = [], set()
+    for t in raw_terms:
+        lower = t.lower()
+        if len(lower) < 2 or lower in seen:
             continue
-        seen.add(term_text)
-        words = term_text.split()
+        seen.add(lower)
+        out.append(t)
+    return out
+
+
+def redefinition_term_strings(node):
+    """Terms a node introduces *itself*, used by D4 to skip an edge from
+    an earlier definition of the same term.
+
+    LaTeX nodes: \\emph{}/\\textit{}/\\textbf{}/\\demph{} only.  An
+    \\index{} entry marks usage, not a (re)definition, so it must not block
+    the edge.  Other nodes: their ``defined_terms``.
+    """
+    stored = getattr(node, "defined_terms", None)
+    if stored is not None:
+        return [" ".join(t.split()) for t in stored]
+    out = []
+    for m in EMPH_RX.finditer(node.snippet):
+        cleaned = _clean_emph(m.group(1))
+        if len(cleaned) >= 2:
+            out.append(cleaned)
+    return out
+
+
+def extract_defined_terms(node):
+    """Extract defined terms from a definition environment.
+
+    Returns a list of (raw_term, stems) tuples.
+    """
+    terms = []
+    for raw in defined_term_strings(node):
+        words = raw.lower().split()
         if not words:
             continue
         stems = _stem_words(words)
         if not all(len(s) >= 2 for s in stems):
             continue
-        terms.append((term_text, stems))
-
+        terms.append((raw, stems))
     return terms
 
 

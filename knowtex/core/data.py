@@ -20,6 +20,13 @@ class NodeInfo(NamedTuple):
     pos: int            # Start character position in expanded text
     pos_end: int        # End character position in expanded text
     display_name: str   # Short human-readable name
+    # --- Format-independent fields (filled by non-LaTeX front-ends) ---
+    # When these are None the inference rules derive the information
+    # from ``snippet`` with the LaTeX regexes.  The Markdown
+    # front-end fills them directly so that no LaTeX conversion is needed.
+    text: str | None = None                    # Markup-free body text
+    defined_terms: tuple[str, ...] | None = None  # Terms this node defines
+    refs: tuple[str, ...] | None = None        # Labels this node references
 
 
 class ProofInfo(NamedTuple):
@@ -35,6 +42,8 @@ class ProofInfo(NamedTuple):
     pos: int                      # Start character position in expanded text
     pos_end: int                  # End character position in expanded text
     target_node_idx: int | None   # Index of the parent statement node
+    text: str | None = None       # Markup-free body text (non-LaTeX front-ends)
+    refs: tuple[str, ...] | None = None  # Labels referenced in the proof
 
 
 @dataclass(frozen=True, slots=True)

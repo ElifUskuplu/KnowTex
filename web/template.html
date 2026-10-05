@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KnowTeX Web</title>
+<meta name="description" content="Paste LaTeX or Markdown and see the dependency graph of its definitions, theorems and proofs. Runs entirely in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-2: #F7F8F8;
+  --ink: #494E52;
+  --muted: #777A7D;
+  --line: #E4E6E8;
+  --accent: #1B3A5F;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E9EEF4;
+  --graph-bg: #F3F7FB;
+  --graph-dot: #D3DEEA;
+  --ok: #2F7D4A;
+  --warn: #B5761A;
+  --bad: #B3362A;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .06);
+  --font-ui: "Spectral", Georgia, serif;
+  --font-display: "Spectral", Georgia, serif;
+  --font-mono: Monaco, Consolas, "Lucida Console", ui-monospace, monospace;
+  --radius: 6px;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17191C; --surface: #1E2226; --surface-2: #262A2F; --ink: #D6D9DC;
+    --muted: #9AA0A6; --line: #2F3439; --accent: #8FB3DA; --accent-ink: #0F1A28;
+    --accent-soft: #1F2C3B; --graph-bg: #1B2129; --graph-dot: #2C3644;
+    --ok: #6CC08A; --warn: #E0A64C; --bad: #E4766A;
+    --shadow: 0 1px 1px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17191C; --surface: #1E2226; --surface-2: #262A2F; --ink: #D6D9DC;
+  --muted: #9AA0A6; --line: #2F3439; --accent: #8FB3DA; --accent-ink: #0F1A28;
+  --accent-soft: #1F2C3B; --graph-bg: #1B2129; --graph-dot: #2C3644;
+  --ok: #6CC08A; --warn: #E0A64C; --bad: #E4766A;
+  --shadow: 0 1px 1px rgba(0,0,0,.4);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.5 var(--font-ui);
+  padding-inline: 16px; padding-block: 0 24px;
+}
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font: 500 30px/1.1 var(--font-display); letter-spacing: 0; }
+h1 em { font-style: italic; color: var(--accent); }
+h1 .web { margin-left: .35em; font-weight: 500; color: var(--muted); font-size: .8em; letter-spacing: .02em; }
+h2 { font: 600 13px/1.2 var(--font-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+a { color: var(--accent); }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+code, .mono { font-family: var(--font-mono); font-size: 12px; }
+
+header {
+  display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: center;
+  padding-block: 18px 14px; border-bottom: 1px solid var(--line); margin-bottom: 16px;
+}
+header .brand { flex: 0 0 auto; }
+.status {
+  display: inline-flex; align-items: center; gap: 8px; margin-right: 6px;
+  padding: 4px 12px; border-radius: 999px; background: var(--surface-2);
+  font-size: 13px; color: var(--muted); white-space: nowrap; max-width: 100%;
+}
+.status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); flex: none; }
+.status[data-state="ready"] .dot { background: var(--ok); }
+.status[data-state="error"] .dot { background: var(--bad); }
+.status[data-state="busy"] .dot { background: var(--accent); animation: pulse 1s infinite alternate; }
+@keyframes pulse { from { opacity: .35 } to { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .status .dot { animation: none; } }
+
+.workspace {
+  display: grid; grid-template-columns: minmax(320px, 470px) minmax(0, 1fr);
+  gap: 16px; align-items: start;
+}
+.column { display: grid; gap: 16px; min-width: 0; }
+.panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px 16px; min-width: 0;
+}
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row.spread { justify-content: space-between; }
+.grow { flex: 1 1 auto; }
+
+textarea#source::placeholder { color: var(--muted); font-family: var(--font-ui); font-size: 15px; line-height: 1.45; }
+.empty-state { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 15px; text-align: center; padding: 24px; pointer-events: none; }
+textarea#source {
+  width: 100%; min-height: 300px; resize: vertical; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg);
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.5; tab-size: 2;
+}
+textarea#source:focus, select:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+select {
+  padding: 6px 28px 6px 10px; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+.btn {
+  padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink);
+}
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 4px 10px; font-size: 13px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--accent); padding-inline: 6px; }
+.btn.ghost:hover { background: var(--accent-soft); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+label.check { display: inline-flex; align-items: center; gap: 6px; user-select: none; }
+input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); margin: 0; }
+.hint { color: var(--muted); font-size: 13px; }
+.detected { color: var(--muted); font-size: 13px; }
+.detected b { color: var(--ink); font-weight: 600; }
+
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; white-space: nowrap; }
+#env-table td { white-space: nowrap; padding-inline: 6px; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+th.num { text-align: right; }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 2px solid; vertical-align: -2px; margin-right: 6px; }
+.table-wrap { overflow-x: auto; }
+.table-wrap.tall { max-height: 520px; overflow-y: auto; }
+.empty { color: var(--muted); padding: 24px 8px; text-align: center; }
+
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.tab { padding: 8px 12px; border: 0; background: none; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 600; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .count { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.graph-frame {
+  position: relative; height: 640px; max-height: 80vh; border: 1px solid var(--line);
+  border-radius: var(--radius); background: var(--graph-bg); overflow: hidden;
+  background-image: radial-gradient(var(--graph-dot) 1px, transparent 1px); background-size: 18px 18px;
+  cursor: grab;
+}
+.graph-frame.dragging { cursor: grabbing; }
+.graph-frame .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.graph-frame svg { display: block; }
+.graph-frame svg a { cursor: pointer; }
+.graph-frame svg a:hover > * > polygon, .graph-frame svg a:hover > * > ellipse { stroke-width: 3; }
+.graph-toolbar { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 6px; }
+.graph-toolbar .btn { background: var(--surface); }
+.overlay-note { position: absolute; left: 12px; bottom: 10px; font-size: 12px; color: var(--muted); background: var(--surface); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--line); }
+
+.node-card {
+  margin-top: 12px; border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: var(--radius); padding: 10px 12px; background: var(--surface-2); display: grid; gap: 4px;
+}
+.node-card .kind { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.node-card .name { font: 600 18px/1.2 var(--font-display); }
+.node-card pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font-family: var(--font-mono); font-size: 12px; color: var(--muted); max-height: 180px; overflow: auto; }
+.chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); background: var(--surface); margin: 2px 4px 2px 0; }
+
+.rule { font-family: var(--font-mono); font-size: 12px; padding: 1px 6px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); }
+.rule.D { color: var(--accent); }
+.rule.H { color: var(--warn); }
+.cyc { color: var(--bad); font-weight: 600; }
+td.edge-x { width: 34px; text-align: right; }
+.x { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.x:hover { color: var(--bad); background: var(--surface-2); }
+
+.force-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+.force-svg.dragging { cursor: grabbing; }
+.force-svg .fnode { cursor: pointer; }
+.force-svg .fnode circle { stroke-width: 2; transition: opacity .15s; }
+.force-svg .fnode text { font-family: var(--font-ui); font-size: 12px; fill: var(--ink); pointer-events: none; paint-order: stroke; stroke: var(--graph-bg); stroke-width: 3px; stroke-linejoin: round; }
+.force-svg .flink { fill: none; stroke: #8A9099; stroke-width: 1.4; transition: opacity .15s; }
+.force-svg .faded { opacity: .1; }
+.force-svg .lit circle { stroke-width: 3.5; }
+.force-svg .lit-link { stroke: var(--accent); stroke-width: 2.2; }
+.legend-box { position: absolute; left: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font-size: 12px; color: var(--muted); display: grid; gap: 3px; max-width: 220px; }
+.legend-box .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid; vertical-align: -1px; margin-right: 6px; }
+.legend-box .edge { display: inline-block; width: 22px; border-top: 2px solid #8A9099; vertical-align: 3px; margin-right: 6px; }
+.focus-bar { position: absolute; left: 12px; right: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; background: var(--surface); border: 1px solid var(--accent); border-radius: 4px; padding: 6px 10px; font-size: 13px; }
+.focus-bar .name { font-weight: 600; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 3px 9px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.focus-bar .grow { flex: 1; }
+details.rules { margin-top: 4px; }
+details.rules summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+details.rules dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0 0; font-size: 13.5px; }
+details.rules dt { font-family: var(--font-mono); font-size: 12px; padding-top: 2px; }
+details.rules dd { margin: 0; color: var(--muted); }
+.error-box { border: 1px solid var(--bad); color: var(--bad); border-radius: var(--radius); padding: 10px 12px; margin-top: 10px; white-space: pre-wrap; font-family: var(--font-mono); font-size: 12px; }
+footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
+.loaded { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; background: var(--surface-2); display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.loaded .name { font-weight: 600; }
+.loaded label.check { white-space: nowrap; }
+.loaded label.check select { max-width: 200px; }
+.loaded .notes { width: 100%; font-family: var(--font-mono); font-size: 12px; color: var(--warn); white-space: pre-wrap; max-height: 90px; overflow: auto; }
+.ranges { margin-top: 10px; }
+.ranges .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2px 12px; max-height: 180px; overflow: auto; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); }
+.ranges label { display: flex; gap: 6px; align-items: center; font-size: 13.5px; }
+.seg-mode button { padding: 4px 12px; font-size: 13.5px; }
+#env-table th, #env-table td { padding: 5px 6px; }
+#env-table th { font-size: 11px; letter-spacing: .02em; }
+#env-table select { font-size: 12px; width: 80px; padding: 2px 2px; }
+#env-table td.style { white-space: nowrap; }
+#env-table td.style input[type="color"] { margin-left: 3px; }
+#env-table input[type="color"] { width: 26px; height: 20px; padding: 0; border: 1px solid var(--line); background: none; vertical-align: middle; }
+#env-table td.num { color: var(--muted); }
+.add-edge { display: grid; grid-template-columns: 1fr 1fr auto auto auto; gap: 6px; align-items: end; margin-top: 10px; }
+.add-edge label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 2px; }
+.add-edge select, .add-edge input { font-size: 13px; }
+.fnode.ghost circle { stroke-dasharray: 4 3; opacity: .75; }
+.fnode.ghost text { fill: var(--muted); }
+.chip.ghost { border-style: dashed; }
+input[type="file"] { display: none; }
+
+@media (max-width: 860px) {
+  .workspace { grid-template-columns: 1fr; }
+  .graph-frame { height: 480px; }
+  h1 { font-size: 26px; }
+}
+</style>
+<script>
+// Served by "python -m knowtex serve": Python runs natively behind /api/ and the
+// libraries come from web/vendor (offline).  Published page: everything from CDNs.
+(function () {
+  const srcs = window.KNOWTEX_LOCAL
+    ? ["/vendor/viz-global.js", "/vendor/d3.min.js"]
+    : ["https://cdn.jsdelivr.net/pyodide/v0.29.5/full/pyodide.js",
+       "https://cdn.jsdelivr.net/npm/@viz-js/viz@3.30.0/dist/viz-global.js",
+       "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"];
+  for (const src of srcs) document.write('<script src="' + src + '"><\/script>');
+})();
+</script>
+</head>
+<body>
+
+<header>
+  <div class="brand"><h1>Know<em>TeX</em><span class="web">Web</span></h1></div>
+</header>
+
+<main class="workspace">
+  <div class="column">
+    <section class="panel" aria-labelledby="h-source">
+      <div class="panel-head">
+        <h2 id="h-source">1 · Source text</h2>
+        <div class="row">
+          <button class="btn small" id="open-files" type="button" title="One .tex or .md file, or several .md files">Browse file…</button>
+          <button class="btn small" id="open-project" type="button" title="A LaTeX project: the folder with the main .tex file and everything it \input{}s">Browse folder…</button>
+          <span class="hint">example:</span>
+          <button class="btn ghost small" data-sample="latex" type="button">LaTeX</button>
+          <button class="btn ghost small" data-sample="markdown" type="button">Markdown</button>
+          <input type="file" id="file-input" multiple accept=".tex,.ltx,.md,.markdown">
+          <input type="file" id="folder-input" webkitdirectory directory multiple>
+        </div>
+      </div>
+      <textarea id="source" spellcheck="false" aria-label="Source text" placeholder="Paste your document here to scan it: a LaTeX file (or a fragment with \begin{theorem} … \end{theorem}) or a Markdown text with headings such as ## Definition 1.2. Or open files above. Several Markdown files are read as one glossary with no reading order."></textarea>
+      <div class="loaded" id="loaded" hidden>
+        <span class="name" id="loaded-name"></span><span class="hint" id="loaded-info"></span>
+        <label class="check" id="main-wrap" hidden>Main file <select id="main-select"></select></label>
+        <span class="grow"></span>
+        <button class="btn ghost small" id="loaded-clear" type="button">Clear</button>
+        <div class="notes" id="loaded-notes" hidden></div>
+      </div>
+      <div class="ranges" id="ranges" hidden>
+        <div class="row spread"><span class="hint" id="ranges-title">Chapters to scan</span>
+          <span class="row"><button class="btn ghost small" id="ranges-all" type="button">all</button><button class="btn ghost small" id="ranges-none" type="button">none</button></span></div>
+        <div class="list" id="ranges-list"></div>
+      </div>
+      <div class="row spread" style="margin-top:10px">
+        <div class="row">
+          <label for="format">Format</label>
+          <select id="format">
+            <option value="auto">Detect automatically</option>
+            <option value="latex">LaTeX</option>
+            <option value="markdown">Markdown</option>
+          </select>
+          <span class="detected" id="detected"></span>
+        </div>
+        <button class="btn primary" id="scan" type="button" disabled>Scan</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="h-setup">
+      <div class="panel-head"><h2 id="h-setup">2 · What to include</h2><span class="hint" id="scan-summary"></span></div>
+      <div class="row" style="margin-bottom:8px; gap:14px">
+        <span class="seg seg-mode" id="mode-seg"><button type="button" data-mode="infer" aria-pressed="true" title="Edges from \ref, defined terms and position heuristics">Infer</button><button type="button" data-mode="manual" aria-pressed="false" title="Edges from the author's \uses{} annotations only">Manual</button></span>
+      </div>
+      <div class="table-wrap">
+        <table id="env-table" aria-describedby="env-hint">
+          <thead><tr><th>Kind</th><th class="num">#</th><th title="draw this kind">Incl.</th><th class="defn-col" title="definition-like: its terms are matched (D4)">Defn.</th><th title="shape, border colour, fill colour">Style</th></tr></thead>
+          <tbody><tr><td colspan="5" class="empty">Scan a text to list its statement kinds.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="hint" id="env-hint">“Definition” marks the kinds whose terms are matched later in the text (rule D4): a term they introduce links them to every later statement that uses it.</p>
+      <div class="row" style="margin-top:8px; gap: 14px">
+        <label class="check" id="scope-wrap" hidden>Scope
+          <select id="opt-scope"><option value="">whole document</option></select>
+        </label>
+        <label class="check"><input type="checkbox" id="opt-tred" checked> Transitive reduction</label>
+        <label class="check"><input type="checkbox" id="opt-legend" checked> Legend</label>
+        <label class="check">View
+          <select id="opt-view"><option value="force">force-directed (interactive)</option><option value="layered">layered (Graphviz)</option></select>
+        </label>
+        <label class="check" id="rankdir-wrap" hidden>Direction
+          <select id="opt-rankdir"><option value="TB">top → bottom</option><option value="LR">left → right</option></select>
+        </label>
+      </div>
+      <div class="row spread" style="margin-top:12px">
+        <details class="rules">
+          <summary>How edges are inferred</summary>
+          <dl>
+            <dt>D1</dt><dd>a \ref in a proof → edge from the referenced statement to the proved one</dd>
+            <dt>D2</dt><dd>a \ref, link or “Theorem 2.1” inside a statement → edge to that statement</dd>
+            <dt>D3</dt><dd>“Proof of Theorem X” attaches the proof to X instead of the nearest statement</dd>
+            <dt>D4</dt><dd>a term introduced in a definition (\emph, **bold**, “quoted”, “called a …”) reappears later → edge from the definition</dd>
+            <dt>H1</dt><dd>a proof belongs to the statement just before it</dd>
+            <dt>H2</dt><dd>a corollary without references → nearest preceding theorem or proposition</dd>
+            <dt>H3</dt><dd>a lemma → the next theorem or proposition within 3 statements</dd>
+            <dt>H4</dt><dd>\index{} and \emph{} terms of non-definition statements matched in later statements (LaTeX only)</dd>
+          </dl>
+        </details>
+        <button class="btn primary" id="build" type="button" disabled>Build graph</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="column">
+    <section class="panel" aria-labelledby="h-results">
+      <div class="panel-head">
+        <h2 id="h-results">3 · Dependency graph</h2>
+        <div class="row">
+          <div class="status" id="status" data-state="busy" role="status" aria-live="polite"><span class="dot"></span><span id="status-text">Loading…</span></div>
+          <button class="btn small" id="dl-svg" type="button" disabled>SVG</button>
+          <button class="btn small" id="dl-png" type="button" disabled>PNG</button>
+          <button class="btn small" id="dl-dot" type="button" disabled>DOT</button>
+          <button class="btn small" id="dl-tex" type="button" disabled hidden title="TikZ via dot2tex (local server)">TikZ</button>
+        </div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-tab="graph" type="button">Graph</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="edges" type="button">Edges<span class="count" id="edge-count">0</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="nodes" type="button">Statements<span class="count" id="node-count">0</span></button>
+      </div>
+
+      <div id="tab-graph" role="tabpanel">
+        <div class="graph-frame" id="graph-frame">
+          <div class="stage" id="stage"></div>
+          <svg id="force" class="force-svg" hidden aria-label="Dependency graph"></svg>
+          <div class="legend-box" id="force-legend" hidden></div>
+          <div class="focus-bar" id="focus-bar" hidden>
+            <span>Focus: <span class="name" id="focus-name"></span></span>
+            <span class="seg" id="focus-dir"><button type="button" data-dir="up">prerequisites</button><button type="button" data-dir="both" aria-pressed="true">both</button><button type="button" data-dir="down">dependents</button></span>
+            <span class="seg" id="focus-depth"><button type="button" data-depth="1" aria-pressed="true">1 step</button><button type="button" data-depth="2">2 steps</button><button type="button" data-depth="0">all</button></span>
+            <span class="grow"></span>
+            <button class="btn small" id="focus-clear" type="button">Show all</button>
+          </div>
+          <div class="empty-state" id="graph-empty">The dependency graph appears here once a document is scanned.</div>
+          <div class="graph-toolbar">
+            <button class="btn small" id="zoom-out" type="button" aria-label="Zoom out">−</button>
+            <button class="btn small" id="zoom-fit" type="button">Fit</button>
+            <button class="btn small" id="zoom-in" type="button" aria-label="Zoom in">+</button>
+          </div>
+          <div class="overlay-note" id="graph-note">Drag to pan, scroll to zoom, click a node for details.</div>
+        </div>
+        <div id="node-card" hidden></div>
+      </div>
+
+      <div id="tab-edges" role="tabpanel" hidden>
+        <div class="row spread" style="margin-bottom:8px">
+          <span class="hint">Solid = found in a proof · dashed = in a statement · dotted = heuristic. Remove an edge with ×; the graph is rebuilt.</span>
+          <button class="btn small" id="restore" type="button" disabled>Restore removed</button>
+        </div>
+        <form class="add-edge" id="add-edge">
+          <label>Source <select id="add-src"></select></label>
+          <label>Target <select id="add-tgt"></select></label>
+          <label>Type <select id="add-type"><option value="deterministic">deterministic</option><option value="heuristic">heuristic</option><option value="manual">manual</option></select></label>
+          <label>Location <select id="add-loc"><option value="proof">proof</option><option value="statement">statement</option><option value="inferred">inferred</option></select></label>
+          <button class="btn small" type="submit">Add edge</button>
+        </form>
+        <div class="table-wrap tall">
+          <table id="edge-table">
+            <thead><tr><th>Rule</th><th>From</th><th>To</th><th>Style</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-nodes" role="tabpanel" hidden>
+        <div class="table-wrap tall">
+          <table id="node-table">
+            <thead><tr><th>#</th><th>Kind</th><th>Label</th><th>Name</th><th>Defined terms</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="error" class="error-box" hidden></div>
+    </section>
+  </div>
+</main>
+
+<footer>KnowTeX · <a href="https://github.com/ElifUskuplu/KnowTex">source on GitHub</a></footer>
+
+<script type="application/json" id="py-bundle">/*__PY_BUNDLE__*/</script>
+<script>
+"use strict";
+const PYODIDE_INDEX = "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/";
+
+const SAMPLES = {
+latex: String.raw`\section{Groups}
+
+\begin{definition}[Group]\label{def:group}
+A set $G$ together with a binary operation $\cdot \colon G \times G \to G$ is called
+a \emph{group}, denoted $(G, \cdot)$, if the operation is associative, there is an
+identity element $e$, and every element has an inverse.
+\end{definition}
+
+\begin{definition}[Abelian Group]\label{def:abelian}
+A group $(G, \cdot)$ is called \emph{abelian} (or \emph{commutative})
+if $a \cdot b = b \cdot a$ for all $a, b \in G$.
+\end{definition}
+
+\begin{example}\label{ex:integers}
+$(\mathbb{Z}, +)$ is an abelian group under addition.
+\end{example}
+
+\begin{proposition}[Cancellation Law]\label{prop:cancellation}
+Let $(G, \cdot)$ be a group and $a, b, c \in G$.
+Then $a \cdot b = a \cdot c$ implies $b = c$.
+\end{proposition}
+
+\begin{proof}
+Multiply both sides by $a^{-1}$, which exists by \cref{def:group}.
+\end{proof}
+
+\begin{definition}[Order of an Element]\label{def:order}
+Let $G$ be a group and $a \in G$. The smallest positive integer $n$ with
+$a^n = e$ is called the \emph{order} of $a$, denoted $\operatorname{ord}(a)$.
+\end{definition}
+
+\begin{definition}[Subgroup]\label{def:subgroup}
+A nonempty subset $H \subseteq G$ is called a \emph{subgroup} of $G$,
+written $H \leq G$, if $H$ itself forms a group under the operation of $G$.
+\end{definition}
+
+\begin{proposition}[Subgroup Test]\label{prop:subgroup-test}
+A nonempty subset $H \subseteq G$ is a subgroup in the sense of \cref{def:subgroup}
+if and only if $a \cdot b^{-1} \in H$ for all $a, b \in H$.
+\end{proposition}
+
+\begin{proof}
+Closure under the operation and inverses follows from \cref{def:group}
+applied to $H$; the converse uses \cref{prop:cancellation}.
+\end{proof}
+
+\begin{definition}[Cyclic Subgroup]\label{def:cyclic-subgroup}
+For $a \in G$ the set $\langle a \rangle = \{a^n : n \in \mathbb{Z}\}$ is a subgroup
+of $G$, called the \emph{cyclic subgroup generated by $a$}.
+If $G = \langle a \rangle$, we say $G$ is a \emph{cyclic group}.
+\end{definition}
+
+\begin{theorem}\label{thm:cyclic-subgroup-order}
+If $\operatorname{ord}(a) = n < \infty$ then $|\langle a \rangle| = n$.
+\end{theorem}
+
+\begin{proof}
+If $a^i = a^j$ with $0 \leq i < j < n$, then $a^{j-i} = e$ with $0 < j-i < n$,
+contradicting the definition of order.
+\end{proof}
+
+\begin{definition}[Coset]\label{def:coset}
+Let $H \leq G$ and $a \in G$. The set $aH = \{a \cdot h : h \in H\}$ is called
+the left \emph{coset} of $H$ containing $a$.
+\end{definition}
+
+\begin{lemma}\label{lem:coset-partition}
+The left cosets of $H$ partition $G$, and each coset has $|H|$ elements.
+\end{lemma}
+
+\begin{proof}
+Two cosets $aH$ and $bH$ are equal or disjoint, and $h \mapsto a \cdot h$ is a
+bijection $H \to aH$ by \cref{prop:cancellation}.
+\end{proof}
+
+\begin{theorem}[Lagrange]\label{thm:lagrange}
+If $G$ is a finite group and $H \leq G$, then $|H|$ divides $|G|$.
+\end{theorem}
+
+\begin{proof}
+By \cref{lem:coset-partition}, $G$ is a disjoint union of $[G:H]$ cosets of size $|H|$.
+\end{proof}
+
+\begin{corollary}\label{cor:prime-order}
+Every group of prime order is cyclic.
+\end{corollary}
+`,
+markdown: `# Groups
+
+## Definition 1.1 (Group)
+A set $G$ with a binary operation is called a **group** if the operation is
+associative, there is an identity element, and every element has an inverse.
+
+## Definition 1.2 (Abelian group)
+A group is called **abelian** if the operation is commutative.
+
+## Definition 1.3 (Subgroup)
+A nonempty subset $H$ of a group $G$ is a **subgroup** if it is itself a group
+under the operation of $G$.
+
+## Proposition 1.4 (Subgroup test)
+A nonempty subset $H$ of $G$ is a subgroup if and only if $ab^{-1} \\in H$ for all $a, b \\in H$.
+
+*Proof.* Closure under products and inverses follows from [Definition 1.1](#definition:1.1). ∎
+
+## Definition 1.5 (Coset)
+For a subgroup $H$ and $a \\in G$ the set $aH$ is called a **left coset** of $H$.
+
+## Lemma 1.6
+The left cosets of a subgroup partition the group, and all have the same size.
+
+*Proof.* Cosets are equal or disjoint; $h \\mapsto ah$ is a bijection. ∎
+
+## Theorem 1.7 (Lagrange)
+If $G$ is a finite group and $H$ a subgroup, then the order of $H$ divides the order of $G$.
+
+*Proof.* By Lemma 1.6 the group is a disjoint union of cosets of equal size. ∎
+
+## Corollary 1.8
+Every group of prime order is cyclic.
+
+## Definition 1.9 (Normal subgroup)
+A subgroup $N$ is **normal** if $aN = Na$ for every $a$ in the group.
+`
+};
+
+// Node styling per statement kind (Graphviz colours).
+const KIND_STYLE = {
+  definition:   { shape: "box",     border: "#2A6FA8", fill: "#DCEBF7" },
+  notation:     { shape: "box",     border: "#2A6FA8", fill: "#DCEBF7" },
+  axiom:        { shape: "box",     border: "#2A6FA8", fill: "#DCEBF7" },
+  theorem:      { shape: "ellipse", border: "#B5761A", fill: "#FBEBC8" },
+  proposition:  { shape: "ellipse", border: "#6B4CA8", fill: "#E8E0F4" },
+  lemma:        { shape: "ellipse", border: "#2F7D4A", fill: "#DDF0DC" },
+  corollary:    { shape: "ellipse", border: "#A83A62", fill: "#F5DEE6" },
+  conjecture:   { shape: "hexagon", border: "#B5761A", fill: "#FBEBC8" },
+  claim:        { shape: "ellipse", border: "#2F7D4A", fill: "#DDF0DC" },
+  example:      { shape: "note",    border: "#6C7278", fill: "#EDEEEA" },
+  remark:       { shape: "note",    border: "#6C7278", fill: "#EDEEEA" },
+  default:      { shape: "ellipse", border: "#6C7278", fill: "#EDEEEA" },
+};
+const KIND_ALIAS = { defn: "definition", def: "definition", dfn: "definition", thm: "theorem", prop: "proposition",
+  lem: "lemma", cor: "corollary", rem: "remark", ex: "example", conj: "conjecture", ntn: "notation" };
+function styleFor(env) {
+  const k = env.toLowerCase();
+  return KIND_STYLE[k] || KIND_STYLE[KIND_ALIAS[k]] || KIND_STYLE.default;
+}
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  status: $("status"), statusText: $("status-text"), source: $("source"), format: $("format"),
+  detected: $("detected"), scan: $("scan"), build: $("build"), envBody: $("env-table").querySelector("tbody"),
+  scanSummary: $("scan-summary"), tred: $("opt-tred"), rankdir: $("opt-rankdir"),
+  stage: $("stage"), frame: $("graph-frame"),
+  edgeBody: $("edge-table").querySelector("tbody"), nodeBody: $("node-table").querySelector("tbody"),
+  edgeCount: $("edge-count"), nodeCount: $("node-count"), nodeCard: $("node-card"), error: $("error"),
+  restore: $("restore"), dlSvg: $("dl-svg"), dlDot: $("dl-dot"), note: $("graph-note"),
+  view: $("opt-view"), rankdirWrap: $("rankdir-wrap"), force: $("force"), legend: $("force-legend"),
+  focusBar: $("focus-bar"), focusName: $("focus-name"), focusClear: $("focus-clear"),
+  loaded: $("loaded"), loadedName: $("loaded-name"), loadedInfo: $("loaded-info"), loadedNotes: $("loaded-notes"),
+  mainWrap: $("main-wrap"), mainSelect: $("main-select"), ranges: $("ranges"), rangesList: $("ranges-list"),
+  rangesTitle: $("ranges-title"), scope: $("opt-scope"), scopeWrap: $("scope-wrap"),
+  dlPng: $("dl-png"), dlTex: $("dl-tex"), addSrc: $("add-src"), addTgt: $("add-tgt"), addType: $("add-type"), addLoc: $("add-loc"),
+};
+const SHAPES = ["ellipse", "circle", "doublecircle", "box", "note", "diamond", "triangle", "pentagon", "hexagon", "octagon"];
+
+const state = { api: null, viz: null, scan: null, result: null, removed: [], added: [], svg: null,
+                view: { x: 20, y: 20, k: 1 }, busy: false, mode: "infer",
+                src: null,          // loaded files: { text, fmt, name, info, project }
+                structure: null,    // chapter/section ranges of a LaTeX source
+                local: window.KNOWTEX_LOCAL || null,
+                force: null, focus: { label: null, dir: "both", depth: 1 } };
+
+function setStatus(kind, text) {
+  els.status.dataset.state = kind;
+  els.statusText.textContent = text;
+}
+function showError(msg) {
+  els.error.textContent = msg;
+  els.error.hidden = !msg;
+}
+
+// ---------------------------------------------------------------- runtime
+// state.api.call(name, ...args) -> parsed JSON, from Pyodide or from the local server.
+async function loadRuntime() {
+  if (state.local) {
+    const ping = await (await fetch("/api/ping")).json();
+    state.local.capabilities = ping.capabilities || {};
+    return { call: async (name, ...args) => {
+      const r = await fetch("/api/" + name, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ args }) });
+      if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
+      return JSON.parse(await r.text());
+    } };
+  }
+  setStatus("busy", "Loading the Python runtime (about 10 MB, cached after the first visit)…");
+  const pyodide = await loadPyodide({ indexURL: PYODIDE_INDEX });
+  const bundle = JSON.parse(document.getElementById("py-bundle").textContent);
+  const root = "/knowtex_web";
+  pyodide.FS.mkdirTree(root);
+  for (const [path, src] of Object.entries(bundle)) {
+    const full = root + "/" + path;
+    pyodide.FS.mkdirTree(full.slice(0, full.lastIndexOf("/")));
+    pyodide.FS.writeFile(full, src);
+  }
+  pyodide.runPython(`import sys\nsys.path.insert(0, "${root}")`);
+  const mod = pyodide.pyimport("knowtex.webapi");
+  return { call: async (name, ...args) => JSON.parse(mod[name](...args)) };
+}
+
+async function boot() {
+  const params = new URLSearchParams(location.search);
+  const initial = params.get("sample");
+  if (initial in SAMPLES) els.source.value = SAMPLES[initial];
+  els.note.hidden = true;
+  try {
+    const [api, viz] = await Promise.all([loadRuntime(), Viz.instance()]);
+    state.api = api; state.viz = viz;
+    if (state.local && state.local.capabilities && state.local.capabilities.tex) els.dlTex.hidden = false;
+    setStatus("ready", state.local ? "Ready (local)" : "Ready");
+    els.scan.disabled = false;
+    if (els.source.value.trim()) { await runScan(); await runBuild(); }
+  } catch (e) {
+    console.error(e);
+    setStatus("error", "The runtime could not be loaded");
+    showError((state.local ? "The local server did not answer." : "The Python runtime or the graph renderer could not be loaded from the CDN. Check your connection and reload.") + "\n\n" + e);
+  }
+}
+
+// ---------------------------------------------------------------- source: pasted text or loaded files
+function sourceText() { return state.src ? state.src.text : els.source.value; }
+function currentFormat() { return state.src ? state.src.fmt : els.format.value; }
+
+function showLoaded(src) {
+  state.src = src;
+  els.source.hidden = true; els.loaded.hidden = false;
+  els.loadedName.textContent = src.name; els.loadedInfo.textContent = src.info || "";
+  els.loadedNotes.hidden = !(src.notes && src.notes.length);
+  els.loadedNotes.textContent = (src.notes || []).join("\n");
+  els.format.value = src.fmt; els.format.disabled = true;
+  els.loaded.dataset.unordered = src.unordered ? "1" : "";
+  els.detected.textContent = "";
+}
+function clearLoaded() {
+  state.src = null; state.structure = null;
+  els.source.hidden = false; els.loaded.hidden = true; els.mainWrap.hidden = true;
+  els.format.disabled = false; els.format.value = "auto"; els.loaded.dataset.unordered = "";
+  els.ranges.hidden = true; els.rangesList.innerHTML = "";
+  els.build.disabled = true; els.detected.textContent = "";
+}
+const isMd = (name) => /\.(md|markdown)$/i.test(name);
+const isTex = (name) => /\.(tex|ltx)$/i.test(name);
+
+async function openFiles(files) {
+  files = [...files].sort((a, b) => a.name.localeCompare(b.name));
+  if (!files.length) return;
+  if (files.length === 1) {
+    const f = files[0]; const text = await f.text();
+    const fmt = isTex(f.name) ? "latex" : isMd(f.name) ? "markdown" : "auto";
+    const notes = [];
+    if (fmt === "latex" && /\\(input|include|subfile|import)\s*\{/.test(text))
+      notes.push("This file \\input{}s other files. Use “Browse folder…” to load the whole project.");
+    showLoaded({ text, fmt, name: f.name, info: `${(f.size / 1024).toFixed(0)} KB`, notes });
+  } else if (files.every(f => isTex(f.name))) {
+    // several .tex files: a flat project (all in one folder)
+    const dict = {};
+    for (const f of files) dict[f.name] = await f.text();
+    await openProjectDict(dict, "files");
+    return;
+  } else {
+    if (!files.every(f => isMd(f.name))) { showError("Select one .tex file, several .tex files of one project, one .md file, or several .md files."); return; }
+    const parts = [];
+    for (const f of files) parts.push((await f.text()).replace(/^\n+|\n+$/g, ""));
+    showLoaded({ text: parts.join("\n\n") + "\n", fmt: "markdown", unordered: true,
+                 name: `${files.length} Markdown files`, info: `${(files.reduce((a, f) => a + f.size, 0) / 1024).toFixed(0)} KB` });
+  }
+  await loadStructureAndScan();
+}
+
+const isProjectFile = (name) => /\.(tex|ltx|sty|cls|txt)$/i.test(name) || !/\./.test(name.split("/").pop());
+async function openProject(files) {
+  // files from <input webkitdirectory>: webkitRelativePath starts with the folder's own name
+  const texFiles = [...files].filter(f => isProjectFile(f.webkitRelativePath || f.name));
+  if (!texFiles.length) { showError("No .tex files in that folder."); return; }
+  showError("");
+  setStatus("busy", `Reading ${texFiles.length} files…`);
+  const rootName = (texFiles[0].webkitRelativePath || texFiles[0].name).split("/")[0];
+  const dict = {};
+  for (const f of texFiles) {
+    const rel = (f.webkitRelativePath || f.name).split("/").slice(1).join("/");   // drop the folder itself
+    dict[rel] = await f.text();
+  }
+  await openProjectDict(dict, rootName);
+}
+async function openProjectDict(dict, rootName) {
+  const mains = Object.keys(dict).filter(k => isTex(k) && /\\documentclass/.test(dict[k])).sort((a, b) => a.length - b.length || a.localeCompare(b));
+  if (!mains.length) { showError("No file with \\documentclass found in that folder."); setStatus("ready", "Ready"); return; }
+  state.project = { dict, rootName };
+  els.mainSelect.innerHTML = mains.map(m => `<option value="${escapeAttr(m)}">${escapeHtml(m)}</option>`).join("");
+  els.mainWrap.hidden = mains.length < 2;
+  await expandProject(mains[0]);
+}
+async function expandProject(main) {
+  const { dict, rootName } = state.project;
+  setStatus("busy", "Expanding the project…");
+  const res = await state.api.call("expand", JSON.stringify(dict), main);
+  if (!res.ok) { setStatus("error", "Expansion failed"); showError(res.error); return; }
+  showLoaded({ text: res.text, fmt: "latex", name: `${rootName}/${main}`, project: main,
+               info: `${Object.keys(dict).length} files · ${(res.chars / 1024).toFixed(0)} KB expanded`, notes: res.notes });
+  els.mainWrap.hidden = els.mainSelect.options.length < 2;
+  await loadStructureAndScan();
+}
+
+// chapters / sections of a LaTeX source: a checklist of what to scan
+async function loadStructureAndScan() {
+  state.structure = null; els.ranges.hidden = true; els.rangesList.innerHTML = "";
+  if (currentFormat() === "latex" || (currentFormat() === "auto" && /\\begin\{/.test(sourceText()))) {
+    const st = await state.api.call("structure", sourceText(), currentFormat());
+    if (st.ok && st.ranges.length) {
+      state.structure = st;
+      els.rangesTitle.textContent = `${st.range_type === "chapter" ? "Chapters" : "Sections"} to scan (${st.ranges.length})`;
+      els.rangesList.innerHTML = st.ranges.map(r => `<label><input type="checkbox" class="rng" value="${r.index}" checked> ${escapeHtml(r.title || "(untitled)")}</label>`).join("");
+      els.ranges.hidden = false;
+    }
+  }
+  await runScan();
+  if (state.scan && state.scan.node_count > 0 && state.scan.node_count <= 800) await runBuild();
+  else if (state.scan && state.scan.node_count > 800) setStatus("ready", `${state.scan.node_count} statements: untick the kinds you do not need, then Build graph`);
+}
+function selectedRanges() {
+  if (!state.structure) return null;
+  return [...els.rangesList.querySelectorAll("input.rng:checked")].map(i => Number(i.value));
+}
+
+// ---------------------------------------------------------------- scan
+async function runScan() {
+  if (!state.api) return;
+  showError("");
+  const text = sourceText();
+  if (!text.trim()) { setStatus("ready", "Paste a document or open a file first"); els.source.focus(); return; }
+  setStatus("busy", "Scanning…");
+  const cfg = { ranges: selectedRanges() };
+  let res;
+  try { res = await state.api.call("scan", text, currentFormat(), JSON.stringify(cfg)); }
+  catch (e) { setStatus("error", "Scan failed"); showError(String(e)); return; }
+  if (!res.ok) { setStatus("error", "Scan failed"); showError(res.error + "\n" + res.trace); return; }
+  state.scan = res; state.removed = []; state.added = []; state.result = null; state.focus.label = null;
+  els.detected.textContent = (!state.src && currentFormat() === "auto") ? `detected: ${res.detected}` : "";
+  renderEnvTable(res);
+  renderScope(res);
+  els.scanSummary.textContent = `${res.node_count} statements, ${res.proof_count} proofs`;
+  els.build.disabled = res.node_count === 0;
+  setStatus("ready", "Ready");
+  if (res.node_count === 0) {
+    showError("No statements found. Use LaTeX theorem environments or Markdown headings such as “## Definition 1.2”.");
+  }
+}
+
+function renderScope(res) {
+  const secs = (res.sections || []).filter(x => x !== "(ungrouped)");
+  els.scope.innerHTML = '<option value="">whole document</option>' + (res.sections || []).map(x => `<option value="${escapeAttr(x)}">${escapeHtml(x)}</option>`).join("");
+  els.scopeWrap.hidden = secs.length === 0;
+}
+
+function renderEnvTable(res) {
+  els.envBody.innerHTML = "";
+  if (!res.envs.length) {
+    els.envBody.innerHTML = '<tr><td colspan="5" class="empty">Nothing recognised.</td></tr>';
+    return;
+  }
+  for (const e of res.envs) {
+    const st = styleFor(e.env);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="swatch" style="background:${st.fill};border-color:${st.border}"></span><code>${escapeHtml(e.env)}</code></td>
+      <td class="num">${e.count}</td>
+      <td><input type="checkbox" class="inc" data-env="${escapeAttr(e.env)}" checked aria-label="Include ${escapeAttr(e.env)}"></td>
+      <td class="defn-col"><input type="checkbox" class="defn" data-env="${escapeAttr(e.env)}" ${e.is_defn ? "checked" : ""} aria-label="${escapeAttr(e.env)} is definition-like"></td>
+      <td class="style"><select class="shape" data-env="${escapeAttr(e.env)}" aria-label="shape of ${escapeAttr(e.env)}">${SHAPES.map(sh => `<option ${sh === st.shape ? "selected" : ""}>${sh}</option>`).join("")}</select><input type="color" class="border" data-env="${escapeAttr(e.env)}" value="${st.border}" title="border colour" aria-label="border colour of ${escapeAttr(e.env)}"><input type="color" class="fill" data-env="${escapeAttr(e.env)}" value="${st.fill}" title="fill colour" aria-label="fill colour of ${escapeAttr(e.env)}"></td>`;
+    els.envBody.appendChild(tr);
+  }
+  applyMode();
+}
+function envStyle(env) {
+  const row = [...els.envBody.querySelectorAll("tr")].find(tr => tr.querySelector(`input.inc[data-env="${CSS.escape(env)}"]`));
+  if (!row) return styleFor(env);
+  return { shape: row.querySelector("select.shape").value, border: row.querySelector("input.border").value, fill: row.querySelector("input.fill").value };
+}
+function applyMode() {
+  const manual = state.mode === "manual";
+  document.querySelectorAll(".defn-col").forEach(td => td.style.display = manual ? "none" : "");
+  $("env-hint").hidden = manual;
+  els.addType.value = manual ? "manual" : "deterministic";
+  [...els.addType.options].forEach(o => o.hidden = manual ? o.value !== "manual" : o.value === "manual");
+  [...els.addLoc.options].forEach(o => o.hidden = manual && o.value === "inferred");
+}
+
+function buildConfig() {
+  const include = [...els.envBody.querySelectorAll("input.inc:checked")].map(i => i.dataset.env);
+  const defn = [...els.envBody.querySelectorAll("input.defn:checked")].map(i => i.dataset.env);
+  const colors = {};
+  for (const env of include) colors[env] = envStyle(env);
+  return {
+    include, definition_envs: defn, mode: state.mode,
+    ordered: !(state.src && state.src.unordered), ranges: selectedRanges(),
+    micro_section: els.scope.value || null,
+    tred: els.tred.checked, legend: $("opt-legend").checked, rankdir: els.rankdir.value,
+    removed: state.removed, added: state.added, colors,
+  };
+}
+
+// ---------------------------------------------------------------- build
+async function runBuild() {
+  if (!state.api || !state.scan) return;
+  showError("");
+  setStatus("busy", "Inferring dependencies…");
+  const text = sourceText();
+  let res;
+  try {
+    res = await state.api.call("build", text, currentFormat(), JSON.stringify(buildConfig()));
+  } catch (e) { setStatus("error", "Build failed"); showError(String(e)); return; }
+  if (!res.ok) { setStatus("error", "Build failed"); showError(res.error + "\n" + res.trace); return; }
+  state.result = res;
+  renderEdges(res); renderNodes(res);
+  try {
+    renderGraph();
+  } catch (e) { setStatus("error", "The graph could not be drawn"); showError(String(e)); return; }
+  const cyc = res.cycle_count ? ` · ${res.cycle_count} edge${res.cycle_count > 1 ? "s" : ""} in cycles (red)` : "";
+  const scope = els.scope.value ? ` in “${els.scope.value}” (${res.edge_total} edges in all)` : "";
+  setStatus("ready", `${res.nodes.length} statements, ${res.edges.length} edges${scope}${cyc}`);
+  els.dlSvg.disabled = els.dlPng.disabled = els.dlDot.disabled = els.dlTex.disabled = false;
+  els.restore.disabled = state.removed.length === 0;
+  renderAddEdgeForm(res);
+}
+
+function renderEdges(res) {
+  els.edgeCount.textContent = res.edges.length;
+  els.edgeBody.innerHTML = "";
+  if (!res.edges.length) {
+    els.edgeBody.innerHTML = '<tr><td colspan="5" class="empty">No dependencies were inferred.</td></tr>';
+    return;
+  }
+  const styleWord = { proof: "solid (proof)", statement: "dashed (statement)", inferred: "dotted (heuristic)" };
+  for (const e of res.edges) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="rule ${e.rule[0]}">${escapeHtml(e.rule)}</span></td>
+      <td class="mono">${escapeHtml(e.source)}</td>
+      <td class="mono">${escapeHtml(e.target)}${e.cycle ? ' <span class="cyc" title="part of a cycle">⟲</span>' : ""}</td>
+      <td>${styleWord[e.location] || e.location}</td>
+      <td class="edge-x"><button class="x" type="button" title="Remove this edge" aria-label="Remove edge" data-s="${escapeAttr(e.source)}" data-t="${escapeAttr(e.target)}" data-added="${e.rule === "manual" ? 1 : ""}">×</button></td>`;
+    els.edgeBody.appendChild(tr);
+  }
+}
+function renderAddEdgeForm(res) {
+  // only statements of the included kinds can take part in an edge
+  const include = new Set([...els.envBody.querySelectorAll("input.inc:checked")].map(i => i.dataset.env));
+  const labels = (state.scan ? state.scan.nodes.filter(n => include.has(n.env)) : res.nodes).map(n => n.label).sort();
+  const opts = labels.map(l => `<option value="${escapeAttr(l)}">${escapeHtml(l)}</option>`).join("");
+  els.addSrc.innerHTML = opts; els.addTgt.innerHTML = opts;
+}
+
+function renderNodes(res) {
+  els.nodeCount.textContent = res.nodes.length;
+  els.nodeBody.innerHTML = "";
+  for (const n of res.nodes) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="num">${n.index}</td><td><code>${escapeHtml(n.env)}</code>${n.ghost ? ' <span class="chip ghost" title="outside the selected section">external</span>' : ""}</td>
+      <td class="mono">${escapeHtml(n.label)}</td><td>${escapeHtml(n.name)}</td>
+      <td>${n.terms.map(t => `<span class="chip">${escapeHtml(t)}</span>`).join("")}</td>`;
+    els.nodeBody.appendChild(tr);
+  }
+}
+
+// ---------------------------------------------------------------- graph view
+function currentView() { return els.view.value; }
+
+function renderGraph() {
+  const res = state.result; if (!res) return;
+  $("graph-empty").hidden = true; els.note.hidden = false;
+  if (currentView() === "layered") {
+    els.force.setAttribute("hidden", ""); els.legend.hidden = true; els.focusBar.hidden = true; els.stage.hidden = false;
+    els.note.textContent = "Drag to pan, scroll to zoom, click a node for details.";
+    mountSvg(state.viz.renderSVGElement(res.dot));
+  } else {
+    els.stage.hidden = true; els.force.removeAttribute("hidden");   // SVG elements have no .hidden property
+    els.note.textContent = "Drag nodes, scroll to zoom, hover to see neighbours, click a node to focus on its dependencies.";
+    renderForce(res);
+  }
+}
+
+function mountSvg(svg) {
+  els.stage.innerHTML = "";
+  svg.removeAttribute("width"); svg.removeAttribute("height");
+  const vb = svg.viewBox.baseVal;
+  svg.style.width = vb.width + "px"; svg.style.height = vb.height + "px";
+  els.stage.appendChild(svg);
+  state.svg = svg;
+  fitView();
+}
+function applyView() {
+  const { x, y, k } = state.view;
+  els.stage.style.transform = `translate(${x}px, ${y}px) scale(${k})`;
+}
+function fitView() {
+  if (!state.svg) return;
+  const fw = els.frame.clientWidth, fh = els.frame.clientHeight;
+  const w = parseFloat(state.svg.style.width), h = parseFloat(state.svg.style.height);
+  const k = Math.min((fw - 40) / w, (fh - 40) / h, 1.6);
+  state.view = { k, x: (fw - w * k) / 2, y: (fh - h * k) / 2 };
+  applyView();
+}
+function zoomAt(factor, cx, cy) {
+  const v = state.view;
+  const k = Math.min(6, Math.max(0.05, v.k * factor));
+  v.x = cx - (cx - v.x) * (k / v.k); v.y = cy - (cy - v.y) * (k / v.k); v.k = k;
+  applyView();
+}
+els.frame.addEventListener("wheel", (ev) => {
+  if (!state.svg || currentView() !== "layered") return;
+  ev.preventDefault();
+  const r = els.frame.getBoundingClientRect();
+  zoomAt(ev.deltaY < 0 ? 1.12 : 1 / 1.12, ev.clientX - r.left, ev.clientY - r.top);
+}, { passive: false });
+let drag = null;
+els.frame.addEventListener("pointerdown", (ev) => {
+  if (currentView() !== "layered") return;
+  if (ev.target.closest(".graph-toolbar, .focus-bar, .legend-box")) return;
+  drag = { x: ev.clientX, y: ev.clientY, vx: state.view.x, vy: state.view.y, moved: false,
+           target: ev.target };
+  els.frame.setPointerCapture(ev.pointerId);
+});
+els.frame.addEventListener("pointermove", (ev) => {
+  if (!drag) return;
+  const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+  if (Math.abs(dx) + Math.abs(dy) > 3) { drag.moved = true; els.frame.classList.add("dragging"); }
+  state.view.x = drag.vx + dx; state.view.y = drag.vy + dy; applyView();
+});
+els.frame.addEventListener("pointerup", (ev) => {
+  if (currentView() !== "layered") return;
+  els.frame.classList.remove("dragging");
+  const pressed = drag ? drag.target : ev.target;
+  const wasDrag = drag && drag.moved; drag = null;
+  if (wasDrag) return;
+  const a = pressed && pressed.closest ? pressed.closest("a") : null;
+  if (a) { const href = a.getAttribute("xlink:href") || a.getAttribute("href"); if (href) showNode(href); }
+});
+els.frame.addEventListener("click", (ev) => { if (ev.target.closest("a")) ev.preventDefault(); });
+$("zoom-in").addEventListener("click", () => currentView() === "layered" ? zoomAt(1.25, els.frame.clientWidth / 2, els.frame.clientHeight / 2) : forceZoomBy(1.25));
+$("zoom-out").addEventListener("click", () => currentView() === "layered" ? zoomAt(0.8, els.frame.clientWidth / 2, els.frame.clientHeight / 2) : forceZoomBy(0.8));
+$("zoom-fit").addEventListener("click", () => { if (currentView() === "layered") fitView(); else { if (state.force) state.force.userMoved = false; forceFit(state.focus.label ? [...subgraphOf(state.focus.label, state.focus.dir, state.focus.depth)] : null); } });
+window.addEventListener("resize", () => { if (currentView() === "layered") { if (state.svg) fitView(); } else if (state.force) forceFit(); });
+
+// ---------------------------------------------------------------- force-directed view (D3)
+function renderForce(res) {
+  if (state.force && state.force.sim) state.force.sim.stop();
+  const svgEl = els.force; svgEl.innerHTML = "";
+  const svg = d3.select(svgEl);
+  // the graph tab may be hidden (rebuilt from the Edges tab): use a nominal size
+  const W = els.frame.clientWidth || 960, H = els.frame.clientHeight || 640;
+  svg.attr("viewBox", [0, 0, W, H]);
+
+  const byLabel = new Map(res.nodes.map(n => [n.label, n]));
+  const nodes = res.nodes.map((n, i) => ({ id: n.label, name: n.name, env: n.env, index: n.index, rank: res.nodes.length > 1 ? i / (res.nodes.length - 1) : .5, deg: 0, outDeg: 0, inDeg: 0 }));
+  const nodeById = new Map(nodes.map(n => [n.id, n]));
+  const links = res.edges.filter(e => nodeById.has(e.source) && nodeById.has(e.target))
+    .map(e => ({ source: e.source, target: e.target, rule: e.rule, location: e.location, cycle: e.cycle }));
+  for (const l of links) { const a = nodeById.get(l.source), b = nodeById.get(l.target); a.deg++; b.deg++; a.outDeg++; b.inDeg++; }
+  // Size grows with the edges that leave a node (what it feeds), a little with the ones that enter it.
+  // Node size: hubs (many outgoing edges) are several times larger than leaves.
+  const radius = d => Math.min(res.nodes.length > 150 ? 24 : 40, 4 + 7 * Math.sqrt(d.outDeg + 0.4 * d.inDeg));
+  const many = nodes.length > 150;
+  const labelHalf = d => many ? 0 : 0.5 * (6.4 * d.name.length + 8);   // ~ half the label width at 12px
+  const spacing = d => many ? radius(d) + 4 : Math.max(radius(d) + 14, 0.9 * labelHalf(d));
+  // Dependency depth: longest path from a foundation (a node with no prerequisites), cycle edges ignored.
+  const preds = new Map(nodes.map(n => [n.id, []])), succs = new Map(nodes.map(n => [n.id, []]));
+  for (const l of links) if (!l.cycle) { preds.get(l.target).push(l.source); succs.get(l.source).push(l.target); }
+  const indeg = new Map(nodes.map(n => [n.id, preds.get(n.id).length]));
+  const depth = new Map(nodes.map(n => [n.id, 0]));
+  let queue = nodes.filter(n => indeg.get(n.id) === 0).map(n => n.id);
+  while (queue.length) {
+    const u = queue.shift();
+    for (const v of succs.get(u)) {
+      depth.set(v, Math.max(depth.get(v), depth.get(u) + 1));
+      indeg.set(v, indeg.get(v) - 1);
+      if (indeg.get(v) === 0) queue.push(v);
+    }
+  }
+  const maxDepth = Math.max(1, ...depth.values());
+  for (const n of nodes) { n.depth = depth.get(n.id); n.isRoot = preds.get(n.id).length === 0 && n.outDeg > 0; }
+  // Depth percentile (0 = foundations, 1 = deepest results); ties share a value, so
+  // rings get roughly equal populations instead of everything piling on ring 0.
+  const connected = nodes.filter(n => n.deg > 0);
+  const sortedDepths = connected.map(n => n.depth).sort((a, b) => a - b);
+  const pct = new Map();
+  for (const n of connected) {
+    const lo = sortedDepths.findIndex(x => x >= n.depth), hi = sortedDepths.findIndex(x => x > n.depth);
+    pct.set(n.id, ((lo + (hi < 0 ? sortedDepths.length : hi)) / 2) / Math.max(1, sortedDepths.length));
+  }
+  // Radius large enough for the population: equal-area rings need pi R^2 >= n * spacing^2,
+  // and the outer ring must hold its share of nodes side by side.
+  const avgSpace = d3.mean(nodes, d => 2 * spacing(d)) || 30;
+  const R = Math.max(0.46 * Math.min(W, H), 1.15 * avgSpace * Math.sqrt(nodes.length / Math.PI), 0.25 * avgSpace * nodes.length / (2 * Math.PI));
+  const ringRadius = d => {
+    if (d.deg === 0) return R * 1.08;                   // isolated statements: on the rim
+    const t = pct.get(d.id);
+    // sqrt keeps the area per ring constant, so inner rings are not overcrowded
+    return R * Math.sqrt(1 - 0.9 * t);                  // foundations on the outer ring, results inside
+  };
+
+  // arrowheads
+  const defs = svg.append("defs");
+  for (const [id, color] of [["arrow", "#8A9099"], ["arrow-red", "#B3362A"], ["arrow-lit", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#1B3A5F"]]) {
+    defs.append("marker").attr("id", id).attr("viewBox", "0 -4 8 8").attr("refX", 8).attr("refY", 0)
+      .attr("markerWidth", 7).attr("markerHeight", 7).attr("orient", "auto")
+      .append("path").attr("d", "M0,-4L8,0L0,4Z").attr("fill", color);
+  }
+  const root = svg.append("g");
+  const linkSel = root.append("g").selectAll("path").data(links).join("path")
+    .attr("class", "flink")
+    .attr("stroke-dasharray", d => d.location === "statement" ? "6 4" : d.location === "inferred" ? "2 4" : null)
+    .attr("stroke", d => d.cycle ? "#B3362A" : null)
+    .attr("marker-end", d => d.cycle ? "url(#arrow-red)" : "url(#arrow)");
+  linkSel.append("title").text(d => `${d.rule}: ${d.source} → ${d.target}`);
+
+  const ghost = new Set(res.nodes.filter(n => n.ghost).map(n => n.label));
+  const nodeSel = root.append("g").selectAll("g").data(nodes).join("g").attr("class", d => ghost.has(d.id) ? "fnode ghost" : "fnode");
+  nodeSel.append("circle").attr("r", radius)
+    .attr("fill", d => ghost.has(d.id) ? "#EEEEEE" : envStyle(d.env).fill).attr("stroke", d => ghost.has(d.id) ? "#9A9A9A" : envStyle(d.env).border);
+  nodeSel.append("text").attr("dy", d => radius(d) + 12).attr("text-anchor", "middle").text(d => d.name)
+    .style("display", many ? "none" : null);
+  nodeSel.append("title").text(d => `${d.env} · ${d.id}`);
+
+  const sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(l => 70 + radius(l.source) + radius(l.target) + 4 * Math.min(8, Math.max(l.source.deg, l.target.deg))).strength(.5))
+    .force("charge", d3.forceManyBody().strength(many ? -90 : -380).distanceMax(many ? 250 : 600))
+    .force("collide", d3.forceCollide(spacing).strength(.9).iterations(2))
+    .force("center", d3.forceCenter(W / 2, H / 2))
+    .force("radial", d3.forceRadial(ringRadius, W / 2, H / 2).strength(d => d.deg === 0 ? .5 : .85));
+  sim.force("link").strength(.25).distance(l => 40 + radius(l.source) + radius(l.target));
+
+  const endpoint = (l) => {
+    const dx = l.target.x - l.source.x, dy = l.target.y - l.source.y, dist = Math.hypot(dx, dy) || 1;
+    const r = radius(l.target) + 2;
+    return [l.target.x - dx / dist * r, l.target.y - dy / dist * r];
+  };
+  let ticks = 0;
+  sim.on("tick", () => {
+    linkSel.attr("d", l => { const [x2, y2] = endpoint(l); return `M${l.source.x},${l.source.y}L${x2},${y2}`; });
+    nodeSel.attr("transform", d => `translate(${d.x},${d.y})`);
+    // keep the whole graph in view while it settles (only until the user has interacted)
+    if (++ticks % 40 === 0 && !state.force?.userMoved && !state.focus.label) forceFit(null, 200);
+  });
+
+  const drag = d3.drag()
+    .on("start", (ev, d) => { if (!ev.active) sim.alphaTarget(.3).restart(); d.fx = d.x; d.fy = d.y; svgEl.classList.add("dragging"); })
+    .on("drag", (ev, d) => { d.fx = ev.x; d.fy = ev.y; })
+    .on("end", (ev, d) => { if (!ev.active) sim.alphaTarget(0); d.fx = null; d.fy = null; svgEl.classList.remove("dragging"); });
+  nodeSel.call(drag);
+
+  const zoom = d3.zoom().scaleExtent([.08, 6]).on("zoom", (ev) => {
+    root.attr("transform", ev.transform);
+    if (many) nodeSel.selectAll("text").style("display", ev.transform.k > 1.6 ? null : d => d._lit ? null : "none");
+  });
+  svg.call(zoom).on("dblclick.zoom", null);
+  svg.on("wheel.mark pointerdown.mark", () => { if (state.force) state.force.userMoved = true; });
+  svg.on("click", (ev) => { if (ev.target === svgEl) clearFocus(); });
+
+  // adjacency for hover / focus
+  const up = new Map(nodes.map(n => [n.id, new Set()])), down = new Map(nodes.map(n => [n.id, new Set()]));
+  const idOf = (x) => (typeof x === "object" ? x.id : x);   // forceLink replaces ids by node objects
+  for (const l of links) { up.get(idOf(l.target)).add(idOf(l.source)); down.get(idOf(l.source)).add(idOf(l.target)); }
+
+  nodeSel.on("mouseenter", (ev, d) => { if (!state.focus.label) litNeighbourhood(d.id); })
+         .on("mouseleave", () => { if (!state.focus.label) unlit(); })
+         .on("click", (ev, d) => { ev.stopPropagation(); showNode(d.id); applyFocus(d.id); });
+
+  function litNeighbourhood(id) {
+    const keep = new Set([id, ...up.get(id), ...down.get(id)]);
+    nodeSel.classed("faded", n => !keep.has(n.id)).classed("lit", n => n.id === id);
+    nodeSel.each(n => n._lit = keep.has(n.id));
+    if (many) nodeSel.selectAll("text").style("display", n => keep.has(n.id) ? null : "none");
+    linkSel.classed("faded", l => !(l.source.id === id || l.target.id === id))
+           .classed("lit-link", l => l.source.id === id || l.target.id === id)
+           .attr("marker-end", l => (l.source.id === id || l.target.id === id) ? "url(#arrow-lit)" : (l.cycle ? "url(#arrow-red)" : "url(#arrow)"));
+  }
+  function unlit() {
+    nodeSel.classed("faded", false).classed("lit", false).each(n => n._lit = false);
+    if (many) nodeSel.selectAll("text").style("display", "none");
+    linkSel.classed("faded", false).classed("lit-link", false).attr("marker-end", l => l.cycle ? "url(#arrow-red)" : "url(#arrow)");
+  }
+
+  state.force = { sim, svg, root, zoom, nodes, links, nodeSel, linkSel, up, down, W, H, litNeighbourhood, unlit, many, userMoved: false };
+  renderForceLegend(res);
+  if (state.focus.label && nodeById.has(state.focus.label)) applyFocus(state.focus.label); else clearFocus(false);
+  sim.on("end", () => { if (!state.focus.label && !state.force.userMoved) forceFit(); });
+}
+
+function renderForceLegend(res) {
+  if (!els.legend) return;
+  const kinds = [...new Set(res.nodes.map(n => n.env))].sort();
+  els.legend.innerHTML = kinds.map(k => { const st = envStyle(k); return `<span><span class="sw" style="background:${st.fill};border-color:${st.border}"></span>${escapeHtml(k)}</span>`; }).join("")
+    + `<span style="margin-top:4px"><span class="edge"></span>from proof</span><span><span class="edge" style="border-top-style:dashed"></span>from statement</span><span><span class="edge" style="border-top-style:dotted"></span>heuristic</span>`;
+  els.legend.hidden = !els.legend_on();
+}
+els.legend_on = () => $("opt-legend").checked && currentView() === "force" && !!state.result;
+
+function subgraphOf(id, dir, depth) {
+  const f = state.force; const keep = new Set([id]);
+  const walk = (adj) => {
+    let frontier = [id], d = 0;
+    while (frontier.length && (depth === 0 || d < depth)) {
+      const next = [];
+      for (const u of frontier) for (const v of adj.get(u)) if (!keep.has(v)) { keep.add(v); next.push(v); }
+      frontier = next; d++;
+    }
+  };
+  if (dir !== "down") walk(f.up);
+  if (dir !== "up") walk(f.down);
+  return keep;
+}
+
+function applyFocus(id) {
+  const f = state.force; if (!f) return;
+  state.focus.label = id;
+  const keep = subgraphOf(id, state.focus.dir, state.focus.depth);
+  f.nodeSel.style("display", n => keep.has(n.id) ? null : "none").classed("faded", false).classed("lit", n => n.id === id);
+  f.nodeSel.selectAll("text").style("display", null);
+  f.linkSel.style("display", l => keep.has(l.source.id) && keep.has(l.target.id) ? null : "none").classed("faded", false)
+    .classed("lit-link", l => l.source.id === id || l.target.id === id)
+    .attr("marker-end", l => (l.source.id === id || l.target.id === id) ? "url(#arrow-lit)" : (l.cycle ? "url(#arrow-red)" : "url(#arrow)"));
+  els.focusName.textContent = (state.result.nodes.find(n => n.label === id) || { name: id }).name;
+  els.focusBar.hidden = false; els.legend.hidden = true;
+  setTimeout(() => forceFit([...keep]), 50);
+}
+function clearFocus(refit = true) {
+  state.focus.label = null;
+  els.focusBar.hidden = true;
+  if (els.legend) els.legend.hidden = !els.legend_on();
+  const f = state.force; if (!f) return;
+  f.nodeSel.style("display", null); f.linkSel.style("display", null); f.unlit();
+  if (f.many) f.nodeSel.selectAll("text").style("display", "none");
+  if (refit) forceFit();
+}
+function forceFit(ids, duration = 350) {
+  const f = state.force; if (!f) return;
+  const pts = f.nodes.filter(n => !ids || ids.includes(n.id)).filter(n => Number.isFinite(n.x));
+  if (!pts.length) return;
+  // margins: node radius plus the label below it
+  const x0 = d3.min(pts, n => n.x) - 70, x1 = d3.max(pts, n => n.x) + 70, y0 = d3.min(pts, n => n.y) - 50, y1 = d3.max(pts, n => n.y) + 60;
+  const W = els.frame.clientWidth, H = els.frame.clientHeight;
+  if (!W || !H) return;                                   // tab hidden: nothing to fit
+  const k = Math.min(2.5, .96 / Math.max((x1 - x0) / W, (y1 - y0) / H));
+  const t = d3.zoomIdentity.translate(W / 2 - k * (x0 + x1) / 2, H / 2 - k * (y0 + y1) / 2).scale(k);
+  f.svg.transition().duration(duration).call(f.zoom.transform, t);
+}
+function forceZoomBy(factor) { const f = state.force; if (f) f.svg.transition().duration(200).call(f.zoom.scaleBy, factor); }
+
+els.view.addEventListener("change", () => {
+  els.rankdirWrap.hidden = currentView() !== "layered";
+  if (state.result) renderGraph();
+});
+document.querySelectorAll("#focus-dir button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("#focus-dir button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  state.focus.dir = b.dataset.dir; if (state.focus.label) applyFocus(state.focus.label);
+}));
+document.querySelectorAll("#focus-depth button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("#focus-depth button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  state.focus.depth = Number(b.dataset.depth); if (state.focus.label) applyFocus(state.focus.label);
+}));
+els.focusClear.addEventListener("click", () => clearFocus());
+$("opt-legend").addEventListener("change", () => { if (els.legend) els.legend.hidden = !els.legend_on() || !!state.focus.label; });
+
+function showNode(label) {
+  const n = state.result && state.result.nodes.find(x => x.label === label);
+  if (!n) return;
+  const inbound = state.result.edges.filter(e => e.target === label).map(e => e.source);
+  const outbound = state.result.edges.filter(e => e.source === label).map(e => e.target);
+  els.nodeCard.innerHTML = `
+    <div class="kind">${escapeHtml(n.env)} · <span class="mono">${escapeHtml(n.label)}</span></div>
+    <div class="name">${escapeHtml(n.name)}</div>
+    ${n.terms.length ? `<div>Defines: ${n.terms.map(t => `<span class="chip">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+    <div class="hint">Depends on ${inbound.length ? inbound.map(x => `<code>${escapeHtml(x)}</code>`).join(", ") : "nothing"} · used by ${outbound.length ? outbound.map(x => `<code>${escapeHtml(x)}</code>`).join(", ") : "nothing"}</div>
+    <pre>${escapeHtml(n.snippet)}</pre>`;
+  els.nodeCard.className = "node-card"; els.nodeCard.hidden = false;
+}
+
+// ---------------------------------------------------------------- wiring
+document.querySelectorAll("[data-sample]").forEach(b => b.addEventListener("click", async () => {
+  clearLoaded();
+  els.source.value = SAMPLES[b.dataset.sample]; els.format.value = "auto";
+  await loadStructureAndScan();
+}));
+$("open-files").addEventListener("click", () => $("file-input").click());
+$("open-project").addEventListener("click", () => $("folder-input").click());
+$("file-input").addEventListener("change", async (ev) => { showError(""); try { await openFiles(ev.target.files); } catch (e) { setStatus("error", "Could not read the files"); showError(String(e)); } ev.target.value = ""; });
+$("folder-input").addEventListener("change", async (ev) => { showError(""); try { await openProject(ev.target.files); } catch (e) { setStatus("error", "Could not read the folder"); showError(String(e)); } ev.target.value = ""; });
+$("loaded-clear").addEventListener("click", () => { clearLoaded(); els.source.value = ""; });
+els.mainSelect.addEventListener("change", () => expandProject(els.mainSelect.value));
+els.rangesList.addEventListener("change", async () => { await runScan(); if (state.scan && state.scan.node_count <= 800) await runBuild(); });
+$("ranges-all").addEventListener("click", () => { els.rangesList.querySelectorAll("input.rng").forEach(i => i.checked = true); els.rangesList.dispatchEvent(new Event("change")); });
+$("ranges-none").addEventListener("click", () => { els.rangesList.querySelectorAll("input.rng").forEach(i => i.checked = false); els.rangesList.dispatchEvent(new Event("change")); });
+document.querySelectorAll("#mode-seg button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("#mode-seg button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  state.mode = b.dataset.mode; state.added = []; state.removed = []; applyMode();
+  if (state.scan) runBuild();
+}));
+els.scope.addEventListener("change", () => { if (state.scan) runBuild(); });
+$("add-edge").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const s = els.addSrc.value, t = els.addTgt.value;
+  if (!s || !t) return;
+  if (s === t) { showError("Source and target cannot be the same."); return; }
+  if (state.result && state.result.edges.some(e => e.source === s && e.target === t)) { showError("This edge already exists."); return; }
+  state.removed = state.removed.filter(([a, b]) => !(a === s && b === t));
+  state.added.push([s, t, els.addType.value, els.addLoc.value]);
+  runBuild();
+});
+els.scan.addEventListener("click", async () => { if (!state.src) state.structure = null; await loadStructureAndScan(); });
+els.build.addEventListener("click", runBuild);
+els.format.addEventListener("change", () => { if (!state.src) loadStructureAndScan(); });
+els.source.addEventListener("input", () => { els.build.disabled = true; els.detected.textContent = "edited — scan again"; });
+[els.tred, els.rankdir].forEach(el => el.addEventListener("change", () => { if (state.result) runBuild(); }));
+$("opt-legend").addEventListener("change", () => { if (state.result && currentView() === "layered") runBuild(); });
+els.envBody.addEventListener("change", () => { if (state.scan) runBuild(); });
+els.edgeBody.addEventListener("click", (ev) => {
+  const b = ev.target.closest("button.x"); if (!b) return;
+  if (b.dataset.added) state.added = state.added.filter(([s, t]) => !(s === b.dataset.s && t === b.dataset.t));
+  else state.removed.push([b.dataset.s, b.dataset.t]);
+  runBuild();
+});
+els.restore.addEventListener("click", () => { state.removed = []; runBuild(); });
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t ? "true" : "false"));
+  for (const id of ["graph", "edges", "nodes"]) $("tab-" + id).hidden = id !== t.dataset.tab;
+  if (t.dataset.tab === "graph") { if (currentView() === "layered") fitView(); else if (state.force) forceFit(state.focus.label ? [...subgraphOf(state.focus.label, state.focus.dir, state.focus.depth)] : null, 0); }
+}));
+els.dlSvg.addEventListener("click", () => {
+  const markup = currentSvgMarkup(); if (!markup) return;
+  download("knowtex-graph.svg", markup, "image/svg+xml");
+});
+els.dlDot.addEventListener("click", () => state.result && download("knowtex-graph.dot", state.result.dot, "text/vnd.graphviz"));
+function currentSvgMarkup() {
+  const el = currentView() === "layered" ? state.svg : els.force;
+  if (!el) return null;
+  const clone = el.cloneNode(true);
+  clone.removeAttribute("hidden"); clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  if (currentView() !== "layered") {
+    const W = els.frame.clientWidth, H = els.frame.clientHeight;
+    clone.setAttribute("width", W); clone.setAttribute("height", H);
+    clone.querySelectorAll(".fnode text").forEach(t => { t.setAttribute("font-family", "Spectral, Georgia, serif"); t.setAttribute("font-size", "12"); });
+    clone.querySelectorAll(".flink").forEach(l => { l.setAttribute("fill", "none"); if (!l.getAttribute("stroke")) l.setAttribute("stroke", "#8A9099"); l.setAttribute("stroke-width", "1.4"); });
+    clone.querySelectorAll(".fnode.ghost circle").forEach(c => c.setAttribute("stroke-dasharray", "4 3"));
+  } else {
+    clone.setAttribute("width", clone.viewBox.baseVal.width); clone.setAttribute("height", clone.viewBox.baseVal.height);
+  }
+  return new XMLSerializer().serializeToString(clone);
+}
+els.dlPng.addEventListener("click", async () => {
+  const markup = currentSvgMarkup(); if (!markup) return;
+  if (state.local && state.local.capabilities && state.local.capabilities.png && currentView() === "layered") {
+    const r = await (await fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dot: state.result.dot, format: "png" }) })).json();
+    if (r.ok) { downloadBase64("knowtex-graph.png", r.data, "image/png"); return; }
+  }
+  // rasterise the SVG on a canvas at 2x
+  const img = new Image();
+  const url = URL.createObjectURL(new Blob([markup], { type: "image/svg+xml" }));
+  img.onload = () => {
+    const c = document.createElement("canvas"); c.width = img.width * 2; c.height = img.height * 2;
+    const ctx = c.getContext("2d"); ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height); ctx.scale(2, 2); ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    c.toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "knowtex-graph.png"; a.click(); }, "image/png");
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); showError("The PNG could not be rendered in this browser; download the SVG instead."); };
+  img.src = url;
+});
+els.dlTex.addEventListener("click", async () => {
+  if (!state.result || !state.local) return;
+  setStatus("busy", "Rendering TikZ…");
+  const r = await (await fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dot: state.result.dot, format: "tex" }) })).json();
+  if (!r.ok) { setStatus("error", "TikZ export failed"); showError(r.error); return; }
+  downloadBase64("knowtex-graph.tex", r.data, "text/x-tex"); setStatus("ready", "TikZ written");
+});
+function downloadBase64(name, b64, type) {
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  download(name, bytes, type);
+}
+function download(name, content, type) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function escapeAttr(s) { return escapeHtml(s); }
+
+boot();
+</script>
+</body>
+</html>

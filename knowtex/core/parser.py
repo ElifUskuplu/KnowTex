@@ -44,16 +44,9 @@ def _is_inside_inner_env(preceding_text):
     return any(v > 0 for v in depth.values())
 
 
-def _compute_display_name(env_name, lbl, label, snippet, index):
-    """Compute a short human-readable display name for a node.
-
-    Args:
-        env_name: environment name
-        lbl: explicit \\label{} value (None if not found)
-        label: final resolved label (from hierarchy)
-        snippet: full LaTeX source
-        index: sequential document-order index
-    """
+def _compute_display_name(env_name, label, index):
+    """Short human-readable name: the part of the label after the colon,
+    else "<Env> <index>"."""
     if ":" in label:
         name = label.split(":", 1)[1]
         return name.replace("-", " ")
@@ -78,7 +71,8 @@ def parse_latex_structure(tex):
     last_stmt_idx = None
     used_labels = set()
 
-    def walk(n):
+    def walk(n, depth=0):
+        """depth counts the theorem-like environments enclosing *n*."""
         nonlocal order_counter, last_stmt_idx
 
         if isinstance(n, LatexEnvironmentNode):
@@ -88,7 +82,10 @@ def parse_latex_structure(tex):
                 discovered_envs.add(env)
                 my_index = order_counter
                 order_counter += 1
-                last_stmt_idx = my_index
+                if depth == 0:
+                    # A statement nested inside another statement must not
+                    # become the H1 target of the proof that follows the outer one.
+                    last_stmt_idx = my_index
 
                 try:
                     end = getattr(n, 'pos_end', None)
@@ -117,6 +114,11 @@ def parse_latex_structure(tex):
 
                 if lbl:
                     label = lbl
+                    if label in used_labels:
+                        label = f"{lbl}:{my_index}"
+                        logger.warning("duplicate \\label{%s}; node %d "
+                                       "renamed %s", lbl, my_index, label)
+                    used_labels.add(label)
                 else:
                     derived = None
 
@@ -163,9 +165,7 @@ def parse_latex_structure(tex):
 
                     used_labels.add(label)
 
-                display_name = _compute_display_name(
-                    env, lbl, label, snippet, my_index
-                )
+                display_name = _compute_display_name(env, label, my_index)
 
                 ni = NodeInfo(
                     env=env, label=label,
@@ -176,8 +176,6 @@ def parse_latex_structure(tex):
                 nodes.append(ni)
                 node_by_index[my_index] = ni
                 label_to_node[label] = ni
-                if lbl and lbl != label:
-                    label_to_node[lbl] = ni
 
             elif PROOF_ALIAS_RX.fullmatch(env or ""):
                 my_index = order_counter
@@ -216,12 +214,13 @@ def parse_latex_structure(tex):
                 ))
 
             # Recurse into children
+            inner = depth + 1 if is_theorem_like(env) else depth
             for ch in (n.nodelist or []):
-                walk(ch)
+                walk(ch, inner)
         else:
             if hasattr(n, "nodelist") and n.nodelist:
                 for ch in n.nodelist:
-                    walk(ch)
+                    walk(ch, depth)
 
     for root in nodelist:
         walk(root)

@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-09-29T19:34:16",
+  "ground_truth_total": 1667,
+  "combined": {
+    "precision": 0.673036093418259,
+    "recall": 0.7606478704259149,
+    "f1": 0.7141650239369192,
+    "tp": 1268,
+    "fp": 616,
+    "fn": 399,
+    "inferred_total": 1884
+  },
+  "per_rule": {
+    "D4": {
+      "precision": 0.673036093418259,
+      "recall": 0.7606478704259149,
+      "f1": 0.7141650239369192,
+      "tp": 1268,
+      "fp": 616,
+      "fn": 399,
+      "inferred_total": 1884
+    }
+  },
+  "note": "The ground truth holds hyperlink edges only, so every D4 edge counts as a false positive here; see benchmark/README.md."
+}

@@ -102,8 +102,6 @@ def:binary-relation,def:homogeneous-relation,Q130901,,TP,D2
 def:binary-relation,def:reflexive,Q130901,Q621850,TP,D2
 def:binary-relation,def:symmetric,Q130901,Q621461,TP,D2
 def:binary-relation,def:transitive,Q130901,Q64861,TP,D2
-def:borel-space,def:borel-function,Q3058218,,TP,D2
-def:borel-σ-algebra,def:borel-space,Q1080067,Q3058218,TP,D2
 def:borel-σ-algebra,def:haar-integral,Q1080067,,TP,D2
 def:borel-σ-algebra,def:locally-finite-measure,Q1080067,Q2136937,TP,D2
 def:borel-σ-algebra,def:radon-measure,Q1080067,Q2126650,TP,D2
@@ -394,7 +392,6 @@ def:exterior-power-of-a-vector-space,def:adjugate,Q13408581,Q225107,TP,D2
 def:exterior-power-of-a-vector-space,def:differential-k-form,Q13408581,Q1047080,TP,D2
 def:exterior-power-of-a-vector-space,def:exterior-power-of-group-representations,Q13408581,Q13408581,TP,D2
 def:exterior-power-of-a-vector-space,def:exterior-power-of-linear-transformation,Q13408581,Q13408581,TP,D2
-def:exterior-power-of-linear-transformation,def:adjugate,Q13408581,Q225107,TP,D2
 def:exterior-power-of-linear-transformation,def:minor,Q13408581,Q1341061,TP,D2
 def:field,def:absolute-value,Q190109,Q120812,TP,D2
 def:field,def:affine-transformations,Q190109,Q382497,TP,D2
@@ -718,7 +715,6 @@ def:image,def:invariant-subspace,Q860623,Q2706744,TP,D2
 def:infimum,def:distance-from-a-point-to-a-set,,,TP,D2
 def:infimum,def:lattice,,,TP,D2
 def:infimum,def:lattice-complement,,,TP,D2
-def:infimum,def:outer-regular,,Q26851733,TP,D2
 def:infimum,def:upper-integral,,,TP,D2
 def:injective,def:bijective,Q182003,Q180907,TP,D2
 def:injective,def:cardinal-number,Q182003,,TP,D2
@@ -898,7 +894,6 @@ def:magma,def:left-inverse-element,Q679903,Q338057,TP,D2
 def:magma,def:right-inverse-element,Q679903,Q338057,TP,D2
 def:magma,def:semigroup,Q679903,Q207348,TP,D2
 def:manifold,def:chart,Q203920,Q3828144,TP,D2
-def:manifold,def:surface,Q203920,Q484298,TP,D2
 def:manifold,def:tangent-space,Q203920,Q909601,TP,D2
 def:manifold,def:transition-function,Q203920,,TP,D2
 def:matrix,def:complex-orthogonal-group,Q44337,,TP,D2
@@ -1626,7 +1621,6 @@ def:vector-space,def:linearly-dependent,Q125977,Q111783780,TP,D2
 def:vector-space,def:minor,Q125977,Q1341061,TP,D2
 def:vector-space,def:module-over-a-lie-algebra,Q125977,Q18848,TP,D2
 def:vector-space,def:morphism-of-group-representations,Q125977,,TP,D2
-def:vector-space,def:multilinear,Q125977,,TP,D2
 def:vector-space,def:norm,Q125977,Q956437,TP,D2
 def:vector-space,def:normed-linear-space,Q125977,Q956437,TP,D2
 def:vector-space,def:orthogonal,Q125977,Q215067,TP,D2
@@ -1639,7 +1633,6 @@ def:vector-space,def:special-linear-algebra,Q125977,Q7574831,TP,D2
 def:vector-space,def:symmetric-power-of-vector-spaces,Q125977,,TP,D2
 def:vector-space,def:symplectic-algebra,Q125977,,TP,D2
 def:vector-space,def:tangent-space,Q125977,Q909601,TP,D2
-def:vector-space,def:tensor-product-of-vector-spaces,Q125977,,TP,D2
 def:vector-space,def:trace,Q125977,Q321102,TP,D2
 def:vector-space,def:trivial-group-representation,Q125977,Q7844662,TP,D2
 def:vector-space,def:unitary-transformation,Q125977,Q2495534,TP,D2

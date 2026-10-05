@@ -15,7 +15,6 @@ from knowtex.core.utils import (
     strip_subfile_wrapper,
     normalize_index_term,
     ensure_tex_ext,
-    point_in_poly,
 )
 from knowtex.core.parser import (
     is_theorem_like,
@@ -142,28 +141,6 @@ class TestEnsureTexExt:
     def test_other_ext(self):
         assert ensure_tex_ext("file.sty") == "file.sty"
 
-
-class TestPointInPoly:
-    def test_inside_square(self):
-        square = [(0,0), (10,0), (10,10), (0,10)]
-        assert point_in_poly(5, 5, square) is True
-
-    def test_outside_square(self):
-        square = [(0,0), (10,0), (10,10), (0,10)]
-        assert point_in_poly(15, 5, square) is False
-
-    def test_triangle(self):
-        tri = [(0,0), (10,0), (5,10)]
-        assert point_in_poly(5, 3, tri) is True
-        assert point_in_poly(0, 10, tri) is False
-
-    def test_too_few_points(self):
-        assert point_in_poly(0, 0, [(0,0), (1,1)]) is False
-
-
-# ############################################################
-#  PARSER TESTS
-# ############################################################
 
 class TestIsTheoremLike:
     def test_theorem(self):
@@ -634,3 +611,151 @@ Every group of prime order is cyclic.
         cycle_edges = find_cycles(edges)
         assert len(cycle_edges) == 0
 
+
+
+class TestStripLatexDisplayMath:
+    def test_words_after_display_math_are_kept(self):
+        from knowtex.deps.term_extraction import _strip_latex_to_words
+        s = r"Let $$\vert f \vert^p$$ be finite. The map $A$ is called the \emph{total derivative} of $f$."
+        words = _strip_latex_to_words(s)
+        assert "total" in words and "derivative" in words and "finite" in words
+        assert "vert" not in words
+
+
+# ----------------------------------------------------------------------
+# Regression tests for the LaTeX parser / registry / expansion fixes
+# ----------------------------------------------------------------------
+
+class TestNestedEnvironments:
+    def test_inner_math_environments_are_not_nodes(self):
+        tex = r"""
+\begin{theorem}\label{t}
+\begin{aligned} a &= b \end{aligned}
+\begin{alignat*}{2} c &= d \end{alignat*}
+\end{theorem}
+\begin{figure*} x \end{figure*}
+\begin{proof*} trivial \end{proof*}
+"""
+        nodes, nbi, ltn, proofs, envs = parse_latex_structure(tex)
+        assert [n.label for n in nodes] == ["t"]
+        assert len(proofs) == 1 and proofs[0].target_node_idx == 0
+
+    def test_statement_nested_in_statement_does_not_steal_the_proof(self):
+        tex = r"""
+\begin{theorem}\label{outer}
+Text. \begin{claim}\label{inner} c \end{claim}
+\end{theorem}
+\begin{proof} p \end{proof}
+"""
+        nodes, nbi, ltn, proofs, envs = parse_latex_structure(tex)
+        assert {n.label for n in nodes} == {"outer", "inner"}
+        assert proofs[0].target_node_idx == ltn["outer"].index
+
+    def test_duplicate_explicit_labels_are_disambiguated(self):
+        tex = r"""
+\begin{theorem}\label{a} one \end{theorem}
+\begin{theorem}\label{a} two \end{theorem}
+"""
+        nodes, nbi, ltn, proofs, envs = parse_latex_structure(tex)
+        assert len(nodes) == 2 and len(ltn) == 2
+        assert ltn["a"].index == 0 and "a:1" in ltn
+
+    def test_proof_of_ref_with_pfof_alias(self):
+        tex = r"""
+\begin{theorem}\label{t1} a \end{theorem}
+\begin{theorem}\label{t2} b \end{theorem}
+\begin{pfof}[Proof of Theorem \ref{t1}] c \end{pfof}
+"""
+        nodes, nbi, ltn, proofs, envs = parse_latex_structure(tex)
+        assert proofs[0].target_label == "t1"
+        assert proofs[0].target_node_idx == 0
+
+
+class TestIndexRegistryOrder:
+    def test_emph_before_index_wins(self):
+        n0 = make_node("theorem", "t0", 0, snippet=r"\begin{theorem} A \emph{widget} is nice. \end{theorem}")
+        n1 = make_node("remark", "r1", 1, snippet=r"\begin{remark} Widgets again. \end{remark}")
+        n2 = make_node("example", "e2", 2, snippet=r"\begin{example} \index{widget} \end{example}")
+        reg = build_index_registry([n0, n1, n2], [], "")
+        assert reg["term_to_first_node"]["widget"] == "t0"
+
+    def test_see_entries_are_not_uses(self):
+        n0 = make_node("theorem", "t0", 0, snippet=r"\begin{theorem} \index{gadget|see{widget}} \end{theorem}")
+        n1 = make_node("theorem", "t1", 1, snippet=r"\begin{theorem} \index{widget} \end{theorem}")
+        reg = build_index_registry([n0, n1], [], n0.snippet + n1.snippet)
+        assert reg["term_to_first_node"]["widget"] == "t1"
+
+
+class TestH4AndD4OnLatex:
+    TEX = r"""
+\begin{definition}\label{def:group}
+A \emph{group} is a set with an associative operation.
+\end{definition}
+\begin{theorem}\label{thm:widget}
+Every \index{widget} widget is fine.
+\end{theorem}
+\begin{remark}\label{rem:use}
+Groups and widgets appear together here.
+\end{remark}
+"""
+
+    def test_d4_and_h4_edges(self):
+        nodes, nbi, ltn, proofs, envs = parse_latex_structure(self.TEX)
+        reg = build_index_registry(nodes, proofs, self.TEX)
+        edges = run_inference(nodes, nbi, ltn, proofs, index_registry=reg,
+                              definition_envs={"definition"})
+        triples = {(e.rule, e.source, e.target) for e in edges}
+        assert ("D4", "def:group", "rem:use") in triples
+        assert ("H4", "thm:widget", "rem:use") in triples
+
+
+class TestFileExpansion:
+    def test_input_paths_resolve_relative_to_main_document(self, tmp_path):
+        from knowtex.core.file_expand import load_and_expand
+        (tmp_path / "chapters").mkdir()
+        (tmp_path / "main.tex").write_text(r"\input{chapters/ch1}", encoding="utf-8")
+        (tmp_path / "chapters" / "ch1.tex").write_text(
+            "CH1\n" + r"\input{chapters/sec1}", encoding="utf-8")
+        (tmp_path / "chapters" / "sec1.tex").write_text("SEC1", encoding="utf-8")
+        out = load_and_expand(str(tmp_path / "main.tex"))
+        assert "CH1" in out and "SEC1" in out and "missing file" not in out
+
+    def test_paths_outside_the_project_are_blocked(self, tmp_path):
+        from knowtex.core.file_expand import load_and_expand
+        from knowtex.core.utils import is_within_project
+        proj = tmp_path / "proj"; proj.mkdir()
+        (tmp_path / "secret.tex").write_text("SECRET", encoding="utf-8")
+        (proj / "main.tex").write_text(r"\input{../secret}", encoding="utf-8")
+        out = load_and_expand(str(proj / "main.tex"))
+        assert "SECRET" not in out and "blocked path" in out
+        assert is_within_project(str(proj / "a.tex"), str(proj))
+        assert not is_within_project(str(tmp_path / "secret.tex"), str(proj))
+
+    def test_subfile_wrapper_is_stripped(self, tmp_path):
+        from knowtex.core.file_expand import load_and_expand
+        (tmp_path / "main.tex").write_text(r"\subfile{part}", encoding="utf-8")
+        (tmp_path / "part.tex").write_text(
+            "\\documentclass[main]{subfiles}\n\\begin{document}\nBODY\n\\end{document}\n",
+            encoding="utf-8")
+        out = load_and_expand(str(tmp_path / "main.tex"))
+        assert "BODY" in out and "documentclass" not in out
+
+
+class TestIncludeOnly:
+    def test_paths_and_nested_braces(self, tmp_path):
+        from knowtex.core.file_expand import load_and_expand
+        (tmp_path / "gr").mkdir(); (tmp_path / "cover").mkdir()
+        (tmp_path / "main.tex").write_text(
+            "\\includeonly{\n"
+            "cover/a,%\n"
+            "\\ifbool{hc}{cover/b}{cover/a,cover/c},\n"
+            "gr/gr1,gr/gr2.tex%\n"
+            "}\n"
+            "\\include{cover/a}\\include{cover/b}\\include{cover/c}\n"
+            "\\include{gr/gr1}\\include{gr/gr2}\\include{gr/gr3}\n", encoding="utf-8")
+        for n in ("cover/a", "cover/b", "cover/c", "gr/gr1", "gr/gr2", "gr/gr3"):
+            (tmp_path / (n + ".tex")).write_text("FILE-" + n.replace("/", "-") + "\n", encoding="utf-8")
+        out = load_and_expand(str(tmp_path / "main.tex"))
+        for present in ("FILE-cover-a", "FILE-cover-b", "FILE-cover-c", "FILE-gr-gr1", "FILE-gr-gr2"):
+            assert present in out, present
+        assert "FILE-gr-gr3" not in out and "skipped by \\includeonly: gr/gr3" in out

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "knowtex"
+version = "0.2.0"
+description = "Dependency graphs of definitions, theorems and proofs from LaTeX or Markdown"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = [
+    "pylatexenc>=2.10,<3",
+    "PyStemmer>=2.0",
+]
+
+[project.optional-dependencies]
+# PNG and TikZ exports from the local server (needs Graphviz on the system)
+export = ["pygraphviz>=1.10", "dot2tex>=2.11"]
+# Rebuild docs/index.html (web/build.py bundles this pure-Python stemmer)
+web = ["snowballstemmer>=2.2"]
+# Test suite and the headless-browser smoke test
+test = ["pytest>=7", "playwright>=1.40"]
+
+[project.scripts]
+knowtex = "knowtex.cli:main"
+knowtex-serve = "knowtex.serve:main"
+
+[tool.setuptools.packages.find]
+include = ["knowtex*"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["test_*.py"]
