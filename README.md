@@ -1,7 +1,7 @@
 # KnowTeX: Knowledge Dependency from TeX
 
 **KnowTeX** is a Python tool that reads LaTeX projects or Markdown notes and constructs **knowledge dependency graphs** among mathematical statements and proofs.
-It comes as a browser page (run locally or on GitHub Pages) and a command-line tool; it expands your TeX project, parses the document structure, extracts the statements, and visualizes how results depend on one another.
+It comes as a browser page (run locally or on [here](https://elifuskuplu.github.io/KnowTex/)) and a command-line tool; it expands your TeX project, parses the document structure, extracts the statements, and visualizes how results depend on one another.
 
 Derived from [Patrick Massot's *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph), KnowTeX provides similar functionality **without requiring PlasTeX or Lean blueprints**.
 
