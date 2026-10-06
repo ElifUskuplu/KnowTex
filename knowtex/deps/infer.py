@@ -8,6 +8,7 @@ non-LaTeX front-end resolved), defined-term matching and structural patterns.
 import re
 from collections import defaultdict
 
+from knowtex.core.cycles import strongly_connected_components
 from knowtex.core.constants import (
     REF_RX, EQREF_RX,
     PROOF_BEGIN_STRIP_RX, PROOF_END_STRIP_RX,
@@ -17,7 +18,7 @@ from knowtex.core.constants import (
 from knowtex.core.data import DependencyEdge
 from knowtex.deps.term_extraction import (
     node_words, redefinition_term_strings, _stem, _stem_words,
-    _contains_phrase,
+    _contains_phrase, extract_defined_terms,
     build_defined_term_registry,
 )
 
@@ -268,3 +269,146 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
                                  "heuristic", "inferred", "H4")
 
     return edges
+
+
+# ---------------------------------------------------------------------------
+# Cycle resolution (a pass over the finished edge list; no rule is changed)
+# ---------------------------------------------------------------------------
+
+def _plural_eq(word, term_word):
+    """True when *word* is *term_word* up to an English plural ending."""
+    if word == term_word:
+        return True
+    if word in (term_word + "s", term_word + "es"):
+        return True
+    if term_word in (word + "s", word + "es"):
+        return True
+    if word.endswith("ies") and term_word == word[:-3] + "y":
+        return True
+    if term_word.endswith("ies") and word == term_word[:-3] + "y":
+        return True
+    return False
+
+
+def _surface_match(term_words, target_words):
+    """Does the term occur in the target's words with the same surface
+    form (plural endings aside), not just the same stems?"""
+    n = len(term_words)
+    if n == 0:
+        return False
+    for i in range(len(target_words) - n + 1):
+        if all(_plural_eq(target_words[i + j], term_words[j]) for j in range(n)):
+            return True
+    return False
+
+
+EXPLICIT_RULES = frozenset({"D1", "D2", "D3", "manual"})
+
+
+def resolve_cycles(edges, nodes=None, breakable=("D4",), explicit=EXPLICIT_RULES):
+    """Drop the weakest term-match edges until every remaining cycle is
+    made of explicit edges only.  Returns ``(kept, dropped)``.
+
+    D4 reads the *words* of a statement; D1/D2/D3 and manual edges read
+    what the author wrote (``\\ref``, hyperlinks, ``\\uses``).  When the
+    two disagree about the direction of a dependency, the author wins.
+    The pass never removes an edge whose rule is not in *breakable* and
+    never changes how any rule matches; it only decides which of the
+    edges already found survive when they close a cycle.  Edges of the
+    heuristic rules (H2, H3, H4) are neither *explicit* nor *breakable*:
+    they pass through untouched and play no part in the graph below, so
+    a heuristic guess can never cost a D4 edge.
+
+    1. A breakable edge ``s -> t`` is dropped when ``t`` already reaches
+       ``s`` through explicit edges: the term match contradicts the
+       explicit cross-references.
+    2. While a strongly connected component of the explicit and
+       breakable edges still contains a breakable edge, the one with the
+       least evidence is dropped and the components are recomputed.
+       Evidence, weakest first:
+       (a) the term occurs in the target only through its stem
+           ("function" for *functional*), never with its own surface
+           form, when *nodes* are given so the text can be re-read;
+       (b) the source term matched in many statements (a hub word such
+           as *closed* or *group*).
+       Ties fall back to the edge key, so the result is deterministic.
+
+    Cycles made entirely of explicit edges are left alone; they are the
+    author's and ``find_cycles`` still reports them.
+    """
+    breakable = set(breakable)
+    strong = [e for e in edges if e.rule in explicit]
+    weak = [e for e in edges if e.rule in breakable]
+    if not weak:
+        return list(edges), []
+
+    # --- step 1: term matches that contradict explicit references
+    strong_adj = defaultdict(set)
+    for e in strong:
+        strong_adj[e.source].add(e.target)
+
+    def reaches(start, goal):
+        seen, stack = {start}, [start]
+        while stack:
+            x = stack.pop()
+            if x == goal:
+                return True
+            for y in strong_adj[x]:
+                if y not in seen:
+                    seen.add(y)
+                    stack.append(y)
+        return False
+
+    dropped = []
+    survivors = []
+    for e in weak:
+        if reaches(e.target, e.source):
+            dropped.append(e)
+        else:
+            survivors.append(e)
+
+    # --- step 2: evidence ranking inside the remaining components
+    hub = defaultdict(int)
+    for e in weak:
+        hub[e.source] += 1
+
+    surface = {}
+    if nodes is not None:
+        by_label = {n.label: n for n in nodes}
+        words_cache = {}
+        terms_cache = {}
+        for e in survivors:
+            src, tgt = by_label.get(e.source), by_label.get(e.target)
+            if src is None or tgt is None:
+                surface[e.key()] = False
+                continue
+            if e.target not in words_cache:
+                words_cache[e.target] = node_words(tgt)
+            if e.source not in terms_cache:
+                terms_cache[e.source] = [raw.lower().split()
+                                         for raw, _ in extract_defined_terms(src)]
+            tw = words_cache[e.target]
+            surface[e.key()] = any(_surface_match(t, tw) for t in terms_cache[e.source])
+
+    def score(e):
+        return (surface.get(e.key(), False), -hub[e.source], e.key())
+
+    current = {e.key(): e for e in survivors}
+    while True:
+        sccs, adj = strongly_connected_components(strong + list(current.values()))
+        candidates = []
+        for scc in sccs:
+            if len(scc) < 2:
+                continue
+            for src in scc:
+                for tgt in adj[src]:
+                    if tgt in scc and (src, tgt) in current:
+                        candidates.append(current[(src, tgt)])
+        if not candidates:
+            break
+        worst = min(candidates, key=score)
+        dropped.append(worst)
+        del current[worst.key()]
+
+    kept = [e for e in edges if e.rule not in breakable or e.key() in current]
+    return kept, dropped

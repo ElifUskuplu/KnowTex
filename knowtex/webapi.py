@@ -9,7 +9,7 @@ Functions
 expand(files_json, main)        LaTeX project given as {path: text} -> one text
 structure(text, fmt)            document class, chapter/section ranges
 scan(text, fmt, config_json)    statement kinds found (after range selection)
-build(text, fmt, config_json)   edges, cycles, DOT, sections
+build(text, fmt, config_json)   edges, cycles, dropped edges, DOT, sections
 
 ``config_json`` keys (all optional):
   ranges: [i, ...]                 indices of the ranges (from ``structure``)
@@ -43,7 +43,7 @@ from knowtex.core.formats import detect_format, parse_document
 from knowtex.core.structure import (
     assign_sections, detect_doc_class, find_chapter_ranges, find_section_ranges,
 )
-from knowtex.deps.infer import run_inference
+from knowtex.deps.infer import run_inference, resolve_cycles
 from knowtex.deps.index_registry import build_index_registry
 from knowtex.deps.manual import extract_manual_edges
 from knowtex.deps.term_extraction import defined_term_strings
@@ -173,7 +173,12 @@ def scan(text, fmt="auto", config_json="{}"):
 
 
 def build(text, fmt="auto", config_json="{}"):
-    """Run manual extraction or inference and return edges, cycles and DOT."""
+    """Run manual extraction or inference and return edges, cycles and DOT.
+
+    In infer mode the D4 edges that close a cycle are resolved first
+    (``resolve_cycles``; ``resolve_cycles: false`` in the config keeps
+    them); the dropped edges are returned as ``dropped_edges``.
+    """
     try:
         cfg = json.loads(config_json or "{}")
         P = _prepare(text, fmt, cfg)
@@ -212,6 +217,10 @@ def build(text, fmt="auto", config_json="{}"):
             if src != tgt and (src, tgt) not in have and src in visible and tgt in visible:
                 edges.append(DependencyEdge(src, tgt, etype, loc, "manual"))
                 have.add((src, tgt))
+
+        dropped = []
+        if mode == "infer" and cfg.get("resolve_cycles", True):
+            edges, dropped = resolve_cycles(edges, inc_nodes)
 
         if cfg.get("tred", True):
             edges = transitive_reduction(edges)
@@ -254,6 +263,10 @@ def build(text, fmt="auto", config_json="{}"):
                       for e in out_edges],
             "edge_total": len(edges),
             "cycle_count": len(cycles),
+            "dropped_count": len(dropped),
+            "dropped_edges": [{"source": e.source, "target": e.target,
+                               "type": e.edge_type, "location": e.location,
+                               "rule": e.rule} for e in dropped],
             "dot": dot,
             "nodes": [_node_dict(n, P["section_of"], ghost=n.label not in own_labels)
                       for n in drawn],

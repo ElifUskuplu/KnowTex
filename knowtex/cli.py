@@ -19,7 +19,7 @@ from knowtex.core.cycles import find_cycles, transitive_reduction
 from knowtex.core.dot import build_dot
 from knowtex.core.formats import FORMAT_BY_SUFFIX, parse_document
 from knowtex.deps.index_registry import build_index_registry
-from knowtex.deps.infer import run_inference
+from knowtex.deps.infer import run_inference, resolve_cycles
 from knowtex.deps.manual import extract_manual_edges
 
 
@@ -43,6 +43,10 @@ def main(argv=None):
                          "default: names matching definition/notation/axiom/...")
     ap.add_argument("--no-tred", action="store_true",
                     help="skip transitive reduction (applied by default)")
+    ap.add_argument("--keep-cycles", action="store_true",
+                    help="keep D4 term-match edges that close a cycle (by default "
+                         "the weakest of them are dropped until only cycles made "
+                         "of explicit references remain)")
     ap.add_argument("--dot", metavar="FILE", help="write Graphviz DOT")
     ap.add_argument("--json", metavar="FILE", help="write nodes and edges as JSON")
     ap.add_argument("--quiet", action="store_true")
@@ -64,13 +68,19 @@ def main(argv=None):
         registry = build_index_registry(nodes, proofs, text) if used_fmt == "latex" else None
         edges = run_inference(nodes, nbi, ltn, proofs, index_registry=registry,
                               definition_envs=defn)
+    dropped = []
+    if args.mode == "infer" and not args.keep_cycles:
+        edges, dropped = resolve_cycles(edges, nodes)
     if not args.no_tred:
         edges = transitive_reduction(edges)
     cycles = find_cycles(edges)
 
     if not args.quiet:
         print(f"format: {used_fmt}   statements: {len(nodes)}   proofs: {len(proofs)}   "
-              f"edges: {len(edges)}   cycle edges: {len(cycles)}", file=sys.stderr)
+              f"edges: {len(edges)}   cycle edges: {len(cycles)}   "
+              f"dropped to break cycles: {len(dropped)}", file=sys.stderr)
+        for e in dropped:
+            print(f"dropped {e.rule:3} {e.source} -> {e.target}", file=sys.stderr)
         for e in edges:
             flag = " (cycle)" if e.key() in cycles else ""
             print(f"{e.rule:3} {e.source} -> {e.target}{flag}")
@@ -86,6 +96,8 @@ def main(argv=None):
                        "name": n.display_name} for n in nodes],
             "edges": [{"source": e.source, "target": e.target, "rule": e.rule,
                        "type": e.edge_type, "location": e.location} for e in edges],
+            "dropped_edges": [{"source": e.source, "target": e.target, "rule": e.rule,
+                               "type": e.edge_type, "location": e.location} for e in dropped],
         }, indent=2, ensure_ascii=False), encoding="utf-8")
     return 0
 

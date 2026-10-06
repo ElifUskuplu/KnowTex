@@ -41,7 +41,7 @@ Load & Expand  →  Structure Detection  →  Parse  →  Edge Extraction  →  
 3. **Parse** (`formats.py`): `parse_document(text, fmt)` picks the front-end from the given format (or from `detect_format(text)` when none is given; `format_for_path` maps file extensions) and returns `(fmt, nodes, node_by_index, label_to_node, proofs, discovered_envs)`:
    - LaTeX → `parser.py` (`parse_latex_structure`): walks the expanded LaTeX via the pylatexenc AST to extract `NodeInfo` (theorem-like statements) and `ProofInfo` (proof environments).
    - Markdown → `text_parser.py` (`parse_text_structure`), see Section 14. Keyword-only text with no Markdown markup ("Definition 2.1. …", "Proof. …") is read by the same front-end.
-4. **Edge Extraction**: Either Manual mode (`manual.py`) or Infer mode (`infer.py`) produces a list of `DependencyEdge` objects. The rules are the same for every input format.
+4. **Edge Extraction**: Either Manual mode (`manual.py`) or Infer mode (`infer.py`) produces a list of `DependencyEdge` objects. The rules are the same for every input format. In infer mode `resolve_cycles` (`infer.py`, on by default) then drops the D4 edges that close a cycle, see Section 9.
 5. **Transitive Reduction** (`cycles.py`, optional, on by default): removes redundant edges, see Section 9.
 6. **Graph Build** (`dot.py`): `build_dot` turns nodes and edges into DOT text; the web page draws the layered view from it with viz.js, and the local server renders it with Graphviz for PNG and TikZ export (Section 13).
 
@@ -294,6 +294,8 @@ Edge: def_label → node_label   (type=deterministic, location=statement, rule=D
 
 **Meaning**: "The statement `node_label` uses a term defined in `def_label`."
 
+**After the rules**: D4 is the only rule that reads the words of a statement rather than what the author wrote, so it is the only rule whose edges can be dropped by the cycle resolution pass (`resolve_cycles`, Section 9). The matching above is not changed by that pass.
+
 ### 7.2. Heuristic Rules (H1-H4)
 
 Heuristic rules create edges with `edge_type="heuristic"` and `location="inferred"` (except H1, which doesn't create edges).
@@ -415,7 +417,21 @@ After edge extraction, `find_cycles()` is called. The returned set is used for:
 
 - **Visual highlighting**: Cycle edges are drawn in **red** in the graph.
 - **Edge table**: Cycle edges are marked in the page's Edges tab (`cycle` in the `build` response).
-- **Summary**: The page's status line reports the number of edges in cycles (`cycle_count`).
+- **Summary**: The page's status line reports the number of edges in cycles (`cycle_count`) and, in infer mode, the number of D4 edges dropped by the cycle resolution (`dropped_count`).
+
+### Cycle resolution
+
+**Module**: `knowtex/deps/infer.py`
+**Entry point**: `resolve_cycles(edges, nodes=None, breakable=("D4",), explicit=EXPLICIT_RULES) -> (kept, dropped)`
+
+A pass over the finished edge list, run in infer mode before transitive reduction (CLI: unless `--keep-cycles`; web page: unless `resolve_cycles` is `false` in the `build` config). It never changes how a rule matches and never removes an edge whose rule is not in `breakable`; by default only D4 edges are breakable, because D4 reads the words of a statement while the explicit rules D1/D2/D3 and manual edges (`EXPLICIT_RULES`) read what the author wrote (`\ref`, hyperlinks, `\uses`). When the two disagree about the direction of a dependency, the author wins. Edges of the heuristic rules H2, H3 and H4 are neither explicit nor breakable: they pass through untouched and take no part in the graph the pass looks at, so a heuristic guess can never cost a D4 edge.
+
+1. **Explicit references outrank term matches.** A breakable edge `s → t` is dropped when `t` already reaches `s` through explicit edges.
+2. **Evidence ranking inside the remaining components.** While a strongly connected component of the explicit and breakable edges still contains a breakable edge, the one with the least evidence is dropped and the components are recomputed. Evidence, weakest first: (a) the term occurs in the target only through its stem ("function" for *functional*), never with its own surface form up to a plural ending; this needs `nodes`, so the text can be re-read; (b) the source term matched in many statements (a hub word such as *closed*). Ties fall back to the edge key, so the result is deterministic.
+
+Cycles made entirely of explicit edges are left alone; `find_cycles` still reports them and they are drawn in red. The dropped edges are returned (`dropped_edges` in the CLI JSON and in the `build` response; `dropped` lines on stderr in the CLI) so that a wrong drop can be seen.
+
+On the Chicago Notes benchmark (`benchmark/README.md`, "Cycles") the pass removes 27 of 616 D4 edges and leaves only the 7 cycle edges that the author's hyperlinks themselves form.
 
 ### Transitive reduction
 
@@ -799,7 +815,8 @@ or `knowtex` after `pip install`)
 
 ```
 knowtex PATH [--format {auto,latex,markdown}] [--mode {infer,manual}]
-             [--definition-env ENV]... [--no-tred] [--dot FILE] [--json FILE] [--quiet]
+             [--definition-env ENV]... [--keep-cycles] [--no-tred]
+             [--dot FILE] [--json FILE] [--quiet]
 ```
 
 1. `PATH` is a file or `-` for stdin. With `--format auto` (default) a known
@@ -810,16 +827,21 @@ knowtex PATH [--format {auto,latex,markdown}] [--mode {infer,manual}]
    runs `run_inference` with the definition-like environments given by
    `--definition-env` (repeatable) or, by default, the discovered
    environments matching `DEFN_ENV_RX`. The index registry (H4) is built
-   for LaTeX input only.
+   for LaTeX input only. In infer mode `resolve_cycles` then drops the
+   D4 edges that close a cycle (Section 9) unless `--keep-cycles` is
+   given.
 3. `transitive_reduction` is applied unless `--no-tred` is given; then
    `find_cycles` runs.
-4. Unless `--quiet`, a summary (format, statement, proof, edge and cycle
-   edge counts) goes to stderr and one line per edge (`rule source ->
-   target`, with `(cycle)` for cycle edges) to stdout.
+4. Unless `--quiet`, a summary (format, statement, proof, edge, cycle
+   edge and dropped edge counts) goes to stderr, followed by one
+   `dropped rule source -> target` line per dropped edge; one line per
+   edge (`rule source -> target`, with `(cycle)` for cycle edges) goes to
+   stdout.
 5. `--dot FILE` writes `build_dot` output (all discovered environments,
    default styles). `--json FILE` writes
    `{"format", "nodes": [{"label", "env", "index", "name"}], "edges":
-   [{"source", "target", "rule", "type", "location"}]}`.
+   [{"source", "target", "rule", "type", "location"}], "dropped_edges":
+   [same fields]}`.
 
 ## 17. Web API
 
@@ -848,7 +870,9 @@ cached, so `scan` followed by `build` parses once.
   config. `is_defn` is the `DEFN_ENV_RX` default.
 - `build(text, fmt="auto", config_json="{}")` → `{"ok", "format", "mode",
   "edges": [{"source", "target", "type", "location", "rule", "cycle"}],
-  "edge_total", "cycle_count", "dot", "nodes", "sections", "h3_gap"}`.
+  "edge_total", "cycle_count", "dropped_count", "dropped_edges":
+  [{"source", "target", "type", "location", "rule"}], "dot", "nodes",
+  "sections", "h3_gap"}`.
   Config keys and defaults:
 
   | Key | Default | Meaning |
@@ -858,6 +882,7 @@ cached, so `scan` followed by `build` parses once.
   | `include` | all discovered environments | environments to keep (an empty list keeps none) |
   | `definition_envs` | environments matching `DEFN_ENV_RX` | D4 sources |
   | `ordered` | `true` | `false` for several files with no reading order (D4 ignores position) |
+  | `resolve_cycles` | `true` | infer mode: drop the D4 edges that close a cycle (`resolve_cycles`, Section 9); the dropped edges are returned as `dropped_edges` |
   | `tred` | `true` | apply `transitive_reduction` |
   | `micro_section` | none | draw one chapter/section plus the statements of other sections linked to it ("ghost" nodes) |
   | `removed` | `[]` | `[source, target]` pairs deleted in the edge table (removed before reduction) |

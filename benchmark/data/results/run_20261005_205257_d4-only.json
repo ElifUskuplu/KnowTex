@@ -1,0 +1,112 @@
+{
+  "timestamp": "2026-10-05T20:52:57",
+  "ground_truth_total": 1667,
+  "combined": {
+    "precision": 0.6771948608137045,
+    "recall": 0.7588482303539292,
+    "f1": 0.7157001414427158,
+    "tp": 1265,
+    "fp": 603,
+    "fn": 402,
+    "inferred_total": 1868
+  },
+  "per_rule": {
+    "D4": {
+      "precision": 0.6771948608137045,
+      "recall": 0.7588482303539292,
+      "f1": 0.7157001414427158,
+      "tp": 1265,
+      "fp": 603,
+      "fn": 402,
+      "inferred_total": 1868
+    }
+  },
+  "cycles": {
+    "cycle_edges_before_resolution": 94,
+    "cycle_edges_after_resolution": 0,
+    "dropped_total": 16,
+    "dropped_edges": [
+      [
+        "def:functional",
+        "def:bijective",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:binary-operation",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:injective",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:linear-transformation",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:metric-space",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:surjective",
+        "D4"
+      ],
+      [
+        "def:measure-space",
+        "def:measurable",
+        "D4"
+      ],
+      [
+        "def:abelianization",
+        "def:abelian-group",
+        "D4"
+      ],
+      [
+        "def:topological-space",
+        "def:open",
+        "D4"
+      ],
+      [
+        "def:open",
+        "def:metric-space",
+        "D4"
+      ],
+      [
+        "def:game",
+        "def:normal-form-game",
+        "D4"
+      ],
+      [
+        "def:inverse-element",
+        "def:left-inverse-element",
+        "D4"
+      ],
+      [
+        "def:inverse-element",
+        "def:right-inverse-element",
+        "D4"
+      ],
+      [
+        "def:algebra-ideal",
+        "def:left-algebra-ideal",
+        "D4"
+      ],
+      [
+        "def:algebra-ideal",
+        "def:right-algebra-ideal",
+        "D4"
+      ],
+      [
+        "def:regular",
+        "def:outer-regular",
+        "D4"
+      ]
+    ]
+  },
+  "note": "The ground truth holds hyperlink edges only, so every D4 edge counts as a false positive here; see benchmark/README.md."
+}

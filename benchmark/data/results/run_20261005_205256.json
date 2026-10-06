@@ -1,0 +1,176 @@
+{
+  "timestamp": "2026-10-05T20:52:56",
+  "ground_truth_total": 1667,
+  "combined": {
+    "precision": 0.7389184397163121,
+    "recall": 1.0,
+    "f1": 0.849859801172572,
+    "tp": 1667,
+    "fp": 589,
+    "fn": 0,
+    "inferred_total": 2256
+  },
+  "per_rule": {
+    "D2": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 1667,
+      "fp": 0,
+      "fn": 0,
+      "inferred_total": 1667
+    },
+    "D4": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 589,
+      "fn": 1667,
+      "inferred_total": 589
+    }
+  },
+  "cycles": {
+    "cycle_edges_before_resolution": 201,
+    "cycle_edges_after_resolution": 7,
+    "dropped_total": 27,
+    "dropped_edges": [
+      [
+        "def:lebesgue-integral",
+        "def:lebesgue-integral-of-a-simple-function",
+        "D4"
+      ],
+      [
+        "def:lebesgue-integral",
+        "def:lebesgue-integral-of-characteristic-function",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:bijective",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:binary-operation",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:injective",
+        "D4"
+      ],
+      [
+        "def:algebra-ideal",
+        "def:left-algebra-ideal",
+        "D4"
+      ],
+      [
+        "def:identity-element",
+        "def:left-identity-element",
+        "D4"
+      ],
+      [
+        "def:inverse-element",
+        "def:left-inverse-element",
+        "D4"
+      ],
+      [
+        "def:ring-ideal",
+        "def:left-ring-ideal",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:linear-transformation",
+        "D4"
+      ],
+      [
+        "def:measure-space",
+        "def:measurable",
+        "D4"
+      ],
+      [
+        "def:regular",
+        "def:outer-regular",
+        "D4"
+      ],
+      [
+        "def:algebra-ideal",
+        "def:right-algebra-ideal",
+        "D4"
+      ],
+      [
+        "def:identity-element",
+        "def:right-identity-element",
+        "D4"
+      ],
+      [
+        "def:inverse-element",
+        "def:right-inverse-element",
+        "D4"
+      ],
+      [
+        "def:ring-ideal",
+        "def:right-ring-ideal",
+        "D4"
+      ],
+      [
+        "def:bounded",
+        "def:supremum",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:surjective",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:class",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:continuous",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:differentiable",
+        "D4"
+      ],
+      [
+        "def:functional",
+        "def:metric-space",
+        "D4"
+      ],
+      [
+        "def:derivation",
+        "def:class",
+        "D4"
+      ],
+      [
+        "def:derivation",
+        "def:differentiable",
+        "D4"
+      ],
+      [
+        "def:abelianization",
+        "def:abelian-group",
+        "D4"
+      ],
+      [
+        "def:abelianization",
+        "def:module-over-a-ring",
+        "D4"
+      ],
+      [
+        "def:abelianization",
+        "def:ring",
+        "D4"
+      ]
+    ]
+  },
+  "note": "The ground truth holds hyperlink edges only, so every D4 edge counts as a false positive here; see benchmark/README.md."
+}

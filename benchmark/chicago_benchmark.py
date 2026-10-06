@@ -35,7 +35,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from knowtex.core.data import DependencyEdge
 from knowtex.core.formats import markdown_files, read_markdown_files
 from knowtex.core.text_parser import parse_text_structure, slugify
-from knowtex.deps.infer import run_inference
+from knowtex.core.cycles import find_cycles
+from knowtex.deps.infer import run_inference, resolve_cycles
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -287,6 +288,15 @@ def run_knowtex(defs, d4_only=False):
     edges = run_inference(nodes, node_by_index, label_to_node, proofs,
                           definition_envs={"definition"}, ordered=False)
 
+    # Cycle resolution: the D4 edges that close a cycle are dropped,
+    # weakest evidence first, until only the author's own cycles remain
+    # (``resolve_cycles``; the rules themselves are unchanged).
+    cycle_edges_before = len(find_cycles(edges))
+    edges, dropped = resolve_cycles(edges, nodes)
+    cycle_edges_after = len(find_cycles(edges))
+    print(f"Cycle resolution: {cycle_edges_before} cycle edges before, "
+          f"{cycle_edges_after} after; {len(dropped)} D4 edges dropped")
+
     # The Markdown front-end slugifies titles (apostrophes dropped, case
     # folded); do the same to the ground-truth side so labels line up.
     title_slug_to_gt = {}
@@ -307,7 +317,13 @@ def run_knowtex(defs, d4_only=False):
     print(f"KnowTex inferred {len(mapped)} total edges:")
     for rule, count in sorted(counts.items()):
         print(f"  {rule}: {count}")
-    return mapped
+    cycle_info = {
+        "cycle_edges_before_resolution": cycle_edges_before,
+        "cycle_edges_after_resolution": cycle_edges_after,
+        "dropped_total": len(dropped),
+        "dropped_edges": [[to_gt(e.source), to_gt(e.target), e.rule] for e in dropped],
+    }
+    return mapped, cycle_info
 
 
 # ---------------------------------------------------------------------------
@@ -325,7 +341,7 @@ def _compute_metrics(inferred, ground_truth):
     return tp, fp, fn, precision, recall, f1
 
 
-def evaluate(all_edges, ground_truth, defs, output_csv=False):
+def evaluate(all_edges, ground_truth, defs, output_csv=False, cycle_info=None):
     """Compute precision, recall, F1 per rule and print a report."""
     # Build per-rule edge sets
     rule_sets = {}
@@ -359,6 +375,10 @@ def evaluate(all_edges, ground_truth, defs, output_csv=False):
         print(f"  F1 Score:            {f1:.4f}")
         print()
 
+    if cycle_info:
+        print(f"  Cycle edges: {cycle_info['cycle_edges_before_resolution']} before "
+              f"resolution, {cycle_info['cycle_edges_after_resolution']} after "
+              f"({cycle_info['dropped_total']} D4 edges dropped)")
     print("=" * 60)
 
     # Build per-rule metrics for the result dict
@@ -393,6 +413,7 @@ def evaluate(all_edges, ground_truth, defs, output_csv=False):
             "inferred_total": len(all_inferred),
         },
         "per_rule": per_rule,
+        "cycles": cycle_info,
         "note": ("The ground truth holds hyperlink edges only, so every D4 "
                  "edge counts as a false positive here; see benchmark/README.md."),
     }
@@ -509,10 +530,11 @@ def main():
     if args.d4_only:
         global RUN_SUFFIX
         RUN_SUFFIX = "_d4-only"
-    all_edges = run_knowtex(defs, d4_only=args.d4_only)
+    all_edges, cycle_info = run_knowtex(defs, d4_only=args.d4_only)
 
     # Step 5: Evaluate
-    results = evaluate(all_edges, ground_truth, defs, output_csv=args.output_csv)
+    results = evaluate(all_edges, ground_truth, defs, output_csv=args.output_csv,
+                       cycle_info=cycle_info)
 
     return results
 

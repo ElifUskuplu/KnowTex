@@ -11,7 +11,6 @@ def:abelian-group,def:ring,Q181296,Q161172,FP,D4
 def:abelian-group,def:rng,Q181296,Q17102802,FP,D4
 def:abelian-group,def:torsion-subgroup,Q181296,Q2293759,FP,D4
 def:abelianization,def:abelian-extension,Q318598,,FP,D4
-def:abelianization,def:abelian-group,Q318598,Q181296,FP,D4
 def:abelianization,def:abelian-lie-algebra,Q318598,,FP,D4
 def:abelianization,def:basis-for-abelian-group,Q318598,Q810193,FP,D4
 def:abelianization,def:divisible-group,Q318598,Q1782332,FP,D4
@@ -35,8 +34,6 @@ def:absolute-value,def:lp-space,Q120812,Q305936,FP,D4
 def:algebra-homomorphism,def:adjoint-representation-of-a-lie-algebra,Q382497,Q4379157,FP,D4
 def:algebra-homomorphism,def:adjoint-representation-of-a-lie-group,Q382497,Q1017106,FP,D4
 def:algebra-homomorphism,def:lie-algebra-homomorphism,Q382497,Q3882299,FP,D4
-def:algebra-ideal,def:left-algebra-ideal,,,FP,D4
-def:algebra-ideal,def:right-algebra-ideal,,,FP,D4
 def:associative,def:adjoint-representation-of-a-lie-group,Q177251,Q1017106,FP,D4
 def:associative,def:associate-elements-in-an-integral-domain,Q177251,,FP,D4
 def:associative,def:division-algebra,Q177251,Q1231309,FP,D4
@@ -241,8 +238,6 @@ def:functional,def:absolute-continuity,Q579600,Q332504,FP,D4
 def:functional,def:almost-uniform-convergence,Q579600,Q25377974,FP,D4
 def:functional,def:analytic-function,Q579600,,FP,D4
 def:functional,def:baire-class,Q579600,Q2976036,FP,D4
-def:functional,def:bijective,Q579600,Q180907,FP,D4
-def:functional,def:binary-operation,Q579600,Q164307,FP,D4
 def:functional,def:borel-function,Q579600,,FP,D4
 def:functional,def:bounded-variation,Q579600,Q829653,FP,D4
 def:functional,def:category-of-sets,Q579600,Q2518298,FP,D4
@@ -279,7 +274,6 @@ def:functional,def:harmonic-function,Q579600,Q599027,FP,D4
 def:functional,def:harmonic-polynomial,Q579600,,FP,D4
 def:functional,def:homeomorphism,Q579600,Q202906,FP,D4
 def:functional,def:image,Q579600,Q860623,FP,D4
-def:functional,def:injective,Q579600,Q182003,FP,D4
 def:functional,def:inner-product,Q579600,Q23924662,FP,D4
 def:functional,def:inverse-function,Q579600,Q191884,FP,D4
 def:functional,def:isolated-singularity,Q579600,,FP,D4
@@ -293,7 +287,6 @@ def:functional,def:lebesgue-integral,Q579600,,FP,D4
 def:functional,def:lebesgue-integral-of-a-simple-function,Q579600,,FP,D4
 def:functional,def:lebesgue-integral-of-characteristic-function,Q579600,,FP,D4
 def:functional,def:lebesgue-measurable-function,Q579600,Q516776,FP,D4
-def:functional,def:linear-transformation,Q579600,Q207643,FP,D4
 def:functional,def:linearly-independent-group-elements,Q579600,Q27670,FP,D4
 def:functional,def:locally-monotonic,Q579600,,FP,D4
 def:functional,def:logarithmic-derivative,Q579600,,FP,D4
@@ -304,7 +297,6 @@ def:functional,def:lusin-function,Q579600,Q1361393,FP,D4
 def:functional,def:mean-value-property,Q579600,,FP,D4
 def:functional,def:measurable-function,Q579600,Q516776,FP,D4
 def:functional,def:measure-space,Q579600,Q3058212,FP,D4
-def:functional,def:metric-space,Q579600,Q180953,FP,D4
 def:functional,def:model,Q579600,,FP,D4
 def:functional,def:module-homomorphism,Q579600,Q215111,FP,D4
 def:functional,def:negative-variation,Q579600,,FP,D4
@@ -334,7 +326,6 @@ def:functional,def:simple-region,Q579600,,FP,D4
 def:functional,def:smooth,Q579600,Q868473,FP,D4
 def:functional,def:smooth-topological-m-dimensional-manifold-with-boundary,Q579600,Q78338964,FP,D4
 def:functional,def:support,Q579600,Q1136376,FP,D4
-def:functional,def:surjective,Q579600,Q229102,FP,D4
 def:functional,def:tangent-space,Q579600,Q909601,FP,D4
 def:functional,def:total-variation,Q579600,Q1936288,FP,D4
 def:functional,def:trace,Q579600,Q321102,FP,D4
@@ -398,8 +389,6 @@ def:interval,def:subinterval,Q185148,,FP,D4
 def:interval,def:subrectangle,Q185148,,FP,D4
 def:interval,def:volume,Q185148,Q39297,FP,D4
 def:interval,def:width,Q185148,Q35059,FP,D4
-def:inverse-element,def:left-inverse-element,Q338057,Q338057,FP,D4
-def:inverse-element,def:right-inverse-element,Q338057,Q338057,FP,D4
 def:lebesgue-integral,def:lebesgue-integral-of-a-simple-function,,,FP,D4
 def:lebesgue-integral,def:lebesgue-integral-of-characteristic-function,,,FP,D4
 def:lie-algebra,def:isotypic-component,Q664495,Q17098238,FP,D4
@@ -474,7 +463,6 @@ def:measurable,def:vitali-covering,,Q3229352,FP,D4
 def:measurable-function,def:almost-uniform-convergence,Q516776,Q25377974,FP,D4
 def:measurable-function,def:lebesgue-measurable-function,Q516776,Q516776,FP,D4
 def:measure-space,def:borel-space,Q3058212,Q3058218,FP,D4
-def:measure-space,def:measurable,Q3058212,,FP,D4
 def:measure-space,def:measurable-function,Q3058212,Q516776,FP,D4
 def:measure-space,def:negative-variation,Q3058212,,FP,D4
 def:measure-space,def:positive-variation,Q3058212,,FP,D4
@@ -546,7 +534,6 @@ def:rank,def:embedded-m-dimensional-manifold-with-boundary,Q656784,Q1333611,FP,D
 def:rank,def:rank-of-a-finitely-generated-abelian-group,Q656784,Q1260803,FP,D4
 def:rank,def:rank-of-a-module,Q656784,,FP,D4
 def:rectangle,def:strong-differential-basis,Q209,,FP,D4
-def:regular,def:outer-regular,Q1428110,Q26851733,FP,D4
 def:regular,def:radon-measure,Q1428110,Q2126650,FP,D4
 def:regular,def:regular-family,Q1428110,,FP,D4
 def:residue,def:typical,,,FP,D4

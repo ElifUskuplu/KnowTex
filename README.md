@@ -103,6 +103,7 @@ The page `docs/index.html` is KnowTeX's user interface. It runs the same Python 
 - **Environment recognition**: detects canonical mathematical environments and their aliases (see table below).
 - **Defined-term extraction**: extracts terms from `\emph{}`, `\textit{}`, `\textbf{}`, `\demph{}`, and `\index{}` entries; uses Snowball stemming for language-aware matching.
 - **Cycle detection**: identifies cyclic dependencies using Tarjan's SCC algorithm and highlights them in red.
+- **Cycle resolution**: in infer mode, term-match (D4) edges that close a cycle are dropped, weakest evidence first, until only cycles made of the author's own references remain (`infer.resolve_cycles`; `--keep-cycles` in the CLI skips it). The dropped edges are reported.
 - **Transitive reduction**: removes redundant edges (on by default; edges inside a cycle are always kept). The CLI and the web page use the same pure-Python implementation (`cycles.transitive_reduction`).
 - **Macro/Micro views**: macro view shows the full graph; micro view focuses on a single section/chapter.
 - **Output formats**:
@@ -157,7 +158,7 @@ KnowTex/
 │   │   └── utils.py         # Utility functions
 │   └── deps/
 │       ├── manual.py        # Manual mode: \uses{}/\proves{} extraction
-│       ├── infer.py         # Infer mode: D1-D4, H2-H4 rules (format-independent)
+│       ├── infer.py         # Infer mode: D1-D4, H2-H4 rules (format-independent), cycle resolution
 │       ├── term_extraction.py  # Stemming and term extraction for D4/H4
 │       └── index_registry.py   # \index{} and emphasized-term registry for H4
 ├── test_knowtex.py          # Test suite (pytest)

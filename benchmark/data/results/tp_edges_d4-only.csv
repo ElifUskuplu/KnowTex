@@ -350,7 +350,6 @@ def:fundamental-group,def:semi-locally-simply-connected,Q662830,Q7449310,TP,D4
 def:fundamental-group,def:simply-connected,Q662830,Q912058,TP,D4
 def:game,def:determined,Q15079592,,TP,D4
 def:game,def:gale-stewart-game,Q15079592,Q4944906,TP,D4
-def:game,def:normal-form-game,Q15079592,Q1069099,TP,D4
 def:game,def:topological-game,Q15079592,Q7825035,TP,D4
 def:general-linear-algebra,def:lie-algebra-representation,Q17521172,Q1136782,TP,D4
 def:general-linear-algebra,def:linear-lie-algebra,Q17521172,Q16977077,TP,D4
@@ -855,7 +854,6 @@ def:open,def:lebesgue-measurable-function,Q213363,Q516776,TP,D4
 def:open,def:local-maximum,Q213363,Q91052280,TP,D4
 def:open,def:local-minimum,Q213363,Q91052291,TP,D4
 def:open,def:locally-finite-measure,Q213363,Q2136937,TP,D4
-def:open,def:metric-space,Q213363,Q180953,TP,D4
 def:open,def:neighborhood,Q213363,Q2478475,TP,D4
 def:open,def:nowhere-dense,Q213363,Q1991405,TP,D4
 def:open,def:open-cover,Q213363,Q41509136,TP,D4
@@ -1165,7 +1163,6 @@ def:topological-space,def:meager,Q179899,Q1747745,TP,D4
 def:topological-space,def:neighborhood,Q179899,Q2478475,TP,D4
 def:topological-space,def:nonmeager,Q179899,Q97623888,TP,D4
 def:topological-space,def:nowhere-dense,Q179899,Q1991405,TP,D4
-def:topological-space,def:open,Q179899,Q213363,TP,D4
 def:topological-space,def:open-cover,Q179899,Q41509136,TP,D4
 def:topological-space,def:opposite-topology,Q179899,,TP,D4
 def:topological-space,def:path,Q179899,Q1366002,TP,D4

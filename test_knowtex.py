@@ -28,7 +28,8 @@ from knowtex.core.structure import (
 )
 from knowtex.core.cycles import find_cycles
 from knowtex.core.data import NodeInfo, ProofInfo, DependencyEdge
-from knowtex.deps.infer import run_inference
+from knowtex.core.text_parser import parse_text_structure
+from knowtex.deps.infer import run_inference, resolve_cycles
 from knowtex.deps.index_registry import build_index_registry
 from knowtex.deps.term_extraction import (
     _strip_latex_to_words,
@@ -471,6 +472,89 @@ class TestFindCycles:
         assert ("A", "B") in result
         assert ("B", "A") in result
         assert ("C", "D") not in result
+
+
+class TestResolveCycles:
+    """Cycle resolution: D4 edges that close a cycle are dropped, weakest
+    first; explicit edges are never touched."""
+
+    @staticmethod
+    def d4(s, t):
+        return DependencyEdge(s, t, "deterministic", "statement", "D4")
+
+    @staticmethod
+    def d2(s, t):
+        return DependencyEdge(s, t, "deterministic", "statement", "D2")
+
+    def test_acyclic_graph_is_unchanged(self):
+        edges = [self.d2("A", "B"), self.d4("B", "C"), self.d4("A", "C")]
+        kept, dropped = resolve_cycles(edges)
+        assert kept == edges and dropped == []
+
+    def test_term_match_against_explicit_reference_loses(self):
+        # The author linked A from B (A -> B); D4 found the reverse.
+        edges = [self.d2("A", "B"), self.d4("B", "A")]
+        kept, dropped = resolve_cycles(edges)
+        assert [e.key() for e in kept] == [("A", "B")]
+        assert [e.key() for e in dropped] == [("B", "A")]
+
+    def test_term_match_closing_an_explicit_path_loses(self):
+        # A -> B -> C by references, C -> A by a term match.
+        edges = [self.d2("A", "B"), self.d2("B", "C"), self.d4("C", "A")]
+        kept, dropped = resolve_cycles(edges)
+        assert [e.key() for e in dropped] == [("C", "A")]
+        assert find_cycles(kept) == set()
+
+    def test_explicit_cycles_are_kept(self):
+        edges = [self.d2("A", "B"), self.d2("B", "A"), self.d4("A", "C")]
+        kept, dropped = resolve_cycles(edges)
+        assert kept == edges and dropped == []
+        assert find_cycles(kept) == {("A", "B"), ("B", "A")}
+
+    def test_hub_source_loses_in_a_d4_only_cycle(self):
+        # D matched in two statements, C in one: D -> C is the weaker edge.
+        edges = [self.d4("C", "D"), self.d4("D", "C"), self.d4("D", "E")]
+        kept, dropped = resolve_cycles(edges)
+        assert [e.key() for e in dropped] == [("D", "C")]
+        assert find_cycles(kept) == set()
+
+    def test_stem_only_match_loses_to_surface_match(self):
+        # "functional" reaches "linear transformation" only through the stem
+        # "function"; "linear transformation" occurs verbatim in "functional".
+        text = """# Linear transformation
+A function T between vector spaces is a **linear transformation** if ...
+
+# Functional
+A **functional** is a linear transformation into the ground field.
+"""
+        nodes, nbi, ltn, proofs, envs = parse_text_structure(text)
+        edges = run_inference(nodes, nbi, ltn, proofs, definition_envs={"definition"},
+                              ordered=False)
+        keys = {e.key() for e in edges}
+        assert ("definition:functional", "definition:linear-transformation") in keys
+        assert ("definition:linear-transformation", "definition:functional") in keys
+        kept, dropped = resolve_cycles(edges, nodes)
+        assert [e.key() for e in dropped] == [
+            ("definition:functional", "definition:linear-transformation")]
+        assert find_cycles(kept) == set()
+
+    def test_heuristic_edges_do_not_count_as_explicit(self):
+        # An H4 guess pointing back must not cost the D4 edge.
+        edges = [self.d4("A", "B"),
+                 DependencyEdge("B", "A", "heuristic", "inferred", "H4")]
+        kept, dropped = resolve_cycles(edges)
+        assert kept == edges and dropped == []
+        # ... but a reference does.
+        edges = [self.d4("A", "B"), self.d2("B", "A")]
+        assert [e.key() for e in resolve_cycles(edges)[1]] == [("A", "B")]
+
+    def test_other_rules_are_not_breakable_by_default(self):
+        edges = [self.d2("A", "B"),
+                 DependencyEdge("B", "A", "heuristic", "inferred", "H2")]
+        kept, dropped = resolve_cycles(edges)
+        assert dropped == []
+        kept, dropped = resolve_cycles(edges, breakable=("H2",))
+        assert [e.key() for e in dropped] == [("B", "A")]
 
 
 # ############################################################
