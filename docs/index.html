@@ -846,9 +846,8 @@ async function runBuild() {
     renderGraph();
   } catch (e) { setStatus("error", "The graph could not be drawn"); showError(String(e)); return; }
   const cyc = res.cycle_count ? ` · ${res.cycle_count} edge${res.cycle_count > 1 ? "s" : ""} in cycles (red)` : "";
-  const drp = res.dropped_count ? ` · ${res.dropped_count} term-match edge${res.dropped_count > 1 ? "s" : ""} dropped to break cycles` : "";
   const scope = els.scope.value ? ` in “${els.scope.value}” (${res.edge_total} edges in all)` : "";
-  setStatus("ready", `${res.nodes.length} statements, ${res.edges.length} edges${scope}${cyc}${drp}`);
+  setStatus("ready", `${res.nodes.length} statements, ${res.edges.length} edges${scope}${cyc}`);
   els.dlSvg.disabled = els.dlPng.disabled = els.dlDot.disabled = els.dlTex.disabled = false;
   els.restore.disabled = state.removed.length === 0;
   renderAddEdgeForm(res);

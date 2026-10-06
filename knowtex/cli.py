@@ -77,10 +77,7 @@ def main(argv=None):
 
     if not args.quiet:
         print(f"format: {used_fmt}   statements: {len(nodes)}   proofs: {len(proofs)}   "
-              f"edges: {len(edges)}   cycle edges: {len(cycles)}   "
-              f"dropped to break cycles: {len(dropped)}", file=sys.stderr)
-        for e in dropped:
-            print(f"dropped {e.rule:3} {e.source} -> {e.target}", file=sys.stderr)
+              f"edges: {len(edges)}   cycle edges: {len(cycles)}", file=sys.stderr)
         for e in edges:
             flag = " (cycle)" if e.key() in cycles else ""
             print(f"{e.rule:3} {e.source} -> {e.target}{flag}")
