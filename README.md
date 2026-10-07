@@ -7,7 +7,7 @@ Derived from [Patrick Massot's *plastexdepgraph* plugin](https://github.com/Patr
 
 **Artificial Intelligence Disclosure (AID)**
 
-Portions of the KnowTeX project were developed with the assistance of generative AI tools (Claude). These tools were used to help draft Python code, suggest refactoring patterns, and improve documentation clarity. All generated code was reviewed, tested, and validated by the author, who assumes full responsibility for the final implementation and design decisions.
+KnowTeX was developed with substantial assistance from a generative AI tool (Anthropic's Claude, used through Claude Code). Under the author's direction, the tool wrote significant parts of the Python code, the web page, the tests and the documentation, and proposed the refactorings and performance work recorded in the commit history (commits co-authored by the tool carry a `Co-Authored-By` line). The research questions, the inference rules, the design decisions and the evaluation are the author's; all generated code was reviewed, tested and validated by the author, who assumes full responsibility for the final implementation. 
 
 ---
 
