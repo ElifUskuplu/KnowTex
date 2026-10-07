@@ -8,6 +8,8 @@ Run with:  pytest test_knowtex.py -v
 import sys
 import os
 
+import pytest
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from knowtex.core.utils import (
@@ -214,6 +216,57 @@ Content.
         tex = r"\begin{theorem}\label{thm:main}content\end{theorem}"
         nodes, *_ = parse_latex_structure(tex)
         assert nodes[0].display_name == "main"
+
+
+class TestFastParserMatchesAst:
+    """The default regex engine finds the same environments as the
+    pylatexenc AST walk it replaced."""
+    DOC = r"""\documentclass{book}
+% \begin{theorem} in a comment is not a statement
+\newcommand{\pct}{50\%} % \begin{lemma} after an escaped percent
+\begin{document}
+\begin{definition}[Group]\label{def:group} A \emph{group} is ... \verb|\begin{theorem}| \end{definition}
+\begin{theorem} \label{thm:a} Outer \begin{lemma}\label{lem:inner} inner \end{lemma} tail
+  \begin{equation}\label{eq:1} x \end{equation} \end{theorem}
+\begin{proof} By \ref{def:group}. \end{proof}
+\begin{verbatim}
+\begin{corollary} not a statement \end{corollary}
+\end{verbatim}
+Line break then comment \\% \begin{remark} x \end{remark}
+\begin{ corollary } \label{cor:b} spaced name \end{ corollary }
+\begin{proof}[Proof of \cref{thm:a}] \begin{claim} c \end{claim} \end{proof}
+\begin{lemma}\label{lem:open} never closed
+\end{document}
+"""
+
+    def _sig(self, res):
+        nodes, nbi, ltn, proofs, envs = res
+        return ([(n.env, n.label, n.index, n.pos, n.pos_end) for n in nodes],
+                [(p.index, p.target_label, p.pos, p.pos_end, p.target_node_idx) for p in proofs],
+                envs)
+
+    def test_fast_engine_details(self):
+        nodes, nbi, ltn, proofs, envs = parse_latex_structure(self.DOC, engine="fast")
+        labels = [n.label for n in nodes]
+        assert labels == ["def:group", "thm:a", "lem:inner", "cor:b", "claim:6", "lem:open"]
+        assert envs == {"definition", "theorem", "lemma", "corollary", "claim"}
+        assert [p.target_node_idx for p in proofs] == [1, 1]      # H1 after the outer theorem; D3 "Proof of thm:a"
+        # never closed: ends where its enclosing environment (document) ends
+        assert nodes[-1].snippet == "\\begin{lemma}\\label{lem:open} never closed\n"
+        assert self.DOC[nodes[-1].pos_end:].startswith("\\end{document}")
+        assert self.DOC[nodes[3].pos:nodes[3].pos_end] == nodes[3].snippet
+
+    def test_matches_pylatexenc(self):
+        pytest.importorskip("pylatexenc")
+        # Well-formed input: the two engines agree exactly.  (On the odd
+        # cases above they differ on purpose: pylatexenc keeps the spaces
+        # of "\begin{ corollary }" in the kind's name and lets an unclosed
+        # environment run to the end of the file.)
+        well_formed = "\n".join(l for l in self.DOC.splitlines()
+                                if "corollary }" not in l and "never closed" not in l) + "\n"
+        example = open(os.path.join(os.path.dirname(__file__), "example", "group_theory.tex"), encoding="utf-8").read()
+        for text in (well_formed, example):
+            assert self._sig(parse_latex_structure(text, engine="fast")) == self._sig(parse_latex_structure(text, engine="ast"))
 
 
 class TestDetectDocClass:

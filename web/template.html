@@ -70,6 +70,11 @@ header {
   padding-block: 18px 14px; border-bottom: 1px solid var(--line); margin-bottom: 16px;
 }
 header .brand { flex: 0 0 auto; }
+.steps { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13px; color: var(--muted); list-style: none; margin: 0; padding: 0; }
+.steps li { padding: 2px 8px; border-radius: 999px; }
+.steps li + li::before { content: "→"; margin-right: 8px; margin-left: -4px; color: var(--muted); }
+.steps li.done { color: var(--ok); }
+.steps li.current { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .status {
   display: inline-flex; align-items: center; gap: 8px; margin-right: 6px;
   padding: 4px 12px; border-radius: 999px; background: var(--surface-2);
@@ -123,6 +128,8 @@ select {
 .btn.ghost { border-color: transparent; background: transparent; color: var(--accent); padding-inline: 6px; }
 .btn.ghost:hover { background: var(--accent-soft); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary.stale { box-shadow: 0 0 0 3px var(--accent-soft); }
+.btn.primary.stale::after { content: " ↻"; }
 label.check { display: inline-flex; align-items: center; gap: 6px; user-select: none; }
 input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); margin: 0; }
 .hint { color: var(--muted); font-size: 13px; }
@@ -218,9 +225,15 @@ footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
 #env-table td.style input[type="color"] { margin-left: 3px; }
 #env-table input[type="color"] { width: 26px; height: 20px; padding: 0; border: 1px solid var(--line); background: none; vertical-align: middle; }
 #env-table td.num { color: var(--muted); }
-.add-edge { display: grid; grid-template-columns: 1fr 1fr auto auto auto; gap: 6px; align-items: end; margin-top: 10px; }
-.add-edge label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 2px; }
-.add-edge select, .add-edge input { font-size: 13px; }
+.add-edge { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto auto; gap: 6px; align-items: end; margin-top: 10px; min-width: 0; }
+.add-edge label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 2px; min-width: 0; }
+.add-edge select, .add-edge input { font-size: 13px; min-width: 0; width: 100%; text-overflow: ellipsis; }
+.add-edge button { white-space: nowrap; align-self: end; }
+.rule-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 6px; font-size: 13px; color: var(--muted); }
+.rule-filter label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.rule-filter label.off .rule { opacity: .45; text-decoration: line-through; }
+.rule-filter input { position: absolute; opacity: 0; width: 0; height: 0; }
+.rule-filter .n { font-size: 11px; color: var(--muted); }
 .fnode.ghost circle { stroke-dasharray: 4 3; opacity: .75; }
 .fnode.ghost text { fill: var(--muted); }
 .chip.ghost { border-style: dashed; }
@@ -249,6 +262,9 @@ input[type="file"] { display: none; }
 
 <header>
   <div class="brand"><h1>Know<em>TeX</em><span class="web">Web</span></h1></div>
+  <ol class="steps" id="steps" aria-label="Steps">
+    <li data-step="1">Browse or paste</li><li data-step="2">Select chapters</li><li data-step="3">Scan</li><li data-step="4">Choose environments</li><li data-step="5">Build graph</li>
+  </ol>
 </header>
 
 <main class="workspace">
@@ -289,7 +305,7 @@ input[type="file"] { display: none; }
           </select>
           <span class="detected" id="detected"></span>
         </div>
-        <button class="btn primary" id="scan" type="button" disabled>Scan</button>
+        <button class="btn primary" id="scan" type="button" disabled title="Parse the selected chapters/sections and list the statement kinds (no graph yet)">Scan</button>
       </div>
     </section>
 
@@ -332,7 +348,7 @@ input[type="file"] { display: none; }
             <dt>H4</dt><dd>\index{} and \emph{} terms of non-definition statements matched in later statements (LaTeX only)</dd>
           </dl>
         </details>
-        <button class="btn primary" id="build" type="button" disabled>Build graph</button>
+        <button class="btn primary" id="build" type="button" disabled title="Infer the dependencies of the included kinds and draw the graph">Build graph</button>
       </div>
     </section>
   </div>
@@ -390,6 +406,7 @@ input[type="file"] { display: none; }
           <label>Location <select id="add-loc"><option value="proof">proof</option><option value="statement">statement</option><option value="inferred">inferred</option></select></label>
           <button class="btn small" type="submit">Add edge</button>
         </form>
+        <div class="rule-filter" id="rule-filter" hidden><span>Show rules:</span></div>
         <div class="table-wrap tall">
           <table id="edge-table">
             <thead><tr><th>Rule</th><th>From</th><th>To</th><th>Style</th><th></th></tr></thead>
@@ -574,7 +591,7 @@ const els = {
   scanSummary: $("scan-summary"), tred: $("opt-tred"), rankdir: $("opt-rankdir"),
   stage: $("stage"), frame: $("graph-frame"),
   edgeBody: $("edge-table").querySelector("tbody"), nodeBody: $("node-table").querySelector("tbody"),
-  edgeCount: $("edge-count"), nodeCount: $("node-count"), nodeCard: $("node-card"), error: $("error"),
+  edgeCount: $("edge-count"), nodeCount: $("node-count"), ruleFilter: $("rule-filter"), nodeCard: $("node-card"), error: $("error"),
   restore: $("restore"), dlSvg: $("dl-svg"), dlDot: $("dl-dot"), note: $("graph-note"),
   view: $("opt-view"), rankdirWrap: $("rankdir-wrap"), force: $("force"), legend: $("force-legend"),
   focusBar: $("focus-bar"), focusName: $("focus-name"), focusClear: $("focus-clear"),
@@ -586,8 +603,10 @@ const els = {
 const SHAPES = ["ellipse", "circle", "doublecircle", "box", "note", "diamond", "triangle", "pentagon", "hexagon", "octagon"];
 
 const state = { api: null, viz: null, scan: null, result: null, removed: [], added: [], svg: null,
+                hiddenRules: new Set(),   // rules unticked in the Edges tab (table only)
                 view: { x: 20, y: 20, k: 1 }, busy: false, mode: "infer",
-                src: null,          // loaded files: { text, fmt, name, info, project }
+                src: null,          // loaded files: { fmt, name, info, project, unordered }
+                doc: null,          // { id, fmt } of the document stored on the Python side
                 structure: null,    // chapter/section ranges of a LaTeX source
                 local: window.KNOWTEX_LOCAL || null,
                 force: null, focus: { label: null, dir: "both", depth: 1 } };
@@ -595,6 +614,13 @@ const state = { api: null, viz: null, scan: null, result: null, removed: [], add
 function setStatus(kind, text) {
   els.status.dataset.state = kind;
   els.statusText.textContent = text;
+}
+// header step strip: steps before *n* are done, *n* is the current one
+function setStep(n) {
+  document.querySelectorAll("#steps li").forEach(li => {
+    const k = Number(li.dataset.step);
+    li.classList.toggle("done", k < n); li.classList.toggle("current", k === n);
+  });
 }
 function showError(msg) {
   els.error.textContent = msg;
@@ -638,8 +664,8 @@ async function boot() {
     state.api = api; state.viz = viz;
     if (state.local && state.local.capabilities && state.local.capabilities.tex) els.dlTex.hidden = false;
     setStatus("ready", state.local ? "Ready (local)" : "Ready");
-    els.scan.disabled = false;
-    if (els.source.value.trim()) { await runScan(); await runBuild(); }
+    els.scan.disabled = false; setStep(1);
+    if (els.source.value.trim()) await runAllSteps();
   } catch (e) {
     console.error(e);
     setStatus("error", "The runtime could not be loaded");
@@ -648,11 +674,30 @@ async function boot() {
 }
 
 // ---------------------------------------------------------------- source: pasted text or loaded files
-function sourceText() { return state.src ? state.src.text : els.source.value; }
 function currentFormat() { return state.src ? state.src.fmt : els.format.value; }
+// The document lives on the Python side: the page keeps only its id.
+async function loadDocument(text, fmt) {
+  const res = await state.api.call("load", text, fmt);
+  if (!res.ok) throw new Error(res.error);
+  state.doc = { id: res.id, fmt: res.format };
+  return state.doc;
+}
+async function ensureDocument() {
+  if (state.doc) return state.doc;
+  const text = els.source.value;
+  if (!text.trim()) return null;
+  return loadDocument(text, els.format.value);
+}
+function markStale(btn, stale) { btn.classList.toggle("stale", !!stale && !btn.disabled); }
+function resetScan() {
+  state.scan = null; state.result = null; state.removed = []; state.added = []; state.focus.label = null;
+  els.envBody.innerHTML = '<tr><td colspan="5" class="empty">Scan a text to list its statement kinds.</td></tr>';
+  els.scanSummary.textContent = ""; els.nodeBody.innerHTML = ""; els.nodeCount.textContent = "0";
+  els.build.disabled = true; markStale(els.build, false); markStale(els.scan, false);
+}
 
 function showLoaded(src) {
-  state.src = src;
+  state.src = src; state.doc = { id: src.id, fmt: src.fmt };
   els.source.hidden = true; els.loaded.hidden = false;
   els.loadedName.textContent = src.name; els.loadedInfo.textContent = src.info || "";
   els.loadedNotes.hidden = !(src.notes && src.notes.length);
@@ -662,7 +707,7 @@ function showLoaded(src) {
   els.detected.textContent = "";
 }
 function clearLoaded() {
-  state.src = null; state.structure = null;
+  state.src = null; state.doc = null; state.structure = null; resetScan(); setStep(1);
   els.source.hidden = false; els.loaded.hidden = true; els.mainWrap.hidden = true;
   els.format.disabled = false; els.format.value = "auto"; els.loaded.dataset.unordered = "";
   els.ranges.hidden = true; els.rangesList.innerHTML = "";
@@ -680,7 +725,9 @@ async function openFiles(files) {
     const notes = [];
     if (fmt === "latex" && /\\(input|include|subfile|import)\s*\{/.test(text))
       notes.push("This file \\input{}s other files. Use “Browse folder…” to load the whole project.");
-    showLoaded({ text, fmt, name: f.name, info: `${(f.size / 1024).toFixed(0)} KB`, notes });
+    setStatus("busy", "Storing the file…");
+    const doc = await loadDocument(text, fmt);
+    showLoaded({ id: doc.id, fmt: doc.fmt, name: f.name, info: `${(f.size / 1024).toFixed(0)} KB`, notes });
   } else if (files.every(f => isTex(f.name))) {
     // several .tex files: a flat project (all in one folder)
     const dict = {};
@@ -691,10 +738,12 @@ async function openFiles(files) {
     if (!files.every(f => isMd(f.name))) { showError("Select one .tex file, several .tex files of one project, one .md file, or several .md files."); return; }
     const parts = [];
     for (const f of files) parts.push((await f.text()).replace(/^\n+|\n+$/g, ""));
-    showLoaded({ text: parts.join("\n\n") + "\n", fmt: "markdown", unordered: true,
+    setStatus("busy", "Storing the files…");
+    const doc = await loadDocument(parts.join("\n\n") + "\n", "markdown");
+    showLoaded({ id: doc.id, fmt: "markdown", unordered: true,
                  name: `${files.length} Markdown files`, info: `${(files.reduce((a, f) => a + f.size, 0) / 1024).toFixed(0)} KB` });
   }
-  await loadStructureAndScan();
+  await loadStructure();
 }
 
 const isProjectFile = (name) => /\.(tex|ltx|sty|cls|txt)$/i.test(name) || !/\./.test(name.split("/").pop());
@@ -703,7 +752,7 @@ async function openProject(files) {
   const texFiles = [...files].filter(f => isProjectFile(f.webkitRelativePath || f.name));
   if (!texFiles.length) { showError("No .tex files in that folder."); return; }
   showError("");
-  setStatus("busy", `Reading ${texFiles.length} files…`);
+  setStatus("busy", `Reading ${texFiles.length} files (nothing is parsed yet)…`);
   const rootName = (texFiles[0].webkitRelativePath || texFiles[0].name).split("/")[0];
   const dict = {};
   for (const f of texFiles) {
@@ -725,27 +774,37 @@ async function expandProject(main) {
   setStatus("busy", "Expanding the project…");
   const res = await state.api.call("expand", JSON.stringify(dict), main);
   if (!res.ok) { setStatus("error", "Expansion failed"); showError(res.error); return; }
-  showLoaded({ text: res.text, fmt: "latex", name: `${rootName}/${main}`, project: main,
+  showLoaded({ id: res.id, fmt: "latex", name: `${rootName}/${main}`, project: main,
                info: `${Object.keys(dict).length} files · ${(res.chars / 1024).toFixed(0)} KB expanded`, notes: res.notes });
   els.mainWrap.hidden = els.mainSelect.options.length < 2;
-  await loadStructureAndScan();
+  await loadStructure();
 }
 
-// chapters / sections of a LaTeX source: a checklist of what to scan
-async function loadStructureAndScan() {
+// Step 2 — chapters / sections of a LaTeX source: a checklist of what to scan.
+// Only a regex pass over the stored text; nothing is parsed until Scan.
+async function loadStructure() {
   state.structure = null; els.ranges.hidden = true; els.rangesList.innerHTML = "";
-  if (currentFormat() === "latex" || (currentFormat() === "auto" && /\\begin\{/.test(sourceText()))) {
-    const st = await state.api.call("structure", sourceText(), currentFormat());
-    if (st.ok && st.ranges.length) {
-      state.structure = st;
-      els.rangesTitle.textContent = `${st.range_type === "chapter" ? "Chapters" : "Sections"} to scan (${st.ranges.length})`;
-      els.rangesList.innerHTML = st.ranges.map(r => `<label><input type="checkbox" class="rng" value="${r.index}" checked> ${escapeHtml(r.title || "(untitled)")}</label>`).join("");
-      els.ranges.hidden = false;
-    }
+  resetScan();
+  const doc = await ensureDocument();
+  if (!doc) { setStatus("ready", "Paste a document or open a file first"); return false; }
+  const st = await state.api.call("structure", doc.id, doc.fmt);
+  if (!st.ok) { setStatus("error", "Could not read the document"); showError(st.error); return false; }
+  if (st.ranges.length) {
+    state.structure = st;
+    els.rangesTitle.textContent = `${st.range_type === "chapter" ? "Chapters" : "Sections"} to scan (${st.ranges.length})`;
+    els.rangesList.innerHTML = st.ranges.map(r => `<label><input type="checkbox" class="rng" value="${r.index}" checked> ${escapeHtml(r.title || "(untitled)")}</label>`).join("");
+    els.ranges.hidden = false;
   }
+  els.scan.disabled = false; setStep(st.ranges.length ? 2 : 3);
+  const what = st.ranges.length ? `Loaded: ${st.ranges.length} ${st.range_type}s. Untick the ones you do not need, then press Scan.` : "Loaded. Press Scan to list the statements.";
+  setStatus("ready", what);
+  return true;
+}
+// The sample buttons run every step at once (the samples are a few lines long).
+async function runAllSteps() {
+  if (!(await loadStructure())) return;
   await runScan();
-  if (state.scan && state.scan.node_count > 0 && state.scan.node_count <= 800) await runBuild();
-  else if (state.scan && state.scan.node_count > 800) setStatus("ready", `${state.scan.node_count} statements: untick the kinds you do not need, then Build graph`);
+  if (state.scan && state.scan.node_count) await runBuild();
 }
 function selectedRanges() {
   if (!state.structure) return null;
@@ -753,26 +812,34 @@ function selectedRanges() {
 }
 
 // ---------------------------------------------------------------- scan
+// Step 3 — parse the selected ranges and list what was found.  No edges yet.
 async function runScan() {
   if (!state.api) return;
   showError("");
-  const text = sourceText();
-  if (!text.trim()) { setStatus("ready", "Paste a document or open a file first"); els.source.focus(); return; }
-  setStatus("busy", "Scanning…");
-  const cfg = { ranges: selectedRanges() };
+  const doc = await ensureDocument();
+  if (!doc) { setStatus("ready", "Paste a document or open a file first"); els.source.focus(); return; }
+  const sel = selectedRanges();
+  if (sel && sel.length === 0) { setStatus("ready", "Tick at least one chapter or section to scan"); return; }
+  setStatus("busy", "Scanning (parsing the selected text)…");
+  const cfg = { ranges: sel };
   let res;
-  try { res = await state.api.call("scan", text, currentFormat(), JSON.stringify(cfg)); }
+  try { res = await state.api.call("scan", doc.id, doc.fmt, JSON.stringify(cfg)); }
   catch (e) { setStatus("error", "Scan failed"); showError(String(e)); return; }
   if (!res.ok) { setStatus("error", "Scan failed"); showError(res.error + "\n" + res.trace); return; }
   state.scan = res; state.removed = []; state.added = []; state.result = null; state.focus.label = null;
+  markStale(els.scan, false);
   els.detected.textContent = (!state.src && currentFormat() === "auto") ? `detected: ${res.detected}` : "";
   renderEnvTable(res);
   renderScope(res);
+  renderNodes(res);
   els.scanSummary.textContent = `${res.node_count} statements, ${res.proof_count} proofs`;
   els.build.disabled = res.node_count === 0;
-  setStatus("ready", "Ready");
+  markStale(els.build, false); setStep(res.node_count ? 4 : 3);
   if (res.node_count === 0) {
+    setStatus("ready", "No statements found");
     showError("No statements found. Use LaTeX theorem environments or Markdown headings such as “## Definition 1.2”.");
+  } else {
+    setStatus("ready", `${res.node_count} statements, ${res.proof_count} proofs. Tick the kinds to include, then press Build graph.`);
   }
 }
 
@@ -830,17 +897,17 @@ function buildConfig() {
 }
 
 // ---------------------------------------------------------------- build
+// Step 5 — infer the edges of the included kinds and draw the graph.
 async function runBuild() {
-  if (!state.api || !state.scan) return;
+  if (!state.api || !state.scan || !state.doc) return;
   showError("");
-  setStatus("busy", "Inferring dependencies…");
-  const text = sourceText();
+  setStatus("busy", state.result ? "Updating the graph…" : "Inferring dependencies…");
   let res;
   try {
-    res = await state.api.call("build", text, currentFormat(), JSON.stringify(buildConfig()));
+    res = await state.api.call("build", state.doc.id, state.doc.fmt, JSON.stringify(buildConfig()));
   } catch (e) { setStatus("error", "Build failed"); showError(String(e)); return; }
   if (!res.ok) { setStatus("error", "Build failed"); showError(res.error + "\n" + res.trace); return; }
-  state.result = res;
+  state.result = res; markStale(els.build, false); setStep(6);
   renderEdges(res); renderNodes(res);
   try {
     renderGraph();
@@ -854,14 +921,20 @@ async function runBuild() {
 }
 
 function renderEdges(res) {
-  els.edgeCount.textContent = res.edges.length;
   els.edgeBody.innerHTML = "";
+  renderRuleFilter(res);
+  const shown = res.edges.filter(e => !state.hiddenRules.has(e.rule));
+  els.edgeCount.textContent = shown.length === res.edges.length ? res.edges.length : `${shown.length}/${res.edges.length}`;
   if (!res.edges.length) {
     els.edgeBody.innerHTML = '<tr><td colspan="5" class="empty">No dependencies were inferred.</td></tr>';
     return;
   }
+  if (!shown.length) {
+    els.edgeBody.innerHTML = '<tr><td colspan="5" class="empty">Every rule is hidden by the filter above.</td></tr>';
+    return;
+  }
   const styleWord = { proof: "solid (proof)", statement: "dashed (statement)", inferred: "dotted (heuristic)" };
-  for (const e of res.edges) {
+  for (const e of shown) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><span class="rule ${e.rule[0]}">${escapeHtml(e.rule)}</span></td>
@@ -872,6 +945,27 @@ function renderEdges(res) {
     els.edgeBody.appendChild(tr);
   }
 }
+// one chip per rule present in the result; unticked rules are hidden from the table (the graph is unchanged)
+const RULE_ORDER = ["manual", "D1", "D2", "D3", "D4", "H2", "H3", "H4"];
+function renderRuleFilter(res) {
+  const counts = {};
+  for (const e of res.edges) counts[e.rule] = (counts[e.rule] || 0) + 1;
+  const rules = Object.keys(counts).sort((a, b) => RULE_ORDER.indexOf(a) - RULE_ORDER.indexOf(b));
+  els.ruleFilter.hidden = rules.length < 2;
+  els.ruleFilter.querySelectorAll("label").forEach(l => l.remove());
+  for (const r of rules) {
+    const off = state.hiddenRules.has(r);
+    const lab = document.createElement("label");
+    lab.className = off ? "off" : "";
+    lab.innerHTML = `<input type="checkbox" data-rule="${escapeAttr(r)}" ${off ? "" : "checked"}><span class="rule ${r[0]}">${escapeHtml(r)}</span><span class="n">${counts[r]}</span>`;
+    els.ruleFilter.appendChild(lab);
+  }
+}
+els.ruleFilter.addEventListener("change", (ev) => {
+  const r = ev.target.dataset.rule; if (!r) return;
+  if (ev.target.checked) state.hiddenRules.delete(r); else state.hiddenRules.add(r);
+  if (state.result) renderEdges(state.result);
+});
 function renderAddEdgeForm(res) {
   // only statements of the included kinds can take part in an edge
   const include = new Set([...els.envBody.querySelectorAll("input.inc:checked")].map(i => i.dataset.env));
@@ -1192,7 +1286,7 @@ document.querySelectorAll("#focus-depth button").forEach(b => b.addEventListener
 els.focusClear.addEventListener("click", () => clearFocus());
 $("opt-legend").addEventListener("change", () => { if (els.legend) els.legend.hidden = !els.legend_on() || !!state.focus.label; });
 
-function showNode(label) {
+async function showNode(label) {
   const n = state.result && state.result.nodes.find(x => x.label === label);
   if (!n) return;
   const inbound = state.result.edges.filter(e => e.target === label).map(e => e.source);
@@ -1202,15 +1296,21 @@ function showNode(label) {
     <div class="name">${escapeHtml(n.name)}</div>
     ${n.terms.length ? `<div>Defines: ${n.terms.map(t => `<span class="chip">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
     <div class="hint">Depends on ${inbound.length ? inbound.map(x => `<code>${escapeHtml(x)}</code>`).join(", ") : "nothing"} · used by ${outbound.length ? outbound.map(x => `<code>${escapeHtml(x)}</code>`).join(", ") : "nothing"}</div>
-    <pre>${escapeHtml(n.snippet)}</pre>`;
+    <pre class="snippet">…</pre>`;
   els.nodeCard.className = "node-card"; els.nodeCard.hidden = false;
+  // the statement's source is fetched only when a node is clicked
+  try {
+    const res = await state.api.call("snippet", state.doc.id, state.doc.fmt, label, JSON.stringify({ ranges: selectedRanges() }));
+    const pre = els.nodeCard.querySelector("pre.snippet");
+    if (pre && res.ok && state.result && state.result.nodes.find(x => x.label === label)) pre.textContent = res.snippet + (res.truncated ? "\n…" : "");
+  } catch (e) { console.warn(e); }
 }
 
 // ---------------------------------------------------------------- wiring
 document.querySelectorAll("[data-sample]").forEach(b => b.addEventListener("click", async () => {
   clearLoaded();
   els.source.value = SAMPLES[b.dataset.sample]; els.format.value = "auto";
-  await loadStructureAndScan();
+  await runAllSteps();
 }));
 $("open-files").addEventListener("click", () => $("file-input").click());
 $("open-project").addEventListener("click", () => $("folder-input").click());
@@ -1218,13 +1318,14 @@ $("file-input").addEventListener("change", async (ev) => { showError(""); try { 
 $("folder-input").addEventListener("change", async (ev) => { showError(""); try { await openProject(ev.target.files); } catch (e) { setStatus("error", "Could not read the folder"); showError(String(e)); } ev.target.value = ""; });
 $("loaded-clear").addEventListener("click", () => { clearLoaded(); els.source.value = ""; });
 els.mainSelect.addEventListener("change", () => expandProject(els.mainSelect.value));
-els.rangesList.addEventListener("change", async () => { await runScan(); if (state.scan && state.scan.node_count <= 800) await runBuild(); });
+// a changed selection takes effect at the next Scan
+els.rangesList.addEventListener("change", () => { markStale(els.scan, true); if (state.scan) setStatus("ready", "Selection changed: press Scan to read the ticked parts"); });
 $("ranges-all").addEventListener("click", () => { els.rangesList.querySelectorAll("input.rng").forEach(i => i.checked = true); els.rangesList.dispatchEvent(new Event("change")); });
 $("ranges-none").addEventListener("click", () => { els.rangesList.querySelectorAll("input.rng").forEach(i => i.checked = false); els.rangesList.dispatchEvent(new Event("change")); });
 document.querySelectorAll("#mode-seg button").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll("#mode-seg button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
   state.mode = b.dataset.mode; state.added = []; state.removed = []; applyMode();
-  if (state.scan) runBuild();
+  markStale(els.build, state.result);
 }));
 els.scope.addEventListener("change", () => { if (state.scan) runBuild(); });
 $("add-edge").addEventListener("submit", (ev) => {
@@ -1237,13 +1338,21 @@ $("add-edge").addEventListener("submit", (ev) => {
   state.added.push([s, t, els.addType.value, els.addLoc.value]);
   runBuild();
 });
-els.scan.addEventListener("click", async () => { if (!state.src) state.structure = null; await loadStructureAndScan(); });
+els.scan.addEventListener("click", async () => {
+  showError("");
+  try {
+    // pasted text: store it and list its chapters first, then scan
+    if (!state.src && !state.structure) { if (!(await loadStructure())) return; }
+    await runScan();
+  } catch (e) { setStatus("error", "Scan failed"); showError(String(e)); }
+});
 els.build.addEventListener("click", runBuild);
-els.format.addEventListener("change", () => { if (!state.src) loadStructureAndScan(); });
-els.source.addEventListener("input", () => { els.build.disabled = true; els.detected.textContent = "edited — scan again"; });
+els.format.addEventListener("change", () => { if (!state.src) { state.doc = null; state.structure = null; els.ranges.hidden = true; resetScan(); els.scan.disabled = false; } });
+els.source.addEventListener("input", () => { state.doc = null; state.structure = null; els.ranges.hidden = true; resetScan(); els.scan.disabled = !els.source.value.trim(); els.detected.textContent = "edited — scan again"; });
 [els.tred, els.rankdir].forEach(el => el.addEventListener("change", () => { if (state.result) runBuild(); }));
 $("opt-legend").addEventListener("change", () => { if (state.result && currentView() === "layered") runBuild(); });
-els.envBody.addEventListener("change", () => { if (state.scan) runBuild(); });
+// what goes into the graph changes at the next Build; the view options below are live
+els.envBody.addEventListener("change", () => { markStale(els.build, state.result); });
 els.edgeBody.addEventListener("click", (ev) => {
   const b = ev.target.closest("button.x"); if (!b) return;
   if (b.dataset.added) state.added = state.added.filter(([s, t]) => !(s === b.dataset.s && t === b.dataset.t));

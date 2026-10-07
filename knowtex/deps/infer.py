@@ -17,7 +17,7 @@ from knowtex.core.constants import (
 )
 from knowtex.core.data import DependencyEdge
 from knowtex.deps.term_extraction import (
-    node_words, redefinition_term_strings, _stem, _stem_words,
+    WordCache, redefinition_term_strings, _stem, _stem_words,
     _contains_phrase, extract_defined_terms,
     build_defined_term_registry,
 )
@@ -58,14 +58,48 @@ def proof_refs(proof):
     return out
 
 
+def _postings(stems_by_pos):
+    """stem -> sorted list of the node positions whose words contain it."""
+    posting = defaultdict(list)
+    for pos, stems in enumerate(stems_by_pos):
+        for st in set(stems):
+            posting[st].append(pos)
+    return posting
+
+
+def _candidates(posting, term_stems):
+    """Positions of the nodes containing every stem of the term, in
+    document order (an inverted-index lookup instead of a scan of every
+    statement for every term)."""
+    lists = [posting.get(st) for st in term_stems]
+    if any(not lst for lst in lists):
+        return []
+    if len(lists) == 1:
+        return lists[0]
+    lists.sort(key=len)
+    cands = set(lists[0])
+    for lst in lists[1:]:
+        cands &= set(lst)
+        if not cands:
+            break
+    return sorted(cands)
+
+
 def run_inference(nodes, node_by_index, label_to_node, proofs,
-                  index_registry=None, definition_envs=None, ordered=True):
+                  index_registry=None, definition_envs=None, ordered=True,
+                  word_cache=None):
     """Apply D1-D4 and H2-H3 rules, plus H4 if index_registry is provided.
 
     ``ordered=False`` is for several Markdown files loaded together (a
     glossary, one entry per file): the files have no reading order, so
     D4's "the definition comes before the statement that uses the term"
     check is switched off.  Nothing else changes.
+
+    ``word_cache`` (a ``WordCache``) holds the words and stems of the
+    statements; passing the same one to every call for a parse avoids
+    re-reading the statements.  The rules match terms through an inverted
+    index (stem -> statements), which gives the same edges, in the same
+    order, as testing every term against every statement.
     """
     edges = []
     seen = set()
@@ -80,6 +114,17 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
             )
 
     all_labels = set(label_to_node.keys())
+    wc = word_cache if word_cache is not None else WordCache()
+    words_by_pos = stems_by_pos = posting = None
+
+    def term_index():
+        """Words, stems and the inverted index of all nodes (built once,
+        on first use by D4 or H4)."""
+        nonlocal words_by_pos, stems_by_pos, posting
+        if posting is None:
+            words_by_pos = [wc.words(ni) for ni in nodes]
+            stems_by_pos = [wc.stems(ni) for ni in nodes]
+            posting = _postings(stems_by_pos)
 
     # --- D1: Process each proof ---
     for p in proofs:
@@ -107,61 +152,53 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
     # --- D4: Defined-term matching ---
     if definition_envs:
         term_registry = build_defined_term_registry(nodes, definition_envs)
-
-        # For single-word terms a set lookup suffices; for multi-word
-        # terms we need ordered stem sequences for phrase matching.
-        node_stem_set_cache = {}
-        node_stem_seq_cache = {}
-        for ni in nodes:
-            words = node_words(ni)
-            stems = _stem_words(words)
-            node_stem_set_cache[ni.label] = set(stems)
-            node_stem_seq_cache[ni.label] = stems
+        term_index()
 
         # Build set of full stem tuples each node defines via emph.
         # We store tuples of stems (not individual words) so that
         # "\demph{contravariant functor}" does NOT block the single-word
         # term "functor" coming from another definition.
-        node_defined_terms = {}
+        node_defined_terms = []
         for ni in nodes:
             defined = set()
             for raw in redefinition_term_strings(ni):
                 words = raw.lower().split()
                 if words:
                     defined.add(tuple(_stem(w) for w in words))
-            node_defined_terms[ni.label] = defined
+            node_defined_terms.append(defined)
 
-        for ni in nodes:
-            target_stem_set = node_stem_set_cache[ni.label]
-            target_stem_seq = node_stem_seq_cache[ni.label]
-            target_defined = node_defined_terms.get(ni.label, set())
-            for src_label, src_index, _raw_term, term_stems in term_registry:
+        # (target position, registry position): the order in which a scan
+        # of every statement against every term would find the matches
+        matches = []
+        for r, (src_label, src_index, _raw_term, term_stems) in enumerate(term_registry):
+            key = tuple(term_stems)
+            for pos in _candidates(posting, term_stems):
+                ni = nodes[pos]
                 if src_label == ni.label:
                     continue
                 if ordered and src_index >= ni.index:
                     continue
-                if tuple(term_stems) in target_defined:
+                if key in node_defined_terms[pos]:
                     continue
-                # Single-word: set membership; multi-word: contiguous phrase match
-                if len(term_stems) == 1:
-                    matched = term_stems[0] in target_stem_set
-                else:
-                    matched = _contains_phrase(target_stem_seq, term_stems)
-                if matched:
-                    add_edge(src_label, ni.label,
-                             "deterministic", "statement", "D4")
+                # Single-word: the index lookup is the match; multi-word:
+                # the stems must also be contiguous
+                if len(term_stems) == 1 or _contains_phrase(stems_by_pos[pos], term_stems):
+                    matches.append((pos, r))
+        matches.sort()
+        for pos, r in matches:
+            add_edge(term_registry[r][0], nodes[pos].label,
+                     "deterministic", "statement", "D4")
 
-    # --- H2: Corollary without \\ref -> nearest preceding theorem ---
+    # --- H2: Corollary without \ref -> nearest preceding theorem ---
+    # targets that already have an edge from an author's reference (an
+    # H2 edge points at its own corollary, so this set needs no update)
+    has_dep = {e.target for e in edges if e.rule != "D4"}
     for ni in nodes:
         if not COROLLARY_RX.fullmatch(ni.env):
             continue
         if node_refs(ni):
             continue
-        already_has_dep = any(
-            e.target == ni.label and e.rule != "D4"
-            for e in edges
-        )
-        if already_has_dep:
+        if ni.label in has_dep:
             continue
 
         best_idx = None
@@ -190,36 +227,20 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
 
         if next_thm_node is None:
             continue
-
-        already_linked = any(
-            e.source == ni.label and e.target == next_thm_node.label
-            for e in edges
-        )
-        if already_linked:
-            continue
-
+        # add_edge skips an edge that is already there
         add_edge(ni.label, next_thm_node.label,
                  "heuristic", "inferred", "H3")
 
     # --- Index-based rule (H4) ---
     if index_registry is not None:
         t2fn = index_registry["term_to_first_node"]
+        term_index()
 
         defn_labels = set()  # skip terms already handled by D4
         if definition_envs:
             for ni in nodes:
                 if ni.env in definition_envs:
                     defn_labels.add(ni.label)
-
-        # H4: Index term matching (longest-match-first)
-        # For single-word terms a set lookup suffices; for multi-word
-        # terms we use contiguous phrase matching to avoid false positives.
-        node_words_set_cache = {}
-        node_stem_seq_cache_h4 = {}
-        for ni in nodes:
-            words = node_words(ni)
-            node_words_set_cache[ni.label] = set(words)
-            node_stem_seq_cache_h4[ni.label] = _stem_words(words)
 
         sorted_terms = []
         for term, first_label in t2fn.items():
@@ -235,6 +256,18 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
                 sorted_terms.append((term, first_label))
         sorted_terms.sort(key=lambda x: len(x[0]), reverse=True)
 
+        # H4: Index term matching (longest-match-first).  A single-word
+        # term consumes one surface word of the statement it matches, so
+        # the same word cannot serve two terms; multi-word terms must be
+        # contiguous.
+        words_by_stem = []           # per node: stem -> distinct words, in order
+        for words, stems in zip(words_by_pos, stems_by_pos):
+            d = {}
+            for w, st in zip(words, stems):
+                lst = d.setdefault(st, [])
+                if w not in lst:
+                    lst.append(w)
+            words_by_stem.append(d)
         node_consumed_words = defaultdict(set)
 
         for term, first_label in sorted_terms:
@@ -244,29 +277,24 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
             term_words = term.lower().split()
             term_stems = _stem_words(term_words)
 
-            for ni in nodes:
+            for pos in _candidates(posting, term_stems):
+                ni = nodes[pos]
                 if ni.label == first_label:
                     continue
                 if ni.index <= first_intro_node.index:
                     continue
 
                 if len(term_stems) == 1:
-                    # Single-word: set membership with consumed tracking
-                    words = node_words_set_cache[ni.label]
                     consumed = node_consumed_words[ni.label]
-                    ts = term_stems[0]
-                    found = [w for w in words
-                             if _stem(w) == ts and w not in consumed]
+                    found = [w for w in words_by_stem[pos].get(term_stems[0], ())
+                             if w not in consumed]
                     if found:
                         add_edge(first_label, ni.label,
                                  "heuristic", "inferred", "H4")
                         consumed.add(found[0])
-                else:
-                    # Multi-word: contiguous phrase match
-                    stem_seq = node_stem_seq_cache_h4[ni.label]
-                    if _contains_phrase(stem_seq, term_stems):
-                        add_edge(first_label, ni.label,
-                                 "heuristic", "inferred", "H4")
+                elif _contains_phrase(stems_by_pos[pos], term_stems):
+                    add_edge(first_label, ni.label,
+                             "heuristic", "inferred", "H4")
 
     return edges
 
@@ -290,14 +318,39 @@ def _plural_eq(word, term_word):
     return False
 
 
-def _surface_match(term_words, target_words):
+def _plural_forms(term_word):
+    """Every word *w* with ``_plural_eq(w, term_word)``."""
+    forms = {term_word, term_word + "s", term_word + "es"}
+    if term_word.endswith("s"):
+        forms.add(term_word[:-1])
+    if term_word.endswith("es"):
+        forms.add(term_word[:-2])
+    if term_word.endswith("y"):
+        forms.add(term_word[:-1] + "ies")
+    if term_word.endswith("ies"):
+        forms.add(term_word[:-3] + "y")
+    return forms
+
+
+def _surface_match(term_words, target_words, target_set=None):
     """Does the term occur in the target's words with the same surface
     form (plural endings aside), not just the same stems?"""
     n = len(term_words)
     if n == 0:
         return False
-    for i in range(len(target_words) - n + 1):
-        if all(_plural_eq(target_words[i + j], term_words[j]) for j in range(n)):
+    if target_set is None:
+        target_set = set(target_words)
+    # every word of the term must occur in some plural form at all
+    # before the positions are checked
+    for t in term_words:
+        if not (_plural_forms(t) & target_set):
+            return False
+    if n == 1:
+        return True
+    forms0 = _plural_forms(term_words[0])
+    last = len(target_words) - n
+    for i in [i for i, w in enumerate(target_words) if w in forms0]:
+        if i <= last and all(_plural_eq(target_words[i + j], term_words[j]) for j in range(1, n)):
             return True
     return False
 
@@ -305,7 +358,8 @@ def _surface_match(term_words, target_words):
 EXPLICIT_RULES = frozenset({"D1", "D2", "D3", "manual"})
 
 
-def resolve_cycles(edges, nodes=None, breakable=("D4",), explicit=EXPLICIT_RULES):
+def resolve_cycles(edges, nodes=None, breakable=("D4",), explicit=EXPLICIT_RULES,
+                   word_cache=None):
     """Drop the weakest term-match edges until every remaining cycle is
     made of explicit edges only.  Returns ``(kept, dropped)``.
 
@@ -375,20 +429,22 @@ def resolve_cycles(edges, nodes=None, breakable=("D4",), explicit=EXPLICIT_RULES
     surface = {}
     if nodes is not None:
         by_label = {n.label: n for n in nodes}
-        words_cache = {}
+        wc = word_cache if word_cache is not None else WordCache()
+        sets_cache = {}
         terms_cache = {}
         for e in survivors:
             src, tgt = by_label.get(e.source), by_label.get(e.target)
             if src is None or tgt is None:
                 surface[e.key()] = False
                 continue
-            if e.target not in words_cache:
-                words_cache[e.target] = node_words(tgt)
+            tw = wc.words(tgt)
+            if e.target not in sets_cache:
+                sets_cache[e.target] = set(tw)
             if e.source not in terms_cache:
                 terms_cache[e.source] = [raw.lower().split()
                                          for raw, _ in extract_defined_terms(src)]
-            tw = words_cache[e.target]
-            surface[e.key()] = any(_surface_match(t, tw) for t in terms_cache[e.source])
+            ts = sets_cache[e.target]
+            surface[e.key()] = any(_surface_match(t, tw, ts) for t in terms_cache[e.source])
 
     def score(e):
         return (surface.get(e.key(), False), -hub[e.source], e.key())

@@ -511,9 +511,58 @@ class TestWebApiFull:
         import json
         from knowtex import webapi
         r = self._j(webapi.expand(json.dumps({"main.tex": "A\\input{ch/a}", "ch/a.tex": "B\\input{ch/c}", "ch/c.tex": "C"}), "main.tex"))
-        assert r["ok"] and r["text"] == "ABC" and r["notes"] == []
+        assert r["ok"] and r["chars"] == 3 and r["notes"] == [] and r["id"].startswith("doc:")
+        assert "text" not in r                                # the page works with the id
+        assert webapi._docs[r["id"]].text == "ABC"
         r = self._j(webapi.expand(json.dumps({"main.tex": "A\\input{missing}"}), "main.tex"))
         assert r["ok"] and any("missing file" in n for n in r["notes"])
+
+    def test_load_then_steps_by_id(self):
+        """The page's flow: load stores the text, structure lists the
+        chapters, scan parses, build infers; snippets come on demand."""
+        import json
+        from knowtex import webapi
+        webapi._docs.clear()                                  # other tests stored BOOK already
+        r = self._j(webapi.load(BOOK, "latex"))
+        assert r["ok"] and r["chars"] == len(BOOK)
+        doc = r["id"]
+        D = webapi._docs[doc]
+        st = self._j(webapi.structure(doc, "latex"))
+        assert [x["title"] for x in st["ranges"]] == ["One", "Two"]
+        assert D.parses == {}                                 # structure does not parse
+        sc = self._j(webapi.scan(doc, "latex", json.dumps({"ranges": [0]})))
+        assert sc["ok"] and {n["label"] for n in sc["nodes"]} == {"d1", "t1"}
+        assert all("snippet" not in n for n in sc["nodes"])
+        assert list(D.parses) == [(0,)] and D.parses[(0,)].edge_cache == {}   # scan infers nothing
+        b = self._j(webapi.build(doc, "latex", json.dumps({"ranges": [0]})))
+        assert b["ok"] and [(e["source"], e["target"]) for e in b["edges"]] == [("d1", "t1")]
+        assert len(D.parses) == 1                             # build reused the scan's parse
+        sn = self._j(webapi.snippet(doc, "latex", "t1", json.dumps({"ranges": [0]})))
+        assert sn["ok"] and sn["snippet"].startswith("\\begin{theorem}")
+        assert not self._j(webapi.snippet(doc, "latex", "nope", json.dumps({"ranges": [0]})))["ok"]
+        bad = self._j(webapi.scan("doc:0000000000000000", "latex"))
+        assert not bad["ok"] and "load it again" in bad["error"]
+
+    def test_build_reuses_inferred_edges(self):
+        """Display options and edge edits do not rerun the rules."""
+        import json
+        from knowtex import webapi
+        from knowtex.deps import infer
+        webapi._docs.clear()
+        doc = self._j(webapi.load(BOOK, "latex"))["id"]
+        calls = []
+        orig = infer.run_inference
+        webapi.run_inference = lambda *a, **k: (calls.append(1), orig(*a, **k))[1]
+        try:
+            webapi.build(doc, "latex", "{}")
+            webapi.build(doc, "latex", json.dumps({"legend": False, "tred": False}))
+            webapi.build(doc, "latex", json.dumps({"removed": [["d1", "t1"]]}))
+            webapi.build(doc, "latex", json.dumps({"micro_section": "Two", "rankdir": "LR"}))
+            assert len(calls) == 1
+            webapi.build(doc, "latex", json.dumps({"include": ["theorem", "lemma"]}))
+            assert len(calls) == 2                            # a different graph
+        finally:
+            webapi.run_inference = orig
 
 
 class TestLocalServer:

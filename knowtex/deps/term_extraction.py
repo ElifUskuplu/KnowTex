@@ -23,19 +23,60 @@ from knowtex.core.utils import normalize_index_term
 try:
     import Stemmer as _PyStemmer
     _stemmer = _PyStemmer.Stemmer("english")
-
-    def _stem(word):
-        return _stemmer.stemWord(word.lower())
 except ImportError:  # pragma: no cover - depends on the environment
     import snowballstemmer as _snowball
     _stemmer = _snowball.stemmer("english")
 
-    def _stem(word):
-        return _stemmer.stemWord(word.lower())
+# A document's vocabulary is small next to its word count, so every word
+# is stemmed once and looked up afterwards.
+_stem_cache = {}
+
+
+def _stem(word):
+    try:
+        return _stem_cache[word]
+    except KeyError:
+        s = _stem_cache[word] = _stemmer.stemWord(word.lower())
+        return s
 
 
 def _stem_words(text_words):
-    return [_stem(w) for w in text_words]
+    cache = _stem_cache
+    out = []
+    for w in text_words:
+        try:
+            out.append(cache[w])
+        except KeyError:
+            s = cache[w] = _stemmer.stemWord(w.lower())
+            out.append(s)
+    return out
+
+
+class WordCache:
+    """Words and stems of nodes, computed once per node.
+
+    One instance lives with a parse (``webapi``) so that the D4 and H4
+    rules, the cycle resolution and every later build reuse the same
+    lists instead of re-reading the LaTeX of every statement.
+    """
+
+    def __init__(self):
+        self._words = {}
+        self._stems = {}
+
+    def words(self, node):
+        try:
+            return self._words[node.label]
+        except KeyError:
+            w = self._words[node.label] = node_words(node)
+            return w
+
+    def stems(self, node):
+        try:
+            return self._stems[node.label]
+        except KeyError:
+            s = self._stems[node.label] = _stem_words(self.words(node))
+            return s
 
 
 def _contains_phrase(stem_sequence, phrase_stems):
@@ -44,11 +85,20 @@ def _contains_phrase(stem_sequence, phrase_stems):
     n = len(phrase_stems)
     if n == 0:
         return False
+    first = phrase_stems[0]
     if n == 1:
-        return phrase_stems[0] in stem_sequence
-    for i in range(len(stem_sequence) - n + 1):
-        if stem_sequence[i:i + n] == phrase_stems:
-            return True
+        return first in stem_sequence
+    phrase_stems = list(phrase_stems)
+    i = 0
+    last = len(stem_sequence) - n
+    try:
+        while i <= last:
+            i = stem_sequence.index(first, i)       # C-speed jump to the next start
+            if stem_sequence[i:i + n] == phrase_stems:
+                return True
+            i += 1
+    except ValueError:
+        pass
     return False
 
 

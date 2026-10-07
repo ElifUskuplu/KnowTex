@@ -14,7 +14,10 @@ Usage:
     --files     load these files through "Browse file…"
     --project   load this folder through "Browse folder…"
     --sweep     after the graph is built, exercise scope, mode, add/remove
-                edge, layered view and the download buttons
+                edge, the node card, layered view and the download buttons
+
+With --files or --project the test follows the page's steps: load (nothing
+parsed), Scan (statements listed, no graph), Build graph.
 Requires:  pip install playwright && playwright install chromium
 """
 
@@ -128,10 +131,18 @@ def main():
                 st = state()
                 check(st["loaded"] != "", f"project loaded: {st['loaded']}")
                 check(st["ranges"] > 0, f"{st['ranges']} chapter/section ranges listed")
-                if st["nodes"] == "0" and "Build graph" in st["text"]:
-                    # big document: keep the theorem-like kinds only, then build
+            if loading_files:
+                # loading only stores the document: no statements, no graph yet
+                st = state()
+                check(st["envs"] == 0 and st["gnodes"] == 0, "nothing parsed or drawn before Scan")
+                page.click("#scan"); wait_idle(args.timeout * 1000)
+                st = state()
+                check(int(st["nodes"]) > 0 and st["envs"] > 0, f"scan: {st['nodes']} statements, {st['envs']} kinds")
+                check(st["gnodes"] == 0, "no graph before Build")
+                if int(st["nodes"]) > 800:
+                    # big document: keep the theorem-like kinds only
                     page.evaluate("""() => { for (const i of document.querySelectorAll('#env-table input.inc')) i.checked = ['definition','theorem','lemma','corollary','proposition'].includes(i.dataset.env); }""")
-                    page.click("#build")
+                page.click("#build")
             wait_graph(args.timeout * 1000)
             wait_idle(args.timeout * 1000)
             st = state()
@@ -167,11 +178,17 @@ def main():
                 check(gone, f"remove the inferred edge {first[0]} -> {first[1]}")
                 page.click("#restore"); wait_idle(); page.wait_for_timeout(200)
                 check(int(state()["edges"]) == before, "restore removed edges")
-                # manual mode and back
-                page.click("#mode-seg button[data-mode=manual]"); wait_idle(); page.wait_for_timeout(200)
+                # manual mode and back (a mode change waits for Build)
+                page.click("#mode-seg button[data-mode=manual]"); page.wait_for_timeout(100)
+                check(page.evaluate("() => document.getElementById('build').classList.contains('stale')"), "mode change marks Build graph")
+                page.click("#build"); wait_idle(); page.wait_for_timeout(200)
                 check(state()["status"] == "ready", f"manual mode: {state()['edges']} edges")
-                page.click("#mode-seg button[data-mode=infer]"); wait_idle(); page.wait_for_timeout(200)
+                page.click("#mode-seg button[data-mode=infer]"); page.click("#build"); wait_idle(); page.wait_for_timeout(200)
                 check(int(state()["edges"]) == before, "back to infer mode")
+                # the node card fetches the statement's source on demand
+                page.evaluate("() => showNode(document.querySelector('#node-table tbody tr td.mono').textContent)")
+                page.wait_for_function("() => { const p = document.querySelector('#node-card pre.snippet'); return p && p.textContent.length > 3; }", timeout=10_000)
+                check(True, "node card shows the snippet")
                 # layered view
                 page.click(".tab[data-tab=graph]"); page.wait_for_timeout(100)
                 page.select_option("#opt-view", "layered"); wait_idle(); page.wait_for_timeout(500)

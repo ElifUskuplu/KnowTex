@@ -3,8 +3,9 @@
 
 The page runs KnowTeX's Python core in the browser with Pyodide.  This
 script gathers the Python sources the page needs -- the knowtex core
-(core only), a subset of pylatexenc and the English Snowball stemmer --
-and inlines them into web/template.html as a JSON bundle.
+and the English Snowball stemmer -- and inlines them into
+web/template.html as a JSON bundle.  (The LaTeX parser's default engine
+needs no pylatexenc; see knowtex/core/parser.py.)
 
 Usage:
     python web/build.py                 # writes docs/index.html
@@ -43,16 +44,6 @@ KNOWTEX_FILES = [
     "knowtex/webapi.py",
 ]
 
-PYLATEXENC_FILES = [
-    "__init__.py",
-    "version.py",
-    "_util.py",
-    "latexwalker/__init__.py",
-    "latexwalker/_defaultspecs.py",
-    "macrospec/__init__.py",
-    "macrospec/_argparsers.py",
-]
-
 SNOWBALL_FILES = ["among.py", "basestemmer.py", "english_stemmer.py"]
 SNOWBALL_INIT = '''"""English-only subset of snowballstemmer for the browser build."""
 from .english_stemmer import EnglishStemmer
@@ -80,9 +71,6 @@ def collect():
     bundle = {}
     for rel in KNOWTEX_FILES:
         bundle[rel] = (ROOT / rel).read_text(encoding="utf-8")
-    pl = _site_dir("pylatexenc")
-    for rel in PYLATEXENC_FILES:
-        bundle[f"pylatexenc/{rel}"] = (pl / rel).read_text(encoding="utf-8")
     sb = _site_dir("snowballstemmer")
     for rel in SNOWBALL_FILES:
         bundle[f"snowballstemmer/{rel}"] = (sb / rel).read_text(encoding="utf-8")

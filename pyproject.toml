@@ -10,7 +10,6 @@ readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
-    "pylatexenc>=2.10,<3",
     "PyStemmer>=2.0",
 ]
 
@@ -19,8 +18,11 @@ dependencies = [
 export = ["pygraphviz>=1.10", "dot2tex>=2.11"]
 # Rebuild docs/index.html (web/build.py bundles this pure-Python stemmer)
 web = ["snowballstemmer>=2.2"]
+# The pylatexenc AST engine of the LaTeX parser (KNOWTEX_PARSER=ast), kept
+# to cross-check the default regex engine
+ast = ["pylatexenc>=2.10,<3"]
 # Test suite and the headless-browser smoke test
-test = ["pytest>=7", "playwright>=1.40"]
+test = ["pytest>=7", "playwright>=1.40", "pylatexenc>=2.10,<3"]
 
 [project.scripts]
 knowtex = "knowtex.cli:main"

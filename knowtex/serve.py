@@ -33,8 +33,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "docs" / "index.html"
 VENDOR = ROOT / "web" / "vendor"
 
-API = {"expand": webapi.expand, "structure": webapi.structure,
-       "scan": webapi.scan, "build": webapi.build}
+API = {"load": webapi.load, "expand": webapi.expand, "structure": webapi.structure,
+       "scan": webapi.scan, "build": webapi.build, "snippet": webapi.snippet}
 
 LOCAL_HOSTS = ("127.0.0.1", "localhost")
 MAX_BODY = 128 * 1024 * 1024        # bytes; a whole LaTeX project as JSON

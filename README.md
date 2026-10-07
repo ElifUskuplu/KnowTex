@@ -94,7 +94,7 @@ The page `docs/index.html` is KnowTeX's user interface. It runs the same Python 
 
 - Local server: `python KnowTeX.py` (or `python -m knowtex serve`) serves the page with native Python and the libraries in `web/vendor/`, so it works offline and large projects run at native speed. With `pip install -e .[export]` (and Graphviz on the system) it also offers Graphviz PNG and TikZ downloads.
 - Hosted copy: enable GitHub Pages for this repository (Settings → Pages → *Deploy from a branch*, branch `main`, folder `/docs`); the page is then served at `https://<user>.github.io/KnowTex/`. It loads Pyodide (about 10 MB, cached after the first visit), viz.js and D3 from CDNs. Nothing leaves the browser.
-- Rebuild after changing the core: `python web/build.py` (bundles `knowtex/`, a subset of `pylatexenc` and the English Snowball stemmer into `docs/index.html`; needs `pylatexenc` and `snowballstemmer` installed, e.g. `pip install -e .[web]`). `python web/smoke_test.py` checks the page in headless Chromium (`--local` for the local server). See `web/README.md`.
+- Rebuild after changing the core: `python web/build.py` (bundles `knowtex/` and the English Snowball stemmer into `docs/index.html`; needs `snowballstemmer` installed, e.g. `pip install -e .[web]`). `python web/smoke_test.py` checks the page in headless Chromium (`--local` for the local server). See `web/README.md`.
 
 ## Features
 
@@ -148,7 +148,7 @@ KnowTex/
 │   ├── core/
 │   │   ├── constants.py     # Regex patterns, skip sets, thresholds
 │   │   ├── data.py          # Data classes: NodeInfo, ProofInfo, DependencyEdge
-│   │   ├── parser.py        # LaTeX parsing and environment extraction
+│   │   ├── parser.py        # LaTeX parsing: regex/stack engine (default) or pylatexenc AST
 │   │   ├── file_expand.py   # \input/\include/\subfile expansion
 │   │   ├── structure.py     # Document class, chapter/section detection
 │   │   ├── dot.py           # DOT builder used by the CLI and the page (no pygraphviz)
@@ -181,7 +181,8 @@ KnowTex/
 - Python >= 3.10
 - Packages (declared in `pyproject.toml`):
   ```bash
-  pip install -e .            # core: pylatexenc, PyStemmer (enough for the CLI and the local server)
+  pip install -e .            # core: PyStemmer (enough for the CLI and the local server)
+  pip install -e .[ast]       # + pylatexenc: the parser's AST engine (KNOWTEX_PARSER=ast), for cross-checks only
   pip install -e .[export]    # + pygraphviz, dot2tex (PNG and TikZ exports from the local server)
   pip install -e .[web]       # + snowballstemmer (rebuild docs/index.html)
   pip install -e .[test]      # + pytest, playwright (tests, web smoke test)
@@ -217,20 +218,25 @@ This starts a small local server (`knowtex/serve.py`) on `http://127.0.0.1:8765/
 - Paste a document, or press one of the **LaTeX** / **Markdown** sample buttons.
 - **Browse file…**: one `.tex` or `.md` file, or several `.md` files. Several Markdown files are read in file-name order with a blank line between files, as one glossary with no reading order: D4 then matches a defined term in every other entry instead of only in later ones; no other rule changes.
 - **Browse folder…**: a LaTeX project. The browser reads the folder (with its subfolders) and KnowTeX expands all `\input` / `\include` / `\subfile` / `\import` files in memory. If several files contain `\documentclass`, a **Main file** select appears; missing files are listed as notes.
-- For LaTeX, a checklist of chapters (book classes) or sections (article class) selects what to scan.
+- Loading only stores the document (the files are read and `\input`s resolved; nothing is parsed yet). For LaTeX, a checklist of chapters (book classes) or sections (article class) appears: untick what you do not need.
 - A Markdown file is read as a single file: no `\input` expansion, no chapter/section list, and no index registry (H4).
 
-### 3. Configure
+### 3. Scan
+
+- Press **Scan**: the selected chapters/sections are parsed and the statement kinds are listed with their counts (panel "2 · What to include") and the statements appear in the **Statements** tab. No dependencies are inferred and no graph is drawn at this step.
+- Changing the chapter/section selection marks **Scan** (↻): press it again to read the new selection.
+
+### 4. Configure and build
 
 - Select **Infer** or **Manual** mode (edges from the author's `\uses{}` annotations only). Infer is the default.
 - The environment table has one row per statement kind: **Include**, **Definition** (Infer mode: the definition-like kinds used by D4), **Shape**, **Border** and **Fill** colour.
-- **Scope**: the whole document, or one chapter/section; statements of other sections linked to it are drawn as dashed grey "external" nodes.
-- **Transitive reduction** and **Legend** checkboxes; **View**: force-directed (interactive) or layered (Graphviz).
-- The graph is rebuilt after every change. Documents with more than 800 statements are not built automatically: untick the kinds you do not need, then press **Build graph**.
+- Press **Build graph**: only now are the edges inferred and the graph drawn. A change in the table or of the mode marks the button (↻) and waits for the next press.
+- The options below the table are live once a graph exists: **Scope** (the whole document, or one chapter/section; statements of other sections linked to it are drawn as dashed grey "external" nodes), **Transitive reduction**, **Legend**, **View** (force-directed or layered Graphviz) and its direction. They redraw at once because the inferred edges are kept: no rule runs again.
+- The sample buttons run all steps at once (the samples are a few lines long).
 
-### 4. Review and download
+### 5. Review and download
 
-- **Graph** tab: drag to pan, scroll to zoom, click a node for its details; in the force-directed view a click also focuses on its prerequisites and/or dependents.
+- **Graph** tab: drag to pan, scroll to zoom, click a node for its details (its LaTeX source is fetched on demand); in the force-directed view a click also focuses on its prerequisites and/or dependents.
 - **Edges** tab: remove an edge with ×, **Restore removed**, or add one with the **Add edge** form (source, target, type, location).
 - **Statements** tab: every statement with its kind, label, name and defined terms.
 - Downloads: **SVG**, **PNG**, **DOT**, and **TikZ** (`.tex` via `dot2tex`). PNG is rasterised in the browser; on the local server with the `export` extra installed, the layered view's PNG is rendered by Graphviz instead. TikZ is offered only on the local server with the `export` extra.

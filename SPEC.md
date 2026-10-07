@@ -39,7 +39,7 @@ Load & Expand  →  Structure Detection  →  Parse  →  Edge Extraction  →  
 1. **Load & Expand** (`file_expand.py`): Recursively resolves `\input`, `\include`, `\import`, `\subimport`, `\subfile` into a single expanded string. LaTeX input only; a Markdown or text file is read as it is.
 2. **Structure Detection** (`structure.py`): Detects document class (book vs article), finds chapter/section ranges.
 3. **Parse** (`formats.py`): `parse_document(text, fmt)` picks the front-end from the given format (or from `detect_format(text)` when none is given; `format_for_path` maps file extensions) and returns `(fmt, nodes, node_by_index, label_to_node, proofs, discovered_envs)`:
-   - LaTeX → `parser.py` (`parse_latex_structure`): walks the expanded LaTeX via the pylatexenc AST to extract `NodeInfo` (theorem-like statements) and `ProofInfo` (proof environments).
+   - LaTeX → `parser.py` (`parse_latex_structure`): finds the `\begin{…}…\end{…}` environments of the expanded LaTeX (a regex pass with a stack by default; the pylatexenc AST walk as an alternative engine) to extract `NodeInfo` (theorem-like statements) and `ProofInfo` (proof environments).
    - Markdown → `text_parser.py` (`parse_text_structure`), see Section 14. Keyword-only text with no Markdown markup ("Definition 2.1. …", "Proof. …") is read by the same front-end.
 4. **Edge Extraction**: Either Manual mode (`manual.py`) or Infer mode (`infer.py`) produces a list of `DependencyEdge` objects. The rules are the same for every input format. In infer mode `resolve_cycles` (`infer.py`, on by default) then drops the D4 edges that close a cycle, see Section 9.
 5. **Transitive Reduction** (`cycles.py`, optional, on by default): removes redundant edges, see Section 9.
@@ -102,11 +102,16 @@ Both return a list of `{"title": str, "start": int, "end": int}` dictionaries, w
 ## 4. Parsing: Node and Proof Extraction
 
 **Module**: `knowtex/core/parser.py`
-**Entry point**: `parse_latex_structure(tex) -> (nodes, node_by_index, label_to_node, proofs, discovered_envs)`
+**Entry point**: `parse_latex_structure(tex, engine=None) -> (nodes, node_by_index, label_to_node, proofs, discovered_envs)`
 
-### AST Walking
+### Environment discovery
 
-Uses `pylatexenc.latexwalker.LatexWalker` to parse the full expanded text into an AST. Then recursively walks every `LatexEnvironmentNode`.
+Two engines find the environments; both return the theorem-like and proof environments as `(env, pos, pos_end, depth)` in order of their `\begin` (`depth` = number of theorem-like environments enclosing it), and the same extraction below runs on that list. `engine` is `"fast"` or `"ast"`; the default is the environment variable `KNOWTEX_PARSER`, else `"fast"`.
+
+- **`fast`** (default, `_environments_fast`): the text is first *masked* — comments (a `%` preceded by an even number of backslashes, to the end of the line), `\verb` arguments and the bodies of verbatim-like environments (`verbatim`, `verbatim*`, `lstlisting`, `minted`, `comment`, `Verbatim`, `alltt`) are replaced by spaces of the same length, so positions still refer to the original text. One regex pass then finds every `\begin{name}` / `\end{name}` token (`\\begin{x}` is a line break followed by text) and a stack pairs them: `\end{x}` closes the innermost open `x`; environments left open inside it end at that point too; an `\end` with no open environment of that name is ignored; environments never closed end at the end of the text. Spaces around a name are stripped. About a hundred times faster than the AST walk (a 2.7 MB book: 0.2 s instead of 10 s).
+- **`ast`** (`_environments_ast`, needs `pylatexenc`, the `ast` extra): parses the text with `pylatexenc.latexwalker.LatexWalker` and walks every `LatexEnvironmentNode` recursively.
+
+On well-formed documents the two engines give identical results (`TestFastParserMatchesAst`; checked on all example projects). They differ where pylatexenc's tolerant parsing does: it keeps the spaces of `\begin{ x }` in the name, lets an unclosed environment run to the end of the file, and misses environments inside the arguments of macros it knows (`\frac{\begin{vmat}…}`).
 
 ### Environment classification
 
@@ -581,7 +586,7 @@ The web page is the only graphical interface. It runs in two ways:
 | `GET /`, `GET /index.html` | `docs/index.html` with `<script>window.KNOWTEX_LOCAL = {"capabilities": …}</script>` injected after `<head>` |
 | `GET /vendor/<name>` | a file of `web/vendor/` (`viz-global.js`, `d3.min.js`), so the page works offline |
 | `GET /api/ping` | `{"ok": true, "capabilities": {"png", "svg", "tex"}}` |
-| `POST /api/expand`, `/api/structure`, `/api/scan`, `/api/build` | body `{"args": [...]}`; the JSON string returned by the `knowtex.webapi` function of that name |
+| `POST /api/load`, `/api/expand`, `/api/structure`, `/api/scan`, `/api/build`, `/api/snippet` | body `{"args": [...]}`; the JSON string returned by the `knowtex.webapi` function of that name |
 | `POST /api/export` | body `{"dot", "format": "png" \| "svg" \| "tex"}`; `{"ok", "format", "data"}` with the file base64-encoded, or `{"ok": false, "error"}` |
 
 `/api/export` renders the DOT with pygraphviz (`dot`, 150 DPI) for PNG/SVG and with `dot2tex` (`format="tikz"`, `crop=True`) for TikZ. The capabilities say which of these are available: `png`/`svg` need pygraphviz, `tex` needs dot2tex and pygraphviz (the `export` extra plus Graphviz on the system). When `window.KNOWTEX_LOCAL` is set the page sends every Python call to `/api/<name>` instead of starting Pyodide.
@@ -592,15 +597,17 @@ The web page is the only graphical interface. It runs in two ways:
    - **Browse file…** (a multi-select file dialog): one `.tex`/`.ltx` or `.md`/`.markdown` file (the extension sets the format; a single `.tex` file that `\input`s others gets a note to use Browse folder…), several `.tex` files of a flat project, or several `.md` files, which are joined in file-name order with blank lines and read as one glossary with no reading order: the build always runs with `ordered: false` (D4 ignores position; see Section 7.1).
    - **Browse folder…** (a `webkitdirectory` input): a LaTeX project. The browser reads the folder; the files whose text contains `\documentclass` are the candidate main files (the shortest path first). If there are several, a **Main file** select appears. `webapi.expand` expands `\input`/`\include`/`\subfile`/`\import` in memory with `file_expand.expand_from_files`; the `% [knowtex] missing file` and `% [knowtex] blocked path` markers are listed as notes under the file name.
    - **Format**: detected automatically, or forced to LaTeX or Markdown for pasted text. **Scan** re-reads pasted text.
-2. **Chapters or sections**: for LaTeX, `webapi.structure` returns the chapters (book classes) or sections (article class); a checklist (with *all* / *none*) selects the ones to scan. Changing it scans again (`ranges` in the config).
-3. **What to include** (panel "2 · What to include"): `webapi.scan` lists the statement kinds.
+   Loading only stores the document: `webapi.load` (pasted text, one file, several Markdown files) or `webapi.expand` (a project) return an id, and the page keeps the id, never the text. Nothing is parsed.
+2. **Chapters or sections**: for LaTeX, `webapi.structure` (a regex pass over the stored text) returns the chapters (book classes) or sections (article class); a checklist (with *all* / *none*) selects the ones to scan. Changing the selection marks **Scan** (↻, class `stale`); nothing runs until it is pressed.
+3. **Scan** (button of panel 1): `webapi.scan` parses the selected ranges and lists the statement kinds (panel "2 · What to include") and the statements (**Statements** tab). No edges are inferred. Pasted text is stored (`load`) and its chapters listed (`structure`) by the same press.
+4. **What to include** (panel "2 · What to include"):
    - **Infer** (default) / **Manual** (`\uses{}` annotations only) mode. Switching mode discards the edges added or removed by hand.
    - Environment table: per kind, **Include**, **Definition** (infer mode only; pre-ticked for names matching `DEFN_ENV_RX`), **Shape** (`ellipse`, `circle`, `doublecircle`, `box`, `diamond`, `triangle`, `pentagon`, `hexagon`, `octagon`), **Border** and **Fill** colour.
    - **Scope**: the whole document, or one chapter/section (`micro_section`); statements of other sections linked to it are drawn as dashed grey "ghost" nodes marked *external*.
    - **Transitive reduction** and **Legend** toggles; **View**: force-directed (D3, interactive) or layered (Graphviz through viz.js, with a top → bottom / left → right direction).
-   - The graph is built automatically after a scan, and again after every change. A document with more than 800 statements is not built automatically: the user unticks the kinds that are not needed and presses **Build graph**.
-4. **Dependency graph** (panel "3 · Dependency graph"), built by `webapi.build`:
-   - **Graph** tab: drag to pan, scroll to zoom, *Fit* / + / −. In the force-directed view, hovering a node shows its neighbours and clicking it focuses on its prerequisites and/or dependents up to 1 step, 2 steps or all; in both views a click shows the node's details (kind, label, name, defined terms, the statements it depends on and is used by, snippet).
+   - **Build graph** runs `webapi.build`: only now are the edges inferred and the graph drawn. A change of mode or in the environment table (include, definition, style) marks the button (↻) and waits for the next press; the options below the table (scope, transitive reduction, legend, view, direction) and the edge edits redraw at once, because `build` keeps the inferred edges of a parse and configuration (`Parse.edge_cache`) and only reapplies the edits, the reduction and the drawing. The sample buttons run all steps at once.
+5. **Dependency graph** (panel "3 · Dependency graph"), built by `webapi.build`:
+   - **Graph** tab: drag to pan, scroll to zoom, *Fit* / + / −. In the force-directed view, hovering a node shows its neighbours and clicking it focuses on its prerequisites and/or dependents up to 1 step, 2 steps or all; in both views a click shows the node's details (kind, label, name, defined terms, the statements it depends on and is used by, and its source, fetched by `webapi.snippet` on the click: the node lists of `scan` and `build` carry no snippets).
    - **Edges** tab: one row per edge (rule, source, target, style; cycle edges marked). × removes an edge (`removed`), **Restore removed** brings them back; the **Add edge** form (source, target, type, location) adds one (`added`).
    - **Statements** tab: index, kind, label, name and defined terms of every drawn node.
    - Downloads: **SVG**, **PNG** (the SVG rasterised in the browser at 2×; on the local server with pygraphviz, the layered view is rendered by Graphviz through `/api/export`), **DOT**, and **TikZ** (`.tex` via dot2tex), shown only when the local server reports the `tex` capability.
@@ -785,12 +792,13 @@ prepended so that other definitions' terms can match it.
 
 `web/build.py` inlines the Python sources listed in `KNOWTEX_FILES` (the
 core, including `structure.py` and `file_expand.py`, the `deps` package and
-`webapi.py`), seven files of `pylatexenc` (`latexwalker`, `macrospec`,
-`_util`, `version`) and the English stemmer of `snowballstemmer` (with a
-minimal `__init__.py`), 29 files in all, as a JSON block into the
-template. On the published page the browser loads Pyodide from jsdelivr,
-writes the bundle into the virtual file system, imports `knowtex.webapi`
-and calls `expand`, `structure`, `scan` and `build` (Section 17). Served
+`webapi.py`) and the English stemmer of `snowballstemmer` (with a
+minimal `__init__.py`), 22 files in all, as a JSON block into the
+template; pylatexenc is not bundled (the parser's default engine does not
+use it, Section 4). On the published page the browser loads Pyodide from
+jsdelivr, writes the bundle into the virtual file system, imports
+`knowtex.webapi` and calls `load`/`expand`, `structure`, `scan`, `build`
+and `snippet` (Section 17). Served
 by the local server (`python -m knowtex serve`, Section 13), the same page
 finds `window.KNOWTEX_LOCAL`, skips Pyodide and sends those calls to
 `/api/<name>`; viz.js and D3 then come from `web/vendor/`
@@ -850,25 +858,49 @@ through the local server's `/api/<name>` endpoints, Section 13). Every
 function takes and returns JSON strings; errors are returned as
 `{"ok": false, "error", "trace"}`.
 
-The format is `fmt` or, for `"auto"`/`None`/`""`, `detect_format(text)`;
-`parse_document` accepts `"latex"` and `"markdown"` and reports any other
-value as an error. The last parse (text, format and selected ranges) is
-cached, so `scan` followed by `build` parses once.
+The format is `fmt` or, for `"auto"`/`None`/`""`, `detect_format(text)`
+(run once per stored document); `parse_document` accepts `"latex"` and
+`"markdown"` and reports any other value as an error.
 
+**Documents and caches.** `load` and `expand` store the text in a
+`Document` (keyed by an id, `"doc:" + 16 hex digits of the text's SHA-1`;
+the last `MAX_DOCS = 3` documents are kept) and return the id; the page
+passes the id to every later call, so the text crosses the Pyodide or
+HTTP boundary once. The `doc` argument of the other functions is such an
+id, or a raw text (stored as if `load` had been called, which keeps the
+old call form working); an unknown id is an error ("load it again").
+A `Document` computes its structure once (regex) and keeps one `Parse`
+per range selection (`Document.parse`, up to 3). A `Parse` holds the
+statements and proofs of the selected text, their sections, a `WordCache`
+(words and stems of every statement, filled on first use and shared by
+D4, H4 and the cycle resolution), the index registry, and
+`edge_cache` (up to 16 entries): the raw edges of every
+`(mode, include, definition_envs, ordered)` and the edges after the
+user's edits and the cycle resolution. So `scan` followed by `build`
+parses once, and a `build` that changes only display options or edits
+edges reruns no inference rule.
+
+- `load(text, fmt="auto")` → `{"ok", "id", "format", "chars"}`. Nothing is
+  parsed.
 - `expand(files_json, main)`: `files_json` is `{relative path: text}` of a
-  LaTeX project, `main` the main file's key. Returns `{"ok", "text",
-  "notes", "chars"}`; `notes` are the `% [knowtex] …` marker lines
-  (missing or blocked files) of the expanded text (`expand_from_files`,
-  Section 2).
-- `structure(text, fmt="auto")` → `{"ok", "format", "doc_class",
+  LaTeX project, `main` the main file's key. Returns `{"ok", "id",
+  "format": "latex", "notes", "chars"}`; `notes` are the `% [knowtex] …`
+  marker lines (missing or blocked files) of the expanded text
+  (`expand_from_files`, Section 2). The expanded text is stored, not
+  returned.
+- `structure(doc, fmt="auto")` → `{"ok", "id", "format", "doc_class",
   "range_type", "ranges": [{"index", "title", "start", "end"}]}`.
   `range_type` is `"chapter"` for book classes and `"section"` otherwise;
-  Markdown has no ranges.
-- `scan(text, fmt="auto", config_json="{}")` → `{"ok", "format",
+  Markdown has no ranges. A regex pass; nothing is parsed.
+- `scan(doc, fmt="auto", config_json="{}")` → `{"ok", "id", "format",
   "detected", "envs": [{"env", "count", "is_defn"}], "node_count",
   "proof_count", "nodes", "sections"}`. Only `ranges` is read from the
-  config. `is_defn` is the `DEFN_ENV_RX` default.
-- `build(text, fmt="auto", config_json="{}")` → `{"ok", "format", "mode",
+  config. `is_defn` is the `DEFN_ENV_RX` default. Parses the selected
+  ranges; infers nothing.
+- `snippet(doc, fmt="auto", label="", config_json="{}")` → `{"ok",
+  "label", "snippet", "truncated"}`: the source of one statement of the
+  parse selected by `ranges` (at most 4000 characters).
+- `build(doc, fmt="auto", config_json="{}")` → `{"ok", "id", "format", "mode",
   "edges": [{"source", "target", "type", "location", "rule", "cycle"}],
   "edge_total", "cycle_count", "dropped_count", "dropped_edges":
   [{"source", "target", "type", "location", "rule"}], "dot", "nodes",
@@ -895,7 +927,7 @@ cached, so `scan` followed by `build` parses once.
   `nodes` are those of the drawing: with `micro_section`, the section's
   own statements plus the ghosts they touch; `edge_total` counts the edges
   of the whole graph. Nodes are returned as `{"label", "env", "index",
-  "name", "terms", "snippet", "section", "ghost"}` (snippet truncated to
-  1500 characters; `section` is `"(ungrouped)"` outside every range).
+  "name", "terms", "section", "ghost"}` (no snippet: see `snippet`;
+  `section` is `"(ungrouped)"` outside every range).
   `sections` lists the sections in order of first statement. `h3_gap` is
   `H3_MAX_GAP`.
