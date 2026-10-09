@@ -26,18 +26,7 @@ Edges from `\uses{}` in a **statement** appear as **dashed arrows**; edges from 
 
 ### Infer Mode
 
-Automatically infers dependencies by analyzing the document content using a layered system of **deterministic rules** and **heuristic rules**:
-
-| Rule | Type | Description |
-| ---- | ---- | ----------- |
-| **D1** | Deterministic | `\ref`/`\Cref`/`\eqref` inside a **proof** creates an edge to the proved statement |
-| **D2** | Deterministic | `\ref`/`\Cref`/`\eqref` inside a **statement** creates an edge to the referencing statement |
-| **D3** | Deterministic | Explicit proof target from `\begin{proof}[Proof of Theorem \ref{...}]` |
-| **D4** | Deterministic | **Defined-term matching** -- terms introduced via `\emph{}`/`\textit{}`/`\textbf{}` or `\index{}` in definition environments are matched in subsequent statements via stemming |
-| **H1** | Heuristic | Each proof is associated with the nearest preceding statement |
-| **H2** | Heuristic | A corollary without any `\ref` is linked to the nearest preceding theorem/proposition |
-| **H3** | Heuristic | A lemma is linked to the next theorem/proposition within a 3-statement gap (`H3_MAX_GAP` in `constants.py`) |
-| **H4** | Heuristic | **Index/emphasis-term matching** (LaTeX input only) -- `\index{}` entries and emphasized terms (`\emph{}`, `\textit{}`, `\textbf{}`, `\demph{}`) of non-definition statements are matched in later statements using longest-match-first strategy with `\|see{}` alias resolution |
+Infers dependencies from the document itself, with no annotations: **deterministic rules** (D1–D4) follow what the author wrote, such as `\ref`s and terms introduced in definitions, and **heuristic rules** (H1–H4) guess from the order and kind of the statements, for example linking a corollary to the theorem before it. See [inference_rules.md](inference_rules.md) for what each rule does and its constraints.
 
 ---
 
