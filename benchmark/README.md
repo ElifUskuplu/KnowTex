@@ -10,12 +10,6 @@ any number from this benchmark.** The D2 figures validate the pipeline; they
 are not an accuracy measurement. The per-rule D4 figures are not meaningful
 as computed.
 
-The results of the earlier version of this benchmark, which converted the
-markdown to LaTeX first and is the version described in the paper
-(arXiv:2601.15294v2, Section 5.3), are kept unchanged in
-[`old_version/`](old_version/) together with its README and the manual
-review of its D4 edges.
-
 ## Dataset
 
 611 mathematics definitions from the
@@ -187,67 +181,10 @@ definition whose text contains that word. The benchmark cannot separate
 these two kinds of false positive automatically; `fp_edges.csv` lists them
 for manual review.
 
-## Usage
-
-```bash
-# First run (downloads data)
-python3 benchmark/chicago_benchmark.py
-
-# Skip download (when data/ already exists)
-python3 benchmark/chicago_benchmark.py --skip-download
-
-# Download all files again, overwriting existing ones
-python3 benchmark/chicago_benchmark.py --force-download
-
-# Also write detailed edge-level CSVs
-python3 benchmark/chicago_benchmark.py --skip-download --output-csv
-
-# Ablation: links reduced to text, D4 scored alone (outputs get _d4-only)
-python3 benchmark/chicago_benchmark.py --skip-download --output-csv --d4-only
-```
-
-## Outputs
-
-Each run saves a timestamped JSON file to `data/results/`
-(e.g. `run_20261005_205256.json`, or `run_*_d4-only.json` for the ablation)
-containing:
-
-- `timestamp` and `ground_truth_total`
-- `combined`: precision, recall, F1 and edge counts (TP, FP, FN, inferred total)
-- `per_rule`: the same metrics for each rule that fired
-- `cycles`: `cycle_edges_before_resolution`, `cycle_edges_after_resolution`,
-  `dropped_total` and `dropped_edges` (`[source, target, rule]`), the
-  work of `resolve_cycles`
-- `note`: a reminder that the ground truth holds hyperlink edges only
-
-With `--output-csv`, three additional files are written (with the suffix
-`_d4-only` in the ablation run):
-
-- `tp_edges.csv` -- True Positive edges
-- `fp_edges.csv` -- False Positive edges
-- `fn_edges.csv` -- False Negative edges
-
-Each row has `source_label`, `target_label`, the two Wikidata IDs,
-`classification` (TP/FP/FN) and the `rules` that produced the edge.
-
-## Directory Structure
-
-```text
-benchmark/
-  chicago_benchmark.py   # Main benchmark script
-  README.md              # This file
-  old_version/           # Results and README of the LaTeX-conversion version (paper)
-    README.md
-    results/
-      run_20260403_160000.json
-      tp_edges.csv, fp_edges.csv, fn_edges.csv
-      fp_classification.csv  # Manual review of that run's 433 D4 edges
-  data/
-    chicago_md/          # Downloaded markdown files
-    chicago_mappings.csv # Wikidata mappings
-    results/
-      run_*.json         # Per-run metrics (run_*_d4-only.json: ablation)
-      tp_edges*.csv      # True Positive edges (with --output-csv)
-      fp_edges*.csv      # False Positive edges
-      fn_edges*.csv      # False Negative edges
-```
+That review has been done for the full run:
+`data/results/fp_classification.csv` labels each of the 589 D4 edges as
+`genuine` (the target definition uses the concept the source defines) or
+`spurious` (the match is only lexical), and records in `gt_reachable`
+whether the target can be reached from the source through ground-truth
+links. 252 edges are genuine and 337 are spurious. Counting the genuine
+edges as correct, the precision of the full run is 0.851 instead of 0.739.
