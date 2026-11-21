@@ -21,6 +21,7 @@
   --accent-soft: #E9EEF4;
   --graph-bg: #F3F7FB;
   --graph-dot: #D3DEEA;
+  --graph-edge: #000000;
   --ok: #2F7D4A;
   --warn: #B5761A;
   --bad: #B3362A;
@@ -35,7 +36,7 @@
   :root:not([data-theme="light"]) {
     --bg: #17191C; --surface: #1E2226; --surface-2: #262A2F; --ink: #D6D9DC;
     --muted: #9AA0A6; --line: #2F3439; --accent: #8FB3DA; --accent-ink: #0F1A28;
-    --accent-soft: #1F2C3B; --graph-bg: #1B2129; --graph-dot: #2C3644;
+    --accent-soft: #1F2C3B; --graph-bg: #1B2129; --graph-dot: #2C3644; --graph-edge: #C5CBD3;
     --ok: #6CC08A; --warn: #E0A64C; --bad: #E4766A;
     --shadow: 0 1px 1px rgba(0,0,0,.4);
   }
@@ -43,7 +44,7 @@
 :root[data-theme="dark"] {
   --bg: #17191C; --surface: #1E2226; --surface-2: #262A2F; --ink: #D6D9DC;
   --muted: #9AA0A6; --line: #2F3439; --accent: #8FB3DA; --accent-ink: #0F1A28;
-  --accent-soft: #1F2C3B; --graph-bg: #1B2129; --graph-dot: #2C3644;
+  --accent-soft: #1F2C3B; --graph-bg: #1B2129; --graph-dot: #2C3644; --graph-edge: #C5CBD3;
   --ok: #6CC08A; --warn: #E0A64C; --bad: #E4766A;
   --shadow: 0 1px 1px rgba(0,0,0,.4);
 }
@@ -160,6 +161,10 @@ th.num { text-align: right; }
 }
 .graph-frame.dragging { cursor: grabbing; }
 .graph-frame .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+/* Graphviz draws default edges and the legend text in black; on the page they follow the theme (downloads keep black) */
+.graph-frame .stage g.edge path[stroke="black"] { stroke: var(--graph-edge); }
+.graph-frame .stage g.edge polygon[stroke="black"] { stroke: var(--graph-edge); fill: var(--graph-edge); }
+.graph-frame .stage g.legend text { fill: var(--graph-edge); }
 .graph-frame svg { display: block; }
 .graph-frame svg a { cursor: pointer; }
 .graph-frame svg a:hover > * > polygon, .graph-frame svg a:hover > * > ellipse { stroke-width: 3; }
@@ -1012,6 +1017,7 @@ function mountSvg(svg) {
   svg.removeAttribute("width"); svg.removeAttribute("height");
   const vb = svg.viewBox.baseVal;
   svg.style.width = vb.width + "px"; svg.style.height = vb.height + "px";
+  for (const g of svg.querySelectorAll("g.node")) { const t = g.querySelector("title"); if (t && t.textContent === "__legend__") g.classList.add("legend"); }
   els.stage.appendChild(svg);
   state.svg = svg;
   fitView();
