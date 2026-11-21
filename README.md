@@ -1,142 +1,93 @@
 # KnowTeX: Knowledge Dependency from TeX
 
-**KnowTeX** is a Python tool that reads LaTeX projects or Markdown notes and constructs **knowledge dependency graphs** among mathematical statements and proofs.
-It comes as a browser page (run locally or [here](https://elifuskuplu.github.io/KnowTex/)) and a command-line tool; it expands your TeX project, parses the document structure, extracts the statements, and visualizes how results depend on one another.
+**KnowTeX** reads LaTeX projects or Markdown notes and builds the **dependency graph** of their definitions, theorems and proofs. It comes as a browser page ([hosted copy](https://elifuskuplu.github.io/KnowTex/), or run locally) and as a command-line tool.
 
-Derived from [Patrick Massot's *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph), KnowTeX provides similar functionality **without requiring PlasTeX or Lean blueprints**.
+It is derived from [Patrick Massot's *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph) and produces similar graphs **without PlasTeX or a Lean blueprint**.
 
-**Artificial Intelligence Disclosure (AID)**
+**Artificial Intelligence Disclosure.** KnowTeX was developed with substantial assistance from a generative AI tool (Anthropic's Claude, through Claude Code). Under the author's direction it wrote significant parts of the Python code, the web page, the tests and the documentation; commits co-authored by the tool carry a `Co-Authored-By` line. The research questions, the inference rules, the design decisions and the evaluation are the author's. All generated code was reviewed, tested and validated by the author, who assumes full responsibility for the final implementation.
 
-KnowTeX was developed with substantial assistance from a generative AI tool (Anthropic's Claude, used through Claude Code). Under the author's direction, the tool wrote significant parts of the Python code, the web page, the tests and the documentation, and proposed the refactorings and performance work recorded in the commit history (commits co-authored by the tool carry a `Co-Authored-By` line). The research questions, the inference rules, the design decisions and the evaluation are the author's; all generated code was reviewed, tested and validated by the author, who assumes full responsibility for the final implementation. 
+## Two modes
 
----
+**Manual mode** reads the annotation commands of Lean Blueprint:
 
-## Two Modes of Operation
+- `\uses{label1,label2,...}` declares that the current statement or proof depends on the listed labels.
+- `\proves{label}` declares which statement a proof establishes; without it, the proof belongs to the most recent statement.
 
-KnowTeX offers two complementary modes for constructing dependency graphs:
+A `\uses{}` in a statement gives a **dashed** edge, one in a proof a **solid** edge.
 
-### Manual Mode
+**Infer mode** needs no annotations. Deterministic rules (D1–D4) follow what the author wrote, such as `\ref`s and the terms introduced in definitions; heuristic rules (H1–H4) guess from the order and kind of the statements, for example linking a corollary to the theorem before it. [inference_rules.md](inference_rules.md) describes every rule.
 
-Uses explicit **annotation commands** that authors embed in their LaTeX source:
+## Input formats
 
-- `\uses{label1,label2,...}` -- declares that the current statement or proof depends on the listed labels.
-- `\proves{label}` -- declares that the current proof establishes a particular labeled statement.
-
-Edges from `\uses{}` in a **statement** appear as **dashed arrows**; edges from `\uses{}` in a **proof** appear as **solid arrows**. If `\proves{}` is omitted, the proof is assumed to prove the most recent statement.
-
-### Infer Mode
-
-Infers dependencies from the document itself, with no annotations: **deterministic rules** (D1–D4) follow what the author wrote, such as `\ref`s and terms introduced in definitions, and **heuristic rules** (H1–H4) guess from the order and kind of the statements, for example linking a corollary to the theorem before it. See [inference_rules.md](inference_rules.md) for what each rule does and its constraints.
-
----
-
-## Input Formats
-
-KnowTeX reads two kinds of input. The inference rules are the same for all of them; only the front-end that finds statements, defined terms and references differs.
+The rules are the same for both formats; only the front-end that finds statements, defined terms and references differs.
 
 | Format | Statements | Defined terms (D4) | References (D1/D2) |
 | ------ | ---------- | ------------------ | ------------------ |
 | **LaTeX** (`.tex`, projects with `\input`) | theorem-like environments | `\emph{}`, `\textit{}`, `\textbf{}`, `\index{}` | `\ref`, `\Cref`, `\cref`, `\eqref` |
 | **Markdown** (`.md`) | `## Theorem 2.1 (Name)` headings or `**Definition 2.1.**` paragraphs; `Proof.` … `∎` | `**bold**`, the parenthesized name, "quoted" and "called a …" phrases | `[text](#label)`, `[text](…/slug)`, textual "Theorem 2.1" |
 
-A Markdown file with no keyword blocks at all is treated as a glossary: every heading (or YAML `title:`) is a definition entry whose title is the defined term. This is how the MathGloss corpus is read directly, without any conversion to LaTeX (`benchmark/chicago_benchmark.py`).
+A Markdown file or folder with no keyword blocks is read as a glossary: every heading (or YAML `title:`) is a definition whose title is the defined term. Labels come from `\label{}` / `{#label}`, otherwise from the number (`theorem:2.1`), the name, the first defined term, or a running index.
 
-Labels are taken from `\label{}` / `{#label}`, otherwise from the number (`theorem:2.1`), the name, the first defined term, or a running index.
+## Installation
 
-## Command Line
+Python 3.10 or later.
+
+```bash
+pip install -e .            # core (PyStemmer); enough for the CLI and the local server
+pip install -e .[export]    # + pygraphviz, dot2tex: PNG and TikZ downloads from the local server (needs Graphviz)
+pip install -e .[web]       # + snowballstemmer: rebuild docs/index.html
+pip install -e .[test]      # + pytest, playwright, pylatexenc: tests and the web smoke test
+pip install -e .[ast]       # + pylatexenc: the parser's AST engine (KNOWTEX_PARSER=ast), for cross-checks
+```
+
+This installs the commands `knowtex` (CLI) and `knowtex-serve` (local server). [Graphviz](https://graphviz.org/download/) is needed on the system only for the `export` extra.
+
+## Usage
+
+### Web page
+
+```bash
+python -m knowtex            # or: python KnowTeX.py, or knowtex-serve
+```
+
+This starts a local server on `http://127.0.0.1:8765/` and opens the page in the browser (`--port N`, `--no-browser`, `--verbose`; Ctrl-C stops it). The page loads pasted text, files or a LaTeX project folder, scans the chosen chapters, builds the graph in infer or manual mode and draws it: a force-directed view with D3 (drag nodes, hover for a node's neighbours, click a node to keep only its prerequisites and dependents up to a chosen depth) and a layered view with viz.js.
+
+The [hosted copy](https://elifuskuplu.github.io/KnowTex/) runs the same Python code in the browser through Pyodide; nothing leaves the browser. See [web/README.md](web/README.md) for how the page is built and tested.
+
+### Command line
 
 ```bash
 python -m knowtex.cli notes.md                    # print inferred edges
 python -m knowtex.cli main.tex --dot graph.dot    # write Graphviz DOT
 python -m knowtex.cli notes.md --json out.json    # nodes and edges as JSON
 python -m knowtex.cli main.tex --mode manual      # \uses{} annotations only
+python -m knowtex.cli glossary/                   # a folder of Markdown files, as one glossary
+python -m knowtex.cli main.tex --include-env defn --include-env thm --include-env lemma
+python -m knowtex.cli main.tex --config run.json  # the options of a page run, as JSON
 cat notes.md | python -m knowtex.cli -            # read from stdin
 ```
 
-After `pip install -e .` the same command is available as `knowtex`; `python -m knowtex notes.md ...` also runs it (without a file argument, `python -m knowtex` starts the local server).
+After `pip install -e .` the same command is `knowtex`; `python -m knowtex notes.md` also runs it. The options that change the edges (`--mode`, `--include-env`, `--definition-env`, `--unordered`, `--disable-rule`, `--keep-cycles`, `--no-tred`) are the keys the web page sends, and `--config FILE` reads them from JSON, so any graph built on the page can be rebuilt from the terminal. Both go through `knowtex/pipeline.py`, which scripts can import directly (`run_pipeline(text, fmt, PipelineConfig)`).
 
-## Web Page (local or GitHub Pages)
+## Datasets and regression check
 
-The page `docs/index.html` is KnowTeX's user interface. It runs the same Python code either in the browser through [Pyodide](https://pyodide.org) or on a local Python server, draws the layered graph with [viz.js](https://github.com/mdaines/viz-js) and the default interactive force-directed view with D3 (drag nodes, hover to see a node's neighbours, click a node to keep only its prerequisites and/or dependents up to a chosen depth).
+The repository includes several datasets used to test KnowTeX, each with its source and, in a `-knowtex/` folder, the graph KnowTeX builds from it (DOT and PNG):
 
-- Local server: `python KnowTeX.py` (or `python -m knowtex serve`) serves the page with native Python and the libraries in `web/vendor/`, so it works offline and large projects run at native speed. With `pip install -e .[export]` (and Graphviz on the system) it also offers Graphviz PNG and TikZ downloads.
-- Hosted copy: enable GitHub Pages for this repository (Settings → Pages → *Deploy from a branch*, branch `main`, folder `/docs`); the page is then served at `https://<user>.github.io/KnowTex/`. It loads Pyodide (about 10 MB, cached after the first visit), viz.js and D3 from CDNs. Nothing leaves the browser.
-- Rebuild after changing the core: `python web/build.py` (bundles `knowtex/` and the English Snowball stemmer into `docs/index.html`; needs `snowballstemmer` installed, e.g. `pip install -e .[web]`). `python web/smoke_test.py` checks the page in headless Chromium (`--local` for the local server). See `web/README.md`.
+- `example/`: group theory lecture notes, with and without `\uses{}`.
+- `BCT-condensed/`: three chapters of Leinster's *Basic Category Theory*, both versions.
+- `Polynomial-Freiman-Ruzsa/`: the PFR blueprint, with and without `\uses{}`.
+- `chicago_notes/`: the MathGloss Chicago glossary, downloaded by its benchmark script ([chicago_notes/README.md](chicago_notes/README.md)).
 
-## Installation
-
-**Requirements**
-
-- Python >= 3.10
-- Packages (declared in `pyproject.toml`):
-  ```bash
-  pip install -e .            # core: PyStemmer (enough for the CLI and the local server)
-  pip install -e .[ast]       # + pylatexenc: the parser's AST engine (KNOWTEX_PARSER=ast), for cross-checks only
-  pip install -e .[export]    # + pygraphviz, dot2tex (PNG and TikZ exports from the local server)
-  pip install -e .[web]       # + snowballstemmer (rebuild docs/index.html)
-  pip install -e .[test]      # + pytest, playwright (tests, web smoke test)
-  # PyStemmer can be replaced by the pure-Python 'snowballstemmer' (same algorithm)
-  ```
-  This installs two commands: `knowtex` (CLI) and `knowtex-serve` (local server).
-- [Graphviz](https://graphviz.org/download/) (must be on system `PATH`; only for the `export` extra)
-
-**Linux**
-```bash
-sudo apt install graphviz libgraphviz-dev
-```
-**macOS**
-```bash
-brew install graphviz
-```
-**Windows**
-Install Graphviz and add `Graphviz/bin` to your PATH.
-
----
-
-## Usage
+`tests/datasets.py` records how each graph is built; `tests/regression.py` rebuilds them and compares the edges with the stored graphs, exiting with status 1 on any difference. Run it after changing a rule; `pytest` includes the same check.
 
 ```bash
-python KnowTeX.py        # or: python -m knowtex, python -m knowtex serve, or knowtex-serve after pip install
+python tests/regression.py            # rebuild all and compare with the stored graphs
+python tests/regression.py --write    # rewrite the stored graphs after an intended change
+python chicago_notes/chicago_benchmark.py
 ```
 
-This starts a small local server (`knowtex/serve.py`) on `http://127.0.0.1:8765/` and opens the page in your browser. Options: `--port N` (`0` picks a free port), `--no-browser`, `--verbose`. Stop it with Ctrl-C. The same page works without installing anything on GitHub Pages (see [Web Page](#web-page-local-or-github-pages)).
+`knowtex/evaluation.py` scores a run against a dataset's gold standard (precision, recall, F1, path-based variants, edge-style agreement).
 
----
+## Limitations
 
-## Example
-
-```latex
-\begin{definition}\label{def:ring}
-A \emph{ring} is a set with two operations satisfying ...
-\end{definition}
-
-\begin{lemma}\label{lem:ring-unit}
-\uses{def:ring}
-In a ring, if $1=0$ then every element is zero.
-\end{lemma}
-
-\begin{proof}
-Trivial from the axioms.
-\end{proof}
-
-\begin{corollary}\label{cor:trivial-ring}
-\uses{def:ring}
-If a ring satisfies $1 = 0$, then it is the trivial ring $\{0\}$.
-\end{corollary}
-
-\begin{proof}
-\uses{lem:ring-unit}
-By Lemma~\ref{lem:ring-unit}, if $1 = 0$, then every element equals $0$.
-Hence the ring contains only one element, $0$, and is therefore the trivial ring.
-\end{proof}
-```
-
-In **Manual mode**, this produces:
-
-- **Definition** node (`def:ring`), **Lemma** node (`lem:ring-unit`), **Corollary** node (`cor:trivial-ring`)
-- **Dashed edges** from `def:ring` to `lem:ring-unit` and `cor:trivial-ring` (statement-level `\uses{}`)
-- **Solid edge** from `lem:ring-unit` to `cor:trivial-ring` (proof-level `\uses{}`)
-
-In **Infer mode**, the same dependencies are discovered automatically through D1 (the `\ref` in the second proof gives `lem:ring-unit` → `cor:trivial-ring`) and D4 (the defined term "ring" gives `def:ring` → `lem:ring-unit` and `def:ring` → `cor:trivial-ring`).
-
-In both modes the dashed edge `def:ring` → `cor:trivial-ring` is removed by the default transitive reduction, because it is implied by `def:ring` → `lem:ring-unit` → `cor:trivial-ring`; it appears only with "Transitive reduction" unticked on the page (`--no-tred` in the CLI).
+KnowTeX reads the source as written: references hidden behind custom wrapper macros are not seen, and statement kinds are recognized from common environment names. The full list, and how to add a rule, is at the end of [inference_rules.md](inference_rules.md#limitations-of-the-parser).

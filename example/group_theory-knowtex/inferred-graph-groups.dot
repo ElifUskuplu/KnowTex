@@ -1,372 +1,116 @@
-digraph "" {
-	graph [bgcolor=transparent];
-	node [label="\N",
-		penwidth=1.8
-	];
-	edge [arrowhead=vee];
-	"def:group"	[URL="def:group",
-		color=Purple,
-		fillcolor=Lavender,
-		label=group,
-		shape=box,
-		style=filled,
-		tooltip="def:group"];
-	"def:abelian"	[URL="def:abelian",
-		color=Purple,
-		fillcolor=Lavender,
-		label=abelian,
-		shape=box,
-		style=filled,
-		tooltip="def:abelian"];
-	"def:group" -> "def:abelian"	[style=dashed];
-	"ex:symmetric-group"	[URL="ex:symmetric-group",
-		color=Blue,
-		fillcolor="#eed9c4",
-		label="symmetric group",
-		shape=hexagon,
-		style=filled,
-		tooltip="ex:symmetric-group"];
-	"def:group" -> "ex:symmetric-group"	[style=dashed];
-	"prop:uniqueness"	[URL="prop:uniqueness",
-		color=Purple,
-		fillcolor=White,
-		label=uniqueness,
-		shape=pentagon,
-		style=filled,
-		tooltip="prop:uniqueness"];
-	"def:group" -> "prop:uniqueness"	[style=dashed];
-	"prop:cancellation"	[URL="prop:cancellation",
-		color=Purple,
-		fillcolor=White,
-		label=cancellation,
-		shape=pentagon,
-		style=filled,
-		tooltip="prop:cancellation"];
-	"def:group" -> "prop:cancellation"	[style=dashed];
-	"def:order"	[URL="def:order",
-		color=Purple,
-		fillcolor=Lavender,
-		label=order,
-		shape=box,
-		style=filled,
-		tooltip="def:order"];
-	"def:group" -> "def:order"	[style=dashed];
-	"def:subgroup"	[URL="def:subgroup",
-		color=Purple,
-		fillcolor=Lavender,
-		label=subgroup,
-		shape=box,
-		style=filled,
-		tooltip="def:subgroup"];
-	"def:group" -> "def:subgroup"	[style=dashed];
-	"def:homo"	[URL="def:homo",
-		color=Purple,
-		fillcolor=Lavender,
-		label=homo,
-		shape=box,
-		style=filled,
-		tooltip="def:homo"];
-	"def:group" -> "def:homo"	[style=dashed];
-	"def:direct-product"	[URL="def:direct-product",
-		color=Purple,
-		fillcolor=Lavender,
-		label="direct product",
-		shape=box,
-		style=filled,
-		tooltip="def:direct-product"];
-	"def:group" -> "def:direct-product"	[style=dashed];
-	"ex:integers"	[URL="ex:integers",
-		color=Blue,
-		fillcolor="#eed9c4",
-		label=integers,
-		shape=hexagon,
-		style=filled,
-		tooltip="ex:integers"];
-	"def:abelian" -> "ex:integers"	[style=dashed];
-	"thm:cayley"	[URL="thm:cayley",
-		color=Blue,
-		fillcolor=Lavender,
-		label=cayley,
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:cayley"];
-	"ex:symmetric-group" -> "thm:cayley"	[style=dotted];
-	"prop:cancellation" -> "thm:cayley"	[style=solid];
-	"thm:lagrange"	[URL="thm:lagrange",
-		color=Blue,
-		fillcolor=Lavender,
-		label=lagrange,
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:lagrange"];
-	"prop:cancellation" -> "thm:lagrange"	[style=solid];
-	"thm:cyclic-subgroup-order"	[URL="thm:cyclic-subgroup-order",
-		color=Blue,
-		fillcolor=Lavender,
-		label="cyclic subgroup order",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:cyclic-subgroup-order"];
-	"def:order" -> "thm:cyclic-subgroup-order"	[style=dashed];
-	"def:quotient"	[URL="def:quotient",
-		color=Purple,
-		fillcolor=Lavender,
-		label=quotient,
-		shape=box,
-		style=filled,
-		tooltip="def:quotient"];
-	"def:order" -> "def:quotient"	[style=dashed];
-	"def:sylow"	[URL="def:sylow",
-		color=Purple,
-		fillcolor=Lavender,
-		label=sylow,
-		shape=box,
-		style=filled,
-		tooltip="def:sylow"];
-	"def:order" -> "def:sylow"	[style=dashed];
-	"def:subgroup" -> "thm:cyclic-subgroup-order"	[style=dashed];
-	"def:cyclic-subgroup"	[URL="def:cyclic-subgroup",
-		color=Purple,
-		fillcolor=Lavender,
-		label="cyclic subgroup",
-		shape=box,
-		style=filled,
-		tooltip="def:cyclic-subgroup"];
-	"def:subgroup" -> "def:cyclic-subgroup"	[style=dashed];
-	"def:coset"	[URL="def:coset",
-		color=Purple,
-		fillcolor=Lavender,
-		label=coset,
-		shape=box,
-		style=filled,
-		tooltip="def:coset"];
-	"def:subgroup" -> "def:coset"	[style=dashed];
-	"def:normal"	[URL="def:normal",
-		color=Purple,
-		fillcolor=Lavender,
-		label=normal,
-		shape=box,
-		style=filled,
-		tooltip="def:normal"];
-	"def:subgroup" -> "def:normal"	[style=dashed];
-	"prop:subgroup-test"	[URL="prop:subgroup-test",
-		color=Purple,
-		fillcolor=White,
-		label="subgroup test",
-		shape=pentagon,
-		style=filled,
-		tooltip="prop:subgroup-test"];
-	"def:subgroup" -> "prop:subgroup-test"	[style=solid];
-	"thm:cyclic-classification"	[URL="thm:cyclic-classification",
-		color=Blue,
-		fillcolor=Lavender,
-		label="cyclic classification",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:cyclic-classification"];
-	"def:homo" -> "thm:cyclic-classification"	[style=dashed];
-	"thm:iso-1"	[URL="thm:iso-1",
-		color=Blue,
-		fillcolor=Lavender,
-		label="iso 1",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:iso-1"];
-	"def:homo" -> "thm:iso-1"	[style=dashed];
-	"thm:sylow-thm"	[URL="thm:sylow-thm",
-		color=Blue,
-		fillcolor=Lavender,
-		label="sylow thm",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:sylow-thm"];
-	"def:homo" -> "thm:sylow-thm"	[style=dashed];
-	"ex:sylow-15"	[URL="ex:sylow-15",
-		color=Blue,
-		fillcolor="#eed9c4",
-		label="sylow 15",
-		shape=hexagon,
-		style=filled,
-		tooltip="ex:sylow-15"];
-	"def:direct-product" -> "ex:sylow-15"	[style=dashed];
-	"thm:direct-order"	[URL="thm:direct-order",
-		color=Blue,
-		fillcolor=Lavender,
-		label="direct order",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:direct-order"];
-	"def:direct-product" -> "thm:direct-order"	[style=dashed];
-	"ex:nZ"	[URL="ex:nZ",
-		color=Blue,
-		fillcolor="#eed9c4",
-		label=nZ,
-		shape=hexagon,
-		style=filled,
-		tooltip="ex:nZ"];
-	"ex:integers" -> "ex:nZ"	[style=dashed];
-	"ex:integers" -> "thm:cyclic-subgroup-order"	[style=dashed];
-	"ex:normal-examples"	[URL="ex:normal-examples",
-		color=Blue,
-		fillcolor="#eed9c4",
-		label="normal examples",
-		shape=hexagon,
-		style=filled,
-		tooltip="ex:normal-examples"];
-	"ex:nZ" -> "ex:normal-examples"	[style=dashed];
-	"cor:order-divides"	[URL="cor:order-divides",
-		color=Blue,
-		fillcolor="#d9a6d9",
-		label="order divides",
-		shape=ellipse,
-		style=filled,
-		tooltip="cor:order-divides"];
-	"thm:cyclic-subgroup-order" -> "cor:order-divides"	[style=solid];
-	"thm:lagrange" -> "def:sylow"	[style=dashed];
-	"thm:lagrange" -> "cor:order-divides"	[style=solid];
-	"ex:Z-mod-n"	[URL="ex:Z-mod-n",
-		color=Blue,
-		fillcolor="#eed9c4",
-		label="Z mod n",
-		shape=hexagon,
-		style=filled,
-		tooltip="ex:Z-mod-n"];
-	"def:quotient" -> "ex:Z-mod-n"	[style=dashed];
-	"thm:iso-2"	[URL="thm:iso-2",
-		color=Blue,
-		fillcolor=Lavender,
-		label="iso 2",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:iso-2"];
-	"def:quotient" -> "thm:iso-2"	[style=dashed];
-	"thm:iso-3"	[URL="thm:iso-3",
-		color=Blue,
-		fillcolor=Lavender,
-		label="iso 3",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:iso-3"];
-	"def:quotient" -> "thm:iso-3"	[style=dashed];
-	"def:sylow" -> "thm:sylow-thm"	[style=dashed];
-	"def:cyclic-subgroup" -> "cor:order-divides"	[style=solid];
-	"def:cyclic-subgroup" -> "ex:Z-mod-n"	[style=dashed];
-	"thm:cyclic-subgroup"	[URL="thm:cyclic-subgroup",
-		color=Blue,
-		fillcolor=Lavender,
-		label="cyclic subgroup",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:cyclic-subgroup"];
-	"def:cyclic-subgroup" -> "thm:cyclic-subgroup"	[style=dashed];
-	"thm:Zm-Zn"	[URL="thm:Zm-Zn",
-		color=Blue,
-		fillcolor=Lavender,
-		label="Zm Zn",
-		shape=doublecircle,
-		style=filled,
-		tooltip="thm:Zm-Zn"];
-	"def:cyclic-subgroup" -> "thm:Zm-Zn"	[style=dashed];
-	"def:coset" -> "def:quotient"	[style=dashed];
-	"lem:coset-equality"	[URL="lem:coset-equality",
-		color=Blue,
-		fillcolor=SkyBlue,
-		label="coset equality",
-		shape=diamond,
-		style=filled,
-		tooltip="lem:coset-equality"];
-	"def:coset" -> "lem:coset-equality"	[style=dashed];
-	"prop:normal-equiv"	[URL="prop:normal-equiv",
-		color=Purple,
-		fillcolor=White,
-		label="normal equiv",
-		shape=pentagon,
-		style=filled,
-		tooltip="prop:normal-equiv"];
-	"def:coset" -> "prop:normal-equiv"	[style=dashed];
-	"def:normal" -> "def:quotient"	[style=dashed];
-	"def:normal" -> "prop:normal-equiv"	[style=dashed];
-	"cor:sylow-normal"	[URL="cor:sylow-normal",
-		color=Blue,
-		fillcolor="#d9a6d9",
-		label="sylow normal",
-		shape=ellipse,
-		style=filled,
-		tooltip="cor:sylow-normal"];
-	"def:normal" -> "cor:sylow-normal"	[style=solid];
-	"prop:subgroup-test" -> "ex:nZ"	[style=dashed];
-	"prop:subgroup-test" -> "thm:cyclic-subgroup"	[style=solid];
-	"prop:subgroup-test" -> "lem:coset-equality"	[style=solid];
-	"prop:ker-normal"	[URL="prop:ker-normal",
-		color=Purple,
-		fillcolor=White,
-		label="ker normal",
-		shape=pentagon,
-		style=filled,
-		tooltip="prop:ker-normal"];
-	"prop:subgroup-test" -> "prop:ker-normal"	[style=solid];
-	"cor:prime-cyclic"	[URL="cor:prime-cyclic",
-		color=Blue,
-		fillcolor="#d9a6d9",
-		label="prime cyclic",
-		shape=ellipse,
-		style=filled,
-		tooltip="cor:prime-cyclic"];
-	"cor:order-divides" -> "cor:prime-cyclic"	[style=solid];
-	"cor:fermat-euler"	[URL="cor:fermat-euler",
-		color=Blue,
-		fillcolor="#d9a6d9",
-		label="fermat euler",
-		shape=ellipse,
-		style=filled,
-		tooltip="cor:fermat-euler"];
-	"cor:order-divides" -> "cor:fermat-euler"	[style=solid];
-	"def:p-subgroup"	[URL="def:p-subgroup",
-		color=Purple,
-		fillcolor=Lavender,
-		label="p subgroup",
-		shape=box,
-		style=filled,
-		tooltip="def:p-subgroup"];
-	"cor:order-divides" -> "def:p-subgroup"	[style=dashed];
-	"ex:Z-mod-n" -> "thm:cyclic-classification"	[style=dashed];
-	"thm:Zm-Zn" -> "ex:sylow-15"	[style=dashed];
-	"lem:coset-equality" -> "thm:lagrange"	[style=solid];
-	"lem:coset-equality" -> "thm:iso-1"	[style=solid];
-	"prop:normal-equiv" -> "ex:normal-examples"	[style=dashed];
-	"rem:well-defined"	[URL="rem:well-defined",
-		color=Blue,
-		fillcolor=Pink,
-		label="well defined",
-		shape=hexagon,
-		style=filled,
-		tooltip="rem:well-defined"];
-	"prop:normal-equiv" -> "rem:well-defined"	[style=dashed];
-	"prop:normal-equiv" -> "prop:ker-normal"	[style=solid];
-	"cor:prime-cyclic" -> "thm:cyclic-classification"	[style=dashed];
-	"cor:euler-phi"	[URL="cor:euler-phi",
-		color=Blue,
-		fillcolor="#d9a6d9",
-		label="euler phi",
-		shape=ellipse,
-		style=filled,
-		tooltip="cor:euler-phi"];
-	"thm:cyclic-classification" -> "cor:euler-phi"	[style=solid];
-	"thm:cyclic-classification" -> "ex:sylow-15"	[style=dashed];
-	"cor:sylow-normal" -> "ex:sylow-15"	[style=dashed];
-	"thm:iso-1" -> "thm:cayley"	[style=solid];
-	"thm:iso-1" -> "thm:iso-2"	[style=solid];
-	"thm:iso-1" -> "thm:iso-3"	[style=solid];
-	"thm:sylow-thm" -> "cor:sylow-normal"	[style=solid];
-	"prop:ker-normal" -> "thm:iso-1"	[style=solid];
-	"def:kernel-image"	[URL="def:kernel-image",
-		color=Purple,
-		fillcolor=Lavender,
-		label="kernel image",
-		shape=box,
-		style=filled,
-		tooltip="def:kernel-image"];
-	__legend__	[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">corollary</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">ellipse</FONT></TD><TD BGCOLOR="#d9a6d9" BORDER="1" COLOR="Blue">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">definition</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">box</FONT></TD><TD BGCOLOR="Lavender" BORDER="1" COLOR="Purple">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">example</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">hexagon</FONT></TD><TD BGCOLOR="#eed9c4" BORDER="1" COLOR="Blue">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">lemma</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">diamond</FONT></TD><TD BGCOLOR="SkyBlue" BORDER="1" COLOR="Blue">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">proposition</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">pentagon</FONT></TD><TD BGCOLOR="White" BORDER="1" COLOR="Purple">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">remark</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">hexagon</FONT></TD><TD BGCOLOR="Pink" BORDER="1" COLOR="Blue">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">theorem</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">doublecircle</FONT></TD><TD BGCOLOR="Lavender" BORDER="1" COLOR="Blue">  </TD></TR><TR><TD COLSPAN="3"><FONT POINT-SIZE="6"> </FONT></TD></TR><TR><TD ALIGN="LEFT" COLSPAN="3"><FONT POINT-SIZE="9">&#8212;&#8212; solid = from proof</FONT></TD></TR><TR><TD ALIGN="LEFT" COLSPAN="3"><FONT POINT-SIZE="9">- - - dashed = from statement</FONT></TD></TR><TR><TD ALIGN="LEFT" COLSPAN="3"><FONT POINT-SIZE="9">&#183;&#183;&#183;&#183; dotted = heuristic</FONT></TD></TR></TABLE>>,
-		margin=0,
-		shape=none];
+digraph knowtex {
+  graph [bgcolor="transparent"];
+  node [penwidth=1.8];
+  edge [arrowhead=vee];
+  "def:group" [label="group", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:group", tooltip="def:group"];
+  "def:abelian" [label="abelian", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:abelian", tooltip="def:abelian"];
+  "ex:integers" [label="integers", shape="note", style="filled", color="#6C7278", fillcolor="#EDEEEA", URL="ex:integers", tooltip="ex:integers"];
+  "ex:symmetric-group" [label="symmetric group", shape="note", style="filled", color="#6C7278", fillcolor="#EDEEEA", URL="ex:symmetric-group", tooltip="ex:symmetric-group"];
+  "prop:uniqueness" [label="uniqueness", shape="ellipse", style="filled", color="#6B4CA8", fillcolor="#E8E0F4", URL="prop:uniqueness", tooltip="prop:uniqueness"];
+  "prop:cancellation" [label="cancellation", shape="ellipse", style="filled", color="#6B4CA8", fillcolor="#E8E0F4", URL="prop:cancellation", tooltip="prop:cancellation"];
+  "def:order" [label="order", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:order", tooltip="def:order"];
+  "def:subgroup" [label="subgroup", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:subgroup", tooltip="def:subgroup"];
+  "prop:subgroup-test" [label="subgroup test", shape="ellipse", style="filled", color="#6B4CA8", fillcolor="#E8E0F4", URL="prop:subgroup-test", tooltip="prop:subgroup-test"];
+  "ex:nZ" [label="nZ", shape="note", style="filled", color="#6C7278", fillcolor="#EDEEEA", URL="ex:nZ", tooltip="ex:nZ"];
+  "def:cyclic-subgroup" [label="cyclic subgroup", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:cyclic-subgroup", tooltip="def:cyclic-subgroup"];
+  "thm:cyclic-subgroup-order" [label="cyclic subgroup order", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:cyclic-subgroup-order", tooltip="thm:cyclic-subgroup-order"];
+  "def:coset" [label="coset", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:coset", tooltip="def:coset"];
+  "lem:coset-equality" [label="coset equality", shape="ellipse", style="filled", color="#2F7D4A", fillcolor="#DDF0DC", URL="lem:coset-equality", tooltip="lem:coset-equality"];
+  "thm:lagrange" [label="lagrange", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:lagrange", tooltip="thm:lagrange"];
+  "cor:order-divides" [label="order divides", shape="ellipse", style="filled", color="#A83A62", fillcolor="#F5DEE6", URL="cor:order-divides", tooltip="cor:order-divides"];
+  "cor:prime-cyclic" [label="prime cyclic", shape="ellipse", style="filled", color="#A83A62", fillcolor="#F5DEE6", URL="cor:prime-cyclic", tooltip="cor:prime-cyclic"];
+  "cor:fermat-euler" [label="fermat euler", shape="ellipse", style="filled", color="#A83A62", fillcolor="#F5DEE6", URL="cor:fermat-euler", tooltip="cor:fermat-euler"];
+  "def:normal" [label="normal", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:normal", tooltip="def:normal"];
+  "prop:normal-equiv" [label="normal equiv", shape="ellipse", style="filled", color="#6B4CA8", fillcolor="#E8E0F4", URL="prop:normal-equiv", tooltip="prop:normal-equiv"];
+  "ex:normal-examples" [label="normal examples", shape="note", style="filled", color="#6C7278", fillcolor="#EDEEEA", URL="ex:normal-examples", tooltip="ex:normal-examples"];
+  "def:quotient" [label="quotient", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:quotient", tooltip="def:quotient"];
+  "rem:well-defined" [label="well defined", shape="note", style="filled", color="#6C7278", fillcolor="#EDEEEA", URL="rem:well-defined", tooltip="rem:well-defined"];
+  "ex:Z-mod-n" [label="Z mod n", shape="note", style="filled", color="#6C7278", fillcolor="#EDEEEA", URL="ex:Z-mod-n", tooltip="ex:Z-mod-n"];
+  "def:homo" [label="homo", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:homo", tooltip="def:homo"];
+  "def:kernel-image" [label="kernel image", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:kernel-image", tooltip="def:kernel-image"];
+  "prop:ker-normal" [label="ker normal", shape="ellipse", style="filled", color="#6B4CA8", fillcolor="#E8E0F4", URL="prop:ker-normal", tooltip="prop:ker-normal"];
+  "thm:iso-1" [label="iso 1", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:iso-1", tooltip="thm:iso-1"];
+  "thm:iso-2" [label="iso 2", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:iso-2", tooltip="thm:iso-2"];
+  "thm:iso-3" [label="iso 3", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:iso-3", tooltip="thm:iso-3"];
+  "thm:cyclic-subgroup" [label="cyclic subgroup", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:cyclic-subgroup", tooltip="thm:cyclic-subgroup"];
+  "thm:cyclic-classification" [label="cyclic classification", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:cyclic-classification", tooltip="thm:cyclic-classification"];
+  "cor:euler-phi" [label="euler phi", shape="ellipse", style="filled", color="#A83A62", fillcolor="#F5DEE6", URL="cor:euler-phi", tooltip="cor:euler-phi"];
+  "def:direct-product" [label="direct product", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:direct-product", tooltip="def:direct-product"];
+  "thm:direct-order" [label="direct order", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:direct-order", tooltip="thm:direct-order"];
+  "thm:Zm-Zn" [label="Zm Zn", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:Zm-Zn", tooltip="thm:Zm-Zn"];
+  "thm:cayley" [label="cayley", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:cayley", tooltip="thm:cayley"];
+  "def:p-subgroup" [label="p subgroup", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:p-subgroup", tooltip="def:p-subgroup"];
+  "def:sylow" [label="sylow", shape="box", style="filled", color="#2A6FA8", fillcolor="#DCEBF7", URL="def:sylow", tooltip="def:sylow"];
+  "thm:sylow-thm" [label="sylow thm", shape="ellipse", style="filled", color="#B5761A", fillcolor="#FBEBC8", URL="thm:sylow-thm", tooltip="thm:sylow-thm"];
+  "cor:sylow-normal" [label="sylow normal", shape="ellipse", style="filled", color="#A83A62", fillcolor="#F5DEE6", URL="cor:sylow-normal", tooltip="cor:sylow-normal"];
+  "ex:sylow-15" [label="sylow 15", shape="note", style="filled", color="#6C7278", fillcolor="#EDEEEA", URL="ex:sylow-15", tooltip="ex:sylow-15"];
+  "def:subgroup" -> "prop:subgroup-test" [style="solid", tooltip="D1: def:subgroup -> prop:subgroup-test"];
+  "prop:subgroup-test" -> "lem:coset-equality" [style="solid", tooltip="D1: prop:subgroup-test -> lem:coset-equality"];
+  "lem:coset-equality" -> "thm:lagrange" [style="solid", tooltip="D1: lem:coset-equality -> thm:lagrange"];
+  "prop:cancellation" -> "thm:lagrange" [style="solid", tooltip="D1: prop:cancellation -> thm:lagrange"];
+  "thm:cyclic-subgroup-order" -> "cor:order-divides" [style="solid", tooltip="D1: thm:cyclic-subgroup-order -> cor:order-divides"];
+  "def:cyclic-subgroup" -> "cor:order-divides" [style="solid", tooltip="D1: def:cyclic-subgroup -> cor:order-divides"];
+  "thm:lagrange" -> "cor:order-divides" [style="solid", tooltip="D1: thm:lagrange -> cor:order-divides"];
+  "cor:order-divides" -> "cor:prime-cyclic" [style="solid", tooltip="D1: cor:order-divides -> cor:prime-cyclic"];
+  "cor:order-divides" -> "cor:fermat-euler" [style="solid", tooltip="D1: cor:order-divides -> cor:fermat-euler"];
+  "prop:normal-equiv" -> "prop:ker-normal" [style="solid", tooltip="D1: prop:normal-equiv -> prop:ker-normal"];
+  "prop:subgroup-test" -> "prop:ker-normal" [style="solid", tooltip="D1: prop:subgroup-test -> prop:ker-normal"];
+  "prop:ker-normal" -> "thm:iso-1" [style="solid", tooltip="D1: prop:ker-normal -> thm:iso-1"];
+  "def:quotient" -> "thm:iso-1" [style="solid", tooltip="D1: def:quotient -> thm:iso-1"];
+  "rem:well-defined" -> "thm:iso-1" [style="solid", tooltip="D1: rem:well-defined -> thm:iso-1"];
+  "lem:coset-equality" -> "thm:iso-1" [style="solid", tooltip="D1: lem:coset-equality -> thm:iso-1"];
+  "thm:iso-1" -> "thm:iso-2" [style="solid", tooltip="D1: thm:iso-1 -> thm:iso-2"];
+  "thm:iso-1" -> "thm:iso-3" [style="solid", tooltip="D1: thm:iso-1 -> thm:iso-3"];
+  "prop:subgroup-test" -> "thm:cyclic-subgroup" [style="solid", tooltip="D1: prop:subgroup-test -> thm:cyclic-subgroup"];
+  "thm:cyclic-classification" -> "cor:euler-phi" [style="solid", tooltip="D1: thm:cyclic-classification -> cor:euler-phi"];
+  "prop:cancellation" -> "thm:cayley" [style="solid", tooltip="D1: prop:cancellation -> thm:cayley"];
+  "thm:iso-1" -> "thm:cayley" [style="solid", tooltip="D1: thm:iso-1 -> thm:cayley"];
+  "thm:sylow-thm" -> "cor:sylow-normal" [style="solid", tooltip="D1: thm:sylow-thm -> cor:sylow-normal"];
+  "def:normal" -> "cor:sylow-normal" [style="solid", tooltip="D1: def:normal -> cor:sylow-normal"];
+  "ex:integers" -> "ex:nZ" [style="dashed", tooltip="D2: ex:integers -> ex:nZ"];
+  "prop:subgroup-test" -> "ex:nZ" [style="dashed", tooltip="D2: prop:subgroup-test -> ex:nZ"];
+  "ex:integers" -> "thm:cyclic-subgroup-order" [style="dashed", tooltip="D2: ex:integers -> thm:cyclic-subgroup-order"];
+  "def:normal" -> "prop:normal-equiv" [style="dashed", tooltip="D2: def:normal -> prop:normal-equiv"];
+  "prop:normal-equiv" -> "ex:normal-examples" [style="dashed", tooltip="D2: prop:normal-equiv -> ex:normal-examples"];
+  "ex:nZ" -> "ex:normal-examples" [style="dashed", tooltip="D2: ex:nZ -> ex:normal-examples"];
+  "prop:normal-equiv" -> "rem:well-defined" [style="dashed", tooltip="D2: prop:normal-equiv -> rem:well-defined"];
+  "ex:normal-examples" -> "ex:Z-mod-n" [style="dashed", tooltip="D2: ex:normal-examples -> ex:Z-mod-n"];
+  "ex:Z-mod-n" -> "thm:cyclic-classification" [style="dashed", tooltip="D2: ex:Z-mod-n -> thm:cyclic-classification"];
+  "def:homo" -> "thm:cyclic-classification" [style="dashed", tooltip="D2: def:homo -> thm:cyclic-classification"];
+  "cor:prime-cyclic" -> "thm:cyclic-classification" [style="dashed", tooltip="D2: cor:prime-cyclic -> thm:cyclic-classification"];
+  "def:direct-product" -> "thm:direct-order" [style="dashed", tooltip="D2: def:direct-product -> thm:direct-order"];
+  "thm:cyclic-classification" -> "thm:Zm-Zn" [style="dashed", tooltip="D2: thm:cyclic-classification -> thm:Zm-Zn"];
+  "cor:order-divides" -> "def:p-subgroup" [style="dashed", tooltip="D2: cor:order-divides -> def:p-subgroup"];
+  "thm:lagrange" -> "def:sylow" [style="dashed", tooltip="D2: thm:lagrange -> def:sylow"];
+  "def:sylow" -> "thm:sylow-thm" [style="dashed", tooltip="D2: def:sylow -> thm:sylow-thm"];
+  "def:homo" -> "thm:sylow-thm" [style="dashed", tooltip="D2: def:homo -> thm:sylow-thm"];
+  "cor:sylow-normal" -> "ex:sylow-15" [style="dashed", tooltip="D2: cor:sylow-normal -> ex:sylow-15"];
+  "def:direct-product" -> "ex:sylow-15" [style="dashed", tooltip="D2: def:direct-product -> ex:sylow-15"];
+  "thm:Zm-Zn" -> "ex:sylow-15" [style="dashed", tooltip="D2: thm:Zm-Zn -> ex:sylow-15"];
+  "def:group" -> "def:abelian" [style="dashed", tooltip="D4: def:group -> def:abelian"];
+  "def:abelian" -> "ex:integers" [style="dashed", tooltip="D4: def:abelian -> ex:integers"];
+  "def:group" -> "ex:symmetric-group" [style="dashed", tooltip="D4: def:group -> ex:symmetric-group"];
+  "def:group" -> "prop:uniqueness" [style="dashed", tooltip="D4: def:group -> prop:uniqueness"];
+  "def:group" -> "prop:cancellation" [style="dashed", tooltip="D4: def:group -> prop:cancellation"];
+  "def:group" -> "def:order" [style="dashed", tooltip="D4: def:group -> def:order"];
+  "def:group" -> "def:subgroup" [style="dashed", tooltip="D4: def:group -> def:subgroup"];
+  "def:subgroup" -> "def:cyclic-subgroup" [style="dashed", tooltip="D4: def:subgroup -> def:cyclic-subgroup"];
+  "def:order" -> "thm:cyclic-subgroup-order" [style="dashed", tooltip="D4: def:order -> thm:cyclic-subgroup-order"];
+  "def:subgroup" -> "thm:cyclic-subgroup-order" [style="dashed", tooltip="D4: def:subgroup -> thm:cyclic-subgroup-order"];
+  "def:subgroup" -> "def:coset" [style="dashed", tooltip="D4: def:subgroup -> def:coset"];
+  "def:coset" -> "lem:coset-equality" [style="dashed", tooltip="D4: def:coset -> lem:coset-equality"];
+  "def:subgroup" -> "def:normal" [style="dashed", tooltip="D4: def:subgroup -> def:normal"];
+  "def:coset" -> "prop:normal-equiv" [style="dashed", tooltip="D4: def:coset -> prop:normal-equiv"];
+  "def:order" -> "def:quotient" [style="dashed", tooltip="D4: def:order -> def:quotient"];
+  "def:coset" -> "def:quotient" [style="dashed", tooltip="D4: def:coset -> def:quotient"];
+  "def:normal" -> "def:quotient" [style="dashed", tooltip="D4: def:normal -> def:quotient"];
+  "def:cyclic-subgroup" -> "ex:Z-mod-n" [style="dashed", tooltip="D4: def:cyclic-subgroup -> ex:Z-mod-n"];
+  "def:quotient" -> "ex:Z-mod-n" [style="dashed", tooltip="D4: def:quotient -> ex:Z-mod-n"];
+  "def:group" -> "def:homo" [style="dashed", tooltip="D4: def:group -> def:homo"];
+  "def:homo" -> "thm:iso-1" [style="dashed", tooltip="D4: def:homo -> thm:iso-1"];
+  "def:cyclic-subgroup" -> "thm:cyclic-subgroup" [style="dashed", tooltip="D4: def:cyclic-subgroup -> thm:cyclic-subgroup"];
+  "def:group" -> "def:direct-product" [style="dashed", tooltip="D4: def:group -> def:direct-product"];
+  "def:order" -> "def:sylow" [style="dashed", tooltip="D4: def:order -> def:sylow"];
+  "ex:symmetric-group" -> "thm:cayley" [style="dotted", tooltip="H4: ex:symmetric-group -> thm:cayley"];
+  __legend__ [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">corollary</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">ellipse</FONT></TD><TD BGCOLOR="#F5DEE6" BORDER="1" COLOR="#A83A62">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">definition</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">box</FONT></TD><TD BGCOLOR="#DCEBF7" BORDER="1" COLOR="#2A6FA8">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">example</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">note</FONT></TD><TD BGCOLOR="#EDEEEA" BORDER="1" COLOR="#6C7278">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">lemma</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">ellipse</FONT></TD><TD BGCOLOR="#DDF0DC" BORDER="1" COLOR="#2F7D4A">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">proposition</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">ellipse</FONT></TD><TD BGCOLOR="#E8E0F4" BORDER="1" COLOR="#6B4CA8">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">remark</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">note</FONT></TD><TD BGCOLOR="#EDEEEA" BORDER="1" COLOR="#6C7278">  </TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">theorem</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="9">ellipse</FONT></TD><TD BGCOLOR="#FBEBC8" BORDER="1" COLOR="#B5761A">  </TD></TR><TR><TD COLSPAN="3"><FONT POINT-SIZE="6"> </FONT></TD></TR><TR><TD ALIGN="LEFT" COLSPAN="3"><FONT POINT-SIZE="9">&#8212;&#8212; solid = from proof</FONT></TD></TR><TR><TD ALIGN="LEFT" COLSPAN="3"><FONT POINT-SIZE="9">- - - dashed = from statement</FONT></TD></TR><TR><TD ALIGN="LEFT" COLSPAN="3"><FONT POINT-SIZE="9">&#183;&#183;&#183;&#183; dotted = heuristic</FONT></TD></TR></TABLE>>, shape="none", margin="0"];
 }

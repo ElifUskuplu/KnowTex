@@ -2,7 +2,7 @@
 """
 Test suite for the knowtex package.
 
-Run with:  pytest test_knowtex.py -v
+Run with:  pytest tests/test_knowtex.py -v
 """
 
 import sys
@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))   # repository root
 
 from knowtex.core.utils import (
     strip_comments,
@@ -264,7 +264,7 @@ Line break then comment \\% \begin{remark} x \end{remark}
         # environment run to the end of the file.)
         well_formed = "\n".join(l for l in self.DOC.splitlines()
                                 if "corollary }" not in l and "never closed" not in l) + "\n"
-        example = open(os.path.join(os.path.dirname(__file__), "example", "group_theory.tex"), encoding="utf-8").read()
+        example = open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "example", "group_theory.tex"), encoding="utf-8").read()
         for text in (well_formed, example):
             assert self._sig(parse_latex_structure(text, engine="fast")) == self._sig(parse_latex_structure(text, engine="ast"))
 

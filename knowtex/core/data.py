@@ -44,6 +44,24 @@ class ProofInfo(NamedTuple):
     target_node_idx: int | None   # Index of the parent statement node
     text: str | None = None       # Markup-free body text (non-LaTeX front-ends)
     refs: tuple[str, ...] | None = None  # Labels referenced in the proof
+    # A header naming several results ("Proof of Theorems \\ref{a} and
+    # \\ref{b}", \\proves{a,b}): the first is the primary target above, the
+    # others are kept here, as labels and, once resolved, as node indices.
+    extra_target_labels: tuple[str, ...] = ()
+    extra_target_idxs: tuple[int, ...] = ()
+
+
+def proof_targets(proof):
+    """The indices of every statement a proof proves: the primary target
+    first, then the further targets of a multi-target header.  Empty when
+    the proof has no statement."""
+    if proof.target_node_idx is None:
+        return []
+    out = [proof.target_node_idx]
+    for idx in proof.extra_target_idxs:
+        if idx not in out:
+            out.append(idx)
+    return out
 
 
 @dataclass(frozen=True, slots=True)

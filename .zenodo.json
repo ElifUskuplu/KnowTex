@@ -1,0 +1,16 @@
+{
+  "title": "KnowTeX: dependency graphs of definitions, theorems and proofs from LaTeX and Markdown",
+  "upload_type": "software",
+  "description": "KnowTeX reads LaTeX projects or Markdown notes and builds the dependency graph of their definitions, theorems and proofs, either from explicit \\uses{} annotations (Lean Blueprint compatible) or by inference from cross-references, defined terms and document structure. This release is the version evaluated in the article 'KnowTeX: Extracting Logical Dependencies from Mathematical Texts' (arXiv version: 'KnowTeX: Visualizing Mathematical Dependencies', arXiv:2601.15294); the four evaluation datasets, their configurations, the baseline edge sets and the scripts that produce every table of the article are included.",
+  "creators": [
+    {"name": "Uskuplu, Elif", "affiliation": "Indiana University, Bloomington"},
+    {"name": "Moss, Lawrence S.", "affiliation": "Indiana University, Bloomington"},
+    {"name": "de Paiva, Valeria", "affiliation": "Topos Institute"}
+  ],
+  "license": "Apache-2.0",
+  "keywords": ["dependency graph", "mathematical knowledge management", "LaTeX", "Lean Blueprint", "mathematical writing"],
+  "related_identifiers": [
+    {"identifier": "arXiv:2601.15294", "relation": "isSupplementTo", "scheme": "arxiv"}
+  ],
+  "access_right": "open"
+}

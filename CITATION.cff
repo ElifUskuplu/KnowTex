@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+message: "If you use KnowTeX, please cite it as below."
+type: software
+title: "KnowTeX: dependency graphs of definitions, theorems and proofs from LaTeX and Markdown"
+version: 2.0.0
+# date-released and doi: fill in when the release is tagged and archived on Zenodo
+# date-released: 2026-MM-DD
+# doi: 10.5281/zenodo.XXXXXXX
+license: Apache-2.0
+repository-code: "https://github.com/ElifUskuplu/KnowTex"
+url: "https://elifuskuplu.github.io/KnowTex/"
+abstract: >-
+  KnowTeX reads LaTeX projects or Markdown notes and builds the dependency
+  graph of their definitions, theorems and proofs, either from explicit
+  \uses{} annotations (Lean Blueprint compatible) or by inference from
+  cross-references, defined terms and document structure.
+keywords:
+  - dependency graph
+  - mathematical knowledge management
+  - LaTeX
+  - Lean Blueprint
+  - mathematical writing
+authors:
+  - family-names: Uskuplu
+    given-names: Elif
+    affiliation: "Indiana University, Bloomington"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: Moss
+    given-names: Lawrence S.
+    affiliation: "Indiana University, Bloomington"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: de Paiva
+    given-names: Valeria
+    affiliation: "Topos Institute"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+preferred-citation:
+  type: article
+  title: "KnowTeX: Extracting Logical Dependencies from Mathematical Texts"
+  authors:
+    - family-names: Uskuplu
+      given-names: Elif
+    - family-names: Moss
+      given-names: Lawrence S.
+    - family-names: de Paiva
+      given-names: Valeria
+  year: 2026
+  # journal / doi: fill in on acceptance; the arXiv version is arXiv:2601.15294
+  notes: "arXiv version: 'KnowTeX: Visualizing Mathematical Dependencies', arXiv:2601.15294"

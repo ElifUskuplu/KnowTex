@@ -5,8 +5,8 @@ with \\uses{label1, label2}.  (\\proves{} is read by the parser, which
 uses it to retarget a proof.)
 """
 
-from knowtex.core.constants import USES_RX
-from knowtex.core.data import DependencyEdge
+from knowtex.core.constants import USES_RX, split_labels
+from knowtex.core.data import DependencyEdge, proof_targets
 
 
 def extract_manual_edges(nodes, node_by_index, label_to_node, proofs):
@@ -34,26 +34,20 @@ def extract_manual_edges(nodes, node_by_index, label_to_node, proofs):
     # Statement-level \\uses{}
     for ni in nodes:
         for um in USES_RX.finditer(ni.snippet):
-            labels = [x.strip() for x in um.group(1).split(",") if x.strip()]
-            for lbl in labels:
+            for lbl in split_labels(um.group(1)):
                 if lbl in all_labels and lbl != ni.label:
                     add_edge(lbl, ni.label, "statement")
 
-    # Proof-level \\uses{}
+    # Proof-level \\uses{}: to every statement the proof proves
     for p in proofs:
-        tgt_idx = p.target_node_idx
-        if tgt_idx is None:
-            continue
-        tgt_node = node_by_index.get(tgt_idx)
-        if not tgt_node:
-            continue
-        parent_label = tgt_node.label
-
-        snippet = p.snippet
-        for um in USES_RX.finditer(snippet):
-            labels = [x.strip() for x in um.group(1).split(",") if x.strip()]
-            for lbl in labels:
-                if lbl in all_labels and lbl != parent_label:
-                    add_edge(lbl, parent_label, "proof")
+        for tgt_idx in proof_targets(p):
+            tgt_node = node_by_index.get(tgt_idx)
+            if not tgt_node:
+                continue
+            parent_label = tgt_node.label
+            for um in USES_RX.finditer(p.snippet):
+                for lbl in split_labels(um.group(1)):
+                    if lbl in all_labels and lbl != parent_label:
+                        add_edge(lbl, parent_label, "proof")
 
     return edges

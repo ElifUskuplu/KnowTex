@@ -105,12 +105,12 @@ def _contains_phrase(stem_sequence, phrase_stems):
 def words_from_plain(text):
     """Tokenize markup-free text into lowercase words.
 
-    A word ending in ".", ",", "?" or ";" is followed by a "." boundary
+    A word ending in ".", ",", "?", ";" or ":" is followed by a "." boundary
     token so that phrase matching cannot span a sentence or clause.
     """
     words = []
     for w in text.split():
-        has_boundary = w[-1] in ".,?;" if w else False
+        has_boundary = w[-1] in ".,?;:" if w else False
         w = w.strip(".,;:!?()[]\"'")
         if len(w) >= 2:
             words.append(w.lower())

@@ -41,6 +41,7 @@ KNOWTEX_FILES = [
     "knowtex/deps/term_extraction.py",
     "knowtex/deps/index_registry.py",
     "knowtex/deps/manual.py",
+    "knowtex/pipeline.py",
     "knowtex/webapi.py",
 ]
 

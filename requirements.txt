@@ -1,0 +1,10 @@
+# Pinned versions used for the numbers in the paper (Python 3.10.12).
+# `pip install -e .` installs only PyStemmer; the rest are the optional extras
+# of pyproject.toml (export, web, ast, test).
+PyStemmer==3.0.0
+snowballstemmer==3.1.1
+pylatexenc==2.10
+pygraphviz==1.14
+dot2tex==2.11.3
+pytest==9.1.1
+playwright==1.63.0

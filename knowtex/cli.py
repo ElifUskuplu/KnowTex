@@ -4,9 +4,16 @@ Usage:
     python -m knowtex.cli notes.md                 # print edges
     python -m knowtex.cli notes.tex --dot out.dot  # write DOT
     python -m knowtex.cli notes.md --json out.json   # nodes and edges as JSON
+    python -m knowtex.cli glossary_folder/         # Markdown files as one glossary
+    python -m knowtex.cli main.tex --config run.json   # options of a page run
     cat notes.md | python -m knowtex.cli -         # read stdin
 
 LaTeX projects with \\input/\\include are expanded from the main file.
+The options that change the edges (``--mode``, ``--include-env``,
+``--definition-env``, ``--unordered``, ``--keep-cycles``, ``--no-tred``)
+are the keys of the web page's configuration; ``--config FILE`` reads the
+same keys from a JSON file, and a flag given on the command line wins
+over the file.  See ``knowtex/pipeline.py``.
 """
 
 import argparse
@@ -14,33 +21,58 @@ import json
 import sys
 from pathlib import Path
 
-from knowtex.core.constants import DEFN_ENV_RX
-from knowtex.core.cycles import find_cycles, transitive_reduction
+from knowtex.core.constants import default_env_style
 from knowtex.core.dot import build_dot
-from knowtex.core.formats import FORMAT_BY_SUFFIX, parse_document
-from knowtex.deps.index_registry import build_index_registry
-from knowtex.deps.infer import run_inference, resolve_cycles
-from knowtex.deps.manual import extract_manual_edges
+from knowtex.pipeline import PipelineConfig, load_input, run_pipeline
 
 
-def load_text(path, fmt):
-    if path == "-":
-        return sys.stdin.read()
-    p = Path(path)
-    if fmt == "latex" and p.suffix.lower() in (".tex", ".ltx"):
-        from knowtex.core.file_expand import load_and_expand
-        return load_and_expand(str(p))
-    return p.read_text(encoding="utf-8", errors="replace")
+def build_config(args, is_collection=False):
+    """The PipelineConfig of a parsed command line: the config file first,
+    then the flags, then the defaults.  A folder of files has no reading
+    order, so it is ``ordered=False`` unless the config file or a flag
+    says otherwise."""
+    cfg = {}
+    if args.config:
+        cfg = json.loads(Path(args.config).read_text(encoding="utf-8"))
+    if args.mode is not None:
+        cfg["mode"] = args.mode
+    if args.include_env:
+        cfg["include"] = list(args.include_env)
+    if args.definition_env:
+        cfg["definition_envs"] = list(args.definition_env)
+    if args.unordered:
+        cfg["ordered"] = False
+    elif "ordered" not in cfg and is_collection:
+        cfg["ordered"] = False
+    if args.disable_rule:
+        cfg["disabled_rules"] = list(args.disable_rule)
+    if args.keep_cycles:
+        cfg["resolve_cycles"] = False
+    if args.no_tred:
+        cfg["tred"] = False
+    return PipelineConfig.from_dict(cfg)
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="knowtex", description=__doc__.split("\n\n")[0])
-    ap.add_argument("path", help="input file, or - for stdin")
+    ap.add_argument("path", help="input file, folder of Markdown files, or - for stdin")
     ap.add_argument("--format", choices=["auto", "latex", "markdown"], default="auto")
-    ap.add_argument("--mode", choices=["infer", "manual"], default="infer")
-    ap.add_argument("--definition-env", action="append", default=None,
+    ap.add_argument("--config", metavar="FILE",
+                    help="JSON file with the page's configuration keys (mode, include, "
+                         "definition_envs, ordered, resolve_cycles, tred); flags override it")
+    ap.add_argument("--mode", choices=["infer", "manual"], default=None,
+                    help="infer (default) or manual (\\uses{} annotations only)")
+    ap.add_argument("--include-env", action="append", default=None, metavar="ENV",
+                    help="statement kind to keep (repeatable); default: all kinds found")
+    ap.add_argument("--definition-env", action="append", default=None, metavar="ENV",
                     help="environment treated as definition-like (repeatable); "
                          "default: names matching definition/notation/axiom/...")
+    ap.add_argument("--unordered", action="store_true",
+                    help="no reading order: D4 may link a definition to any statement "
+                         "(the default for a folder of Markdown files)")
+    ap.add_argument("--disable-rule", action="append", default=None, metavar="RULE",
+                    help="switch a rule off (D1, D2, D4, H2, H3, H4; repeatable), "
+                         "for ablation experiments")
     ap.add_argument("--no-tred", action="store_true",
                     help="skip transitive reduction (applied by default)")
     ap.add_argument("--keep-cycles", action="store_true",
@@ -52,50 +84,29 @@ def main(argv=None):
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args(argv)
 
-    fmt = args.format
-    if fmt == "auto" and args.path != "-":
-        # A known extension decides the format (and whether to expand
-        # \\input); otherwise the content is sniffed by parse_document.
-        fmt = FORMAT_BY_SUFFIX.get(Path(args.path).suffix.lower(), "auto")
-    text = load_text(args.path, fmt)
-    used_fmt, nodes, nbi, ltn, proofs, envs = parse_document(text, fmt=None if fmt == "auto" else fmt)
-
-    if args.mode == "manual":
-        edges = extract_manual_edges(nodes, nbi, ltn, proofs)
-    else:
-        defn = set(args.definition_env) if args.definition_env else {
-            e for e in envs if DEFN_ENV_RX.match(e)}
-        registry = build_index_registry(nodes, proofs, text) if used_fmt == "latex" else None
-        edges = run_inference(nodes, nbi, ltn, proofs, index_registry=registry,
-                              definition_envs=defn)
-    dropped = []
-    if args.mode == "infer" and not args.keep_cycles:
-        edges, dropped = resolve_cycles(edges, nodes)
-    if not args.no_tred:
-        edges = transitive_reduction(edges)
-    cycles = find_cycles(edges)
+    text, fmt, is_collection = load_input(args.path, args.format)
+    config = build_config(args, is_collection)
+    result = run_pipeline(text, fmt, config)
+    edges, cycles = result.edges, result.cycles
 
     if not args.quiet:
-        print(f"format: {used_fmt}   statements: {len(nodes)}   proofs: {len(proofs)}   "
-              f"edges: {len(edges)}   cycle edges: {len(cycles)}", file=sys.stderr)
+        print(f"format: {result.fmt}   statements: {len(result.nodes)}"
+              f"{'' if len(result.nodes) == len(result.all_nodes) else f' of {len(result.all_nodes)}'}"
+              f"   proofs: {len(result.proofs)}   edges: {len(edges)}"
+              f"   cycle edges: {len(cycles)}"
+              f"{f'   dropped by cycle resolution: {len(result.dropped)}' if result.dropped else ''}",
+              file=sys.stderr)
         for e in edges:
             flag = " (cycle)" if e.key() in cycles else ""
             print(f"{e.rule:3} {e.source} -> {e.target}{flag}")
 
     if args.dot:
-        env_config = {e: {} for e in sorted(envs)}
+        env_config = {e: default_env_style(e) for e in sorted({n.env for n in result.nodes})}
         Path(args.dot).write_text(
-            build_dot(nodes, edges, env_config, cycle_edges=cycles), encoding="utf-8")
+            build_dot(result.nodes, edges, env_config, cycle_edges=cycles), encoding="utf-8")
     if args.json:
-        Path(args.json).write_text(json.dumps({
-            "format": used_fmt,
-            "nodes": [{"label": n.label, "env": n.env, "index": n.index,
-                       "name": n.display_name} for n in nodes],
-            "edges": [{"source": e.source, "target": e.target, "rule": e.rule,
-                       "type": e.edge_type, "location": e.location} for e in edges],
-            "dropped_edges": [{"source": e.source, "target": e.target, "rule": e.rule,
-                               "type": e.edge_type, "location": e.location} for e in dropped],
-        }, indent=2, ensure_ascii=False), encoding="utf-8")
+        Path(args.json).write_text(json.dumps(result.to_dict(), indent=2, ensure_ascii=False),
+                                   encoding="utf-8")
     return 0
 
 

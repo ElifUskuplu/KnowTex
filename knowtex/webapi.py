@@ -62,10 +62,10 @@ from knowtex.core.formats import detect_format, parse_document
 from knowtex.core.structure import (
     assign_sections, detect_doc_class, find_chapter_ranges, find_section_ranges,
 )
-from knowtex.deps.infer import run_inference, resolve_cycles
+from knowtex.deps.infer import resolve_cycles
 from knowtex.deps.index_registry import build_index_registry
-from knowtex.deps.manual import extract_manual_edges
 from knowtex.deps.term_extraction import WordCache, defined_term_strings
+from knowtex.pipeline import PipelineConfig, raw_edges, select_nodes
 
 MAX_DOCS = 3          # documents kept in memory (least recently used dropped)
 MAX_EDGE_CACHE = 16   # inference results kept per parse
@@ -317,18 +317,15 @@ def _infer(P, cfg):
     key = ("raw", mode, frozenset(include), frozenset(defn) if mode == "infer" else None, ordered)
 
     def compute():
-        inc_nodes = [n for n in P.nodes if n.env in include]
-        inc_nbi = {n.index: n for n in inc_nodes}
-        inc_ltn = {lbl: n for lbl, n in P.ltn.items() if n.env in include}
-        if mode == "manual":
-            edges = extract_manual_edges(inc_nodes, inc_nbi, inc_ltn, P.proofs)
-        else:
-            edges = run_inference(inc_nodes, inc_nbi, inc_ltn, P.proofs,
-                                  index_registry=P.registry(),
-                                  definition_envs=defn, ordered=ordered,
-                                  word_cache=P.words)
-        visible = set(inc_ltn)
-        return [e for e in edges if e.source in visible and e.target in visible], inc_nodes
+        # the same steps as ``knowtex.pipeline.run_pipeline``, with the
+        # parse and the word cache of this document reused
+        pcfg = PipelineConfig(mode=mode, include=include, definition_envs=defn,
+                              ordered=ordered)
+        inc_nodes, inc_nbi, inc_ltn = select_nodes(P.nodes, P.ltn, include)
+        edges = raw_edges(inc_nodes, inc_nbi, inc_ltn, P.proofs, pcfg, P.envs,
+                          index_registry=P.registry() if mode == "infer" else None,
+                          word_cache=P.words)
+        return edges, inc_nodes
 
     return P.cached(key, compute), include, mode
 

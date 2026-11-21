@@ -24,8 +24,8 @@ import re
 logger = logging.getLogger("knowtex")
 
 from knowtex.core.constants import (
-    PROOF_ALIAS_RX, SKIP_ENVS, LABEL_RX, PROVES_RX,
-    INDEX_RX, PROOF_OF_REF_RX, EMPH_RX, INNER_LABEL_ENVS,
+    PROOF_ALIAS_RX, SKIP_ENVS, LABEL_RX, PROVES_RX, REF_RX,
+    INDEX_RX, PROOF_HEADER_RX, EMPH_RX, INNER_LABEL_ENVS, split_labels,
 )
 from knowtex.core.data import NodeInfo, ProofInfo
 from knowtex.core.utils import normalize_index_term
@@ -193,17 +193,21 @@ def parse_latex_structure(tex, engine=None):
     for my_index, (env, pos, pos_end, depth) in enumerate(envs_found):
         snippet = tex[pos:pos_end]
         if _is_proof(env):
-            # D3: explicit proof target from header
-            pm = PROOF_OF_REF_RX.search(snippet)
-            target_label = pm.group(1).strip() if pm else None
-            if not target_label:
+            # D3: explicit proof target(s) from the header, else \\proves{}
+            targets = []
+            hm = PROOF_HEADER_RX.match(snippet)
+            if hm:
+                for rm in REF_RX.finditer(hm.group(1)):
+                    targets.extend(split_labels(rm.group(1)))
+            if not targets:
                 prv = PROVES_RX.search(snippet)
                 if prv:
-                    target_label = prv.group(1).strip()
+                    targets = split_labels(prv.group(1))
             proofs.append(ProofInfo(
-                index=my_index, target_label=target_label, snippet=snippet,
-                pos=pos, pos_end=pos_end,
+                index=my_index, target_label=targets[0] if targets else None,
+                snippet=snippet, pos=pos, pos_end=pos_end,
                 target_node_idx=last_stmt_idx,  # H1 default
+                extra_target_labels=tuple(targets[1:]),
             ))
             continue
 
@@ -273,9 +277,17 @@ def parse_latex_structure(tex, engine=None):
         node_by_index[my_index] = ni
         label_to_node[label] = ni
 
-    # Resolve explicit proof targets (D3)
+    # Resolve explicit proof targets (D3): the first label that names a
+    # statement becomes the primary target, the others extra targets;
+    # labels that resolve to nothing are ignored, and a proof none of
+    # whose labels resolve keeps the H1 default.
     for i, p in enumerate(proofs):
-        if p.target_label and p.target_label in label_to_node:
-            proofs[i] = p._replace(target_node_idx=label_to_node[p.target_label].index)
+        if not p.target_label:
+            continue
+        resolved = [label_to_node[l].index for l in (p.target_label, *p.extra_target_labels)
+                    if l in label_to_node]
+        if resolved:
+            proofs[i] = p._replace(target_node_idx=resolved[0],
+                                   extra_target_idxs=tuple(dict.fromkeys(resolved[1:])))
 
     return nodes, node_by_index, label_to_node, proofs, discovered_envs

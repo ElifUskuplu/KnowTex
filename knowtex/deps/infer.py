@@ -10,12 +10,13 @@ from collections import defaultdict
 
 from knowtex.core.cycles import strongly_connected_components
 from knowtex.core.constants import (
+    split_labels,
     REF_RX, EQREF_RX,
     PROOF_BEGIN_STRIP_RX, PROOF_END_STRIP_RX,
     COROLLARY_RX, H2_TARGET_RX, LEMMA_RX,
     H3_MAX_GAP,
 )
-from knowtex.core.data import DependencyEdge
+from knowtex.core.data import DependencyEdge, proof_targets
 from knowtex.deps.term_extraction import (
     WordCache, redefinition_term_strings, _stem, _stem_words,
     _contains_phrase, extract_defined_terms,
@@ -35,7 +36,7 @@ def node_refs(node):
     out = []
     for rx in (REF_RX, EQREF_RX):
         for rm in rx.finditer(node.snippet):
-            out.append(rm.group(1).strip())
+            out.extend(split_labels(rm.group(1)))   # \\cref{a,b}: every label counts
     return out
 
 
@@ -54,7 +55,7 @@ def proof_refs(proof):
     out = []
     for rx in (REF_RX, EQREF_RX):
         for rm in rx.finditer(inner):
-            out.append(rm.group(1).strip())
+            out.extend(split_labels(rm.group(1)))   # \\cref{a,b}: every label counts
     return out
 
 
@@ -87,8 +88,11 @@ def _candidates(posting, term_stems):
 
 def run_inference(nodes, node_by_index, label_to_node, proofs,
                   index_registry=None, definition_envs=None, ordered=True,
-                  word_cache=None):
+                  word_cache=None, disabled_rules=None):
     """Apply D1-D4 and H2-H3 rules, plus H4 if index_registry is provided.
+
+    ``disabled_rules`` (names among D1, D2, D4, H2, H3, H4) switches rules
+    off, for ablation experiments.
 
     ``ordered=False`` is for several Markdown files loaded together (a
     glossary, one entry per file): the files have no reading order, so
@@ -103,15 +107,17 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
     """
     edges = []
     seen = set()
+    disabled = frozenset(disabled_rules or ())
 
     def add_edge(source, target, edge_type, location, rule):
         """Record that *target* depends on *source* (source -> target)."""
         key = (source, target)
-        if key not in seen and source != target:
-            seen.add(key)
-            edges.append(
-                DependencyEdge(source, target, edge_type, location, rule)
-            )
+        if source == target or key in seen:
+            return
+        seen.add(key)
+        edges.append(
+            DependencyEdge(source, target, edge_type, location, rule)
+        )
 
     all_labels = set(label_to_node.keys())
     wc = word_cache if word_cache is not None else WordCache()
@@ -126,23 +132,23 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
             stems_by_pos = [wc.stems(ni) for ni in nodes]
             posting = _postings(stems_by_pos)
 
-    # --- D1: Process each proof ---
-    for p in proofs:
-        tgt_idx = p.target_node_idx
-        if tgt_idx is None:
-            continue
-        tgt_node = node_by_index.get(tgt_idx)
-        if not tgt_node:
-            continue
-        parent_label = tgt_node.label
-
-        for ref_label in proof_refs(p):
-            if ref_label in all_labels and ref_label != parent_label:
-                add_edge(ref_label, parent_label,
-                         "deterministic", "proof", "D1")
+    # --- D1: Process each proof (every statement it proves) ---
+    for p in (proofs if "D1" not in disabled else ()):
+        refs = None
+        for tgt_idx in proof_targets(p):
+            tgt_node = node_by_index.get(tgt_idx)
+            if not tgt_node:
+                continue
+            parent_label = tgt_node.label
+            if refs is None:
+                refs = proof_refs(p)
+            for ref_label in refs:
+                if ref_label in all_labels and ref_label != parent_label:
+                    add_edge(ref_label, parent_label,
+                             "deterministic", "proof", "D1")
 
     # --- D2: Process each statement ---
-    for ni in nodes:
+    for ni in (nodes if "D2" not in disabled else ()):
         label = ni.label
         for ref_label in node_refs(ni):
             if ref_label in all_labels and ref_label != label:
@@ -150,7 +156,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
                          "deterministic", "statement", "D2")
 
     # --- D4: Defined-term matching ---
-    if definition_envs:
+    if definition_envs and "D4" not in disabled:
         term_registry = build_defined_term_registry(nodes, definition_envs)
         term_index()
 
@@ -193,7 +199,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
     # targets that already have an edge from an author's reference (an
     # H2 edge points at its own corollary, so this set needs no update)
     has_dep = {e.target for e in edges if e.rule != "D4"}
-    for ni in nodes:
+    for ni in (nodes if "H2" not in disabled else ()):
         if not COROLLARY_RX.fullmatch(ni.env):
             continue
         if node_refs(ni):
@@ -214,7 +220,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
                      "heuristic", "inferred", "H2")
 
     # --- H3: Lemma -> next theorem/proposition ---
-    for i, ni in enumerate(nodes):
+    for i, ni in (enumerate(nodes) if "H3" not in disabled else ()):
         if not LEMMA_RX.fullmatch(ni.env):
             continue
 
@@ -232,7 +238,7 @@ def run_inference(nodes, node_by_index, label_to_node, proofs,
                  "heuristic", "inferred", "H3")
 
     # --- Index-based rule (H4) ---
-    if index_registry is not None:
+    if index_registry is not None and "H4" not in disabled:
         t2fn = index_registry["term_to_first_node"]
         term_index()
 

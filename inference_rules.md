@@ -30,7 +30,7 @@ Edges found in a proof are drawn **solid**, edges found in a statement are drawn
 
 **What it does.** Every reference inside a proof gives an edge from the referenced statement to the statement the proof proves.
 
-- LaTeX: `\ref`, `\cref`, `\Cref`, `\eqref`.
+- LaTeX: `\ref`, `\cref`, `\Cref`, `\eqref`. A reference naming several labels at once (`\cref{a,b}`) counts for each of them.
 - Markdown: `[text](#label)`, `[text](…/slug)`, and textual references such as "Theorem 2.1" or "Lemma 3".
 
 **Constraints.**
@@ -48,11 +48,11 @@ Edges found in a proof are drawn **solid**, edges found in a statement are drawn
 
 **What it does.** When a proof names the statement it proves, the proof is attached to that statement instead of the one just before it (H1). D3 produces no edge itself; it decides where the D1 edges of the proof go.
 
-- LaTeX: a `\ref`, `\cref` or `\Cref` in the optional argument, `\begin{proof}[Proof of Theorem \ref{thm:main}]`. Only the first reference in the argument is used.
+- LaTeX: the `\ref`, `\cref` or `\Cref` commands in the optional argument, `\begin{proof}[Proof of Theorem \ref{thm:main}]`. A header naming several results (`[Proof of Theorems \ref{a} and \ref{b}]`, `\cref{a,b}`) attaches the proof to all of them: the D1 edges of the proof (and its `\uses{}` in manual mode) go to every named statement. `\proves{a,b}` works the same way.
 - Markdown: `Proof of Theorem 2.1.` or `## Proof of Theorem 2.1`, also by name: `Proof of Theorem (Lagrange)`.
 
 **Constraints.**
-- D3 is checked before `\proves{}`. If the target does not exist in the document, the proof falls back to H1.
+- D3 is checked before `\proves{}`. Labels that do not exist in the document are ignored; if none of them exists, the proof falls back to H1.
 - A proof header without a reference ("Proof of the main theorem") is not understood.
 
 ### D4: Defined terms
@@ -130,6 +130,20 @@ Where the terms come from:
 By default a transitive reduction removes an edge `A → C` when `A → B → C` already exists. Edges that are part of a cycle are always kept and drawn in red. On the web page this is the **Transitive reduction** checkbox; `--no-tred` in the command line keeps every edge.
 
 ---
+
+## Limitations of the parser
+
+The rules can only see what the parser gives them.
+
+- **Wrapper macros are not expanded.** A reference written through a user macro (`\thmref{x}` defined as `\ref{thm:x}`) is not seen by D1/D2; a term emphasized through a custom macro other than `\emph`, `\textit`, `\textbf` or `\demph` is not a D4 term. The review step on the page is where such edges are added by hand.
+- **Statement kinds are recognized by name lists.** Every environment that is not a proof or a known structural environment becomes a statement, whatever its name; but the *kind* used by H2, H3, D4 and the node styles comes from regular expressions over common names (`PROOF_ALIAS_RX`, `COROLLARY_RX`, `H2_TARGET_RX`, `LEMMA_RX`, `DEFN_ENV_RX` in `knowtex/core/constants.py`). An author writing `\begin{satz}` gets a node of kind `satz` with the default style, which no heuristic treats as a theorem; the Definition column on the page (or `--definition-env` on the command line) is how such a kind is declared definition-like.
+- **Labels inside inner math environments are skipped** (`INNER_LABEL_ENVS`): a `\label` in an `equation` inside a theorem does not name the theorem.
+- **Files outside the project directory are not read** by `\input`/`\include`, and comments are removed before expansion, so a commented-out `\input` is ignored.
+- **Markdown** is read by its own front-end with its own conventions (headings with keywords, `**bold**` terms, links); H4 does not run on it.
+
+## Adding a rule
+
+A rule is a block in `run_inference` (`knowtex/deps/infer.py`) that calls `add_edge(source, target, edge_type, location, rule)`: `edge_type` is `deterministic` or `heuristic`, `location` is `proof`, `statement` or `inferred` (drawn solid, dashed, dotted), and `rule` is the name shown in the edge table. The first rule to propose a `(source, target)` pair owns it, so the position of the new block in the fixed order decides its precedence. To make the rest of the tool aware of it: add the name to `RuleName` in `knowtex/core/data.py`, guard the block with `if "Xn" not in disabled` (so `--disable-rule Xn` can switch it off), decide whether it is *explicit* (`EXPLICIT_RULES` in `infer.py`, the rules whose edges the cycle resolution never drops), and add tests next to the existing rule tests in `tests/test_knowtex.py`. Then run `python tests/regression.py`: the baselines of the four datasets will change, and the diff is the first thing to look at.
 
 ## Suggestions welcome
 

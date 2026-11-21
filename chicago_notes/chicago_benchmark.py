@@ -10,7 +10,7 @@ evaluates the result against the ground truth dependency edges given by
 the inter-definition hyperlinks in the markdown source.
 
 Usage:
-    python3 benchmark/chicago_benchmark.py
+    python3 chicago_notes/chicago_benchmark.py
 
 Requirements:
     - Internet access (for the first run, to download the data)
@@ -44,11 +44,9 @@ from knowtex.deps.infer import run_inference, resolve_cycles
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 CHICAGO_MD_DIR = DATA_DIR / "chicago_md"
-MAPPINGS_FILE = DATA_DIR / "chicago_mappings.csv"
 
 GITHUB_API_TREE = "https://api.github.com/repos/MathGloss/MathGloss/git/trees/main"
 GITHUB_RAW = "https://raw.githubusercontent.com/MathGloss/MathGloss/main"
-MAPPINGS_URL = f"{GITHUB_RAW}/data/alignments/chicago_mappings.csv"
 
 # Regex to extract inter-definition links from markdown
 # Pattern: [link text](https://mathgloss.github.io/MathGloss/chicago/TERM_NAME)
@@ -108,15 +106,13 @@ def _fetch_chicago_tree():
 
 
 def download_data(force=False):
-    """Download Chicago markdown files and mappings CSV from MathGloss."""
-    CHICAGO_MD_DIR.mkdir(parents=True, exist_ok=True)
+    """Download the Chicago markdown files from MathGloss.
 
-    # Download mappings CSV
-    if force or not MAPPINGS_FILE.exists():
-        print("Downloading chicago_mappings.csv...")
-        content = _fetch(MAPPINGS_URL)
-        MAPPINGS_FILE.write_text(content, encoding="utf-8")
-        print(f"  Saved {MAPPINGS_FILE}")
+    The Wikidata IDs used in the result CSVs are the ``Wikidata ID:``
+    lines of the markdown bodies; MathGloss's separate alignment table
+    (``data/alignments/chicago_mappings.csv``) is not needed.
+    """
+    CHICAGO_MD_DIR.mkdir(parents=True, exist_ok=True)
 
     # Check if we already have markdown files
     existing = list(CHICAGO_MD_DIR.glob("*.md"))
@@ -264,6 +260,24 @@ MD_LINK_RX = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 RUN_SUFFIX = ""   # "_d4-only" for the ablation run
 
 
+def gt_label_mapper(defs):
+    """A function from the Markdown front-end's labels
+    (``definition:<slug of the title>``) to the ground truth's
+    (``def:<slug of the file name>``).  The front-end slugifies titles
+    (apostrophes dropped, case folded); the same is done to the
+    ground-truth side so labels line up."""
+    title_slug_to_gt = {}
+    for d in defs:
+        title_slug_to_gt[slugify(d.title)] = d.label
+        title_slug_to_gt[slugify(d.slug)] = d.label
+
+    def to_gt(label):
+        slug = label.split(":", 1)[1]
+        return title_slug_to_gt.get(slug, "def:" + slug)
+
+    return to_gt
+
+
 def run_knowtex(defs, d4_only=False):
     """Run KnowTex's Markdown front-end and inference rules on the files.
 
@@ -297,16 +311,7 @@ def run_knowtex(defs, d4_only=False):
     print(f"Cycle resolution: {cycle_edges_before} cycle edges before, "
           f"{cycle_edges_after} after; {len(dropped)} D4 edges dropped")
 
-    # The Markdown front-end slugifies titles (apostrophes dropped, case
-    # folded); do the same to the ground-truth side so labels line up.
-    title_slug_to_gt = {}
-    for d in defs:
-        title_slug_to_gt[slugify(d.title)] = d.label
-        title_slug_to_gt[slugify(d.slug)] = d.label
-
-    def to_gt(label):
-        slug = label.split(":", 1)[1]
-        return title_slug_to_gt.get(slug, "def:" + slug)
+    to_gt = gt_label_mapper(defs)
 
     mapped = [DependencyEdge(to_gt(e.source), to_gt(e.target),
                              e.edge_type, e.location, e.rule) for e in edges
@@ -415,7 +420,7 @@ def evaluate(all_edges, ground_truth, defs, output_csv=False, cycle_info=None):
         "per_rule": per_rule,
         "cycles": cycle_info,
         "note": ("The ground truth holds hyperlink edges only, so every D4 "
-                 "edge counts as a false positive here; see benchmark/README.md."),
+                 "edge counts as a false positive here; see chicago_notes/README.md."),
     }
 
     # Save results JSON

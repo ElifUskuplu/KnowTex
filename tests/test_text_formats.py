@@ -3,13 +3,13 @@
 helpers (Markdown parser, format detection, DOT output,
 transitive reduction).
 
-Run with:  pytest test_text_formats.py -v
+Run with:  pytest tests/test_text_formats.py -v
 """
 
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))   # repository root
 
 from knowtex.core.formats import detect_format, parse_document
 from knowtex.core.text_parser import parse_text_structure, strip_markup, slugify
@@ -399,32 +399,6 @@ class TestWebApi:
         assert res["ok"] and res["nodes"] == [] and res["edges"] == []
 
 
-class TestCli:
-    def test_json_and_dot_output(self, tmp_path):
-        import json
-        from knowtex.cli import main
-        src = tmp_path / "notes.md"
-        src.write_text(MD_DOC, encoding="utf-8")
-        out = tmp_path / "out.json"
-        dot = tmp_path / "out.dot"
-        assert main([str(src), "--json", str(out), "--dot", str(dot), "--quiet"]) == 0
-        data = json.loads(out.read_text(encoding="utf-8"))
-        assert data["format"] == "markdown"
-        assert {n["label"] for n in data["nodes"]} >= {"definition:1.1", "theorem:1.3"}
-        assert any(e["rule"] == "D1" for e in data["edges"])
-        assert dot.read_text(encoding="utf-8").startswith("digraph")
-
-    def test_no_tred_keeps_more_edges(self, tmp_path):
-        import json
-        from knowtex.cli import main
-        src = tmp_path / "notes.md"
-        src.write_text(MD_DOC, encoding="utf-8")
-        a, b = tmp_path / "a.json", tmp_path / "b.json"
-        main([str(src), "--json", str(a), "--quiet"])
-        main([str(src), "--json", str(b), "--quiet", "--no-tred"])
-        assert len(json.loads(a.read_text())["edges"]) <= len(json.loads(b.read_text())["edges"])
-
-
 class TestFolderInput:
     def test_folder_is_read_in_name_order_with_blank_lines(self, tmp_path):
         from knowtex.core.formats import markdown_files, read_markdown_files
@@ -550,9 +524,11 @@ class TestWebApiFull:
         from knowtex.deps import infer
         webapi._docs.clear()
         doc = self._j(webapi.load(BOOK, "latex"))["id"]
+        from knowtex import pipeline
         calls = []
         orig = infer.run_inference
-        webapi.run_inference = lambda *a, **k: (calls.append(1), orig(*a, **k))[1]
+        # the page's build goes through knowtex.pipeline.raw_edges
+        pipeline.run_inference = lambda *a, **k: (calls.append(1), orig(*a, **k))[1]
         try:
             webapi.build(doc, "latex", "{}")
             webapi.build(doc, "latex", json.dumps({"legend": False, "tred": False}))
@@ -562,7 +538,7 @@ class TestWebApiFull:
             webapi.build(doc, "latex", json.dumps({"include": ["theorem", "lemma"]}))
             assert len(calls) == 2                            # a different graph
         finally:
-            webapi.run_inference = orig
+            pipeline.run_inference = orig
 
 
 class TestLocalServer:

@@ -36,12 +36,26 @@ EMPH_RX = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 
-# D3: explicit proof target, e.g. \begin{proof}[Proof of Theorem \ref{thm:X}]
+# D3: explicit proof target(s).  PROOF_HEADER_RX captures the optional
+# argument of \begin{proof}[...]; every \ref/\cref/\Cref in it (REF_RX,
+# comma lists split) is a target: "Proof of Theorems \ref{a} and \ref{b}"
+# attaches the proof to both.  PROOF_OF_REF_RX (first reference only) is
+# kept for compatibility.
+PROOF_HEADER_RX = re.compile(
+    r"\\begin\{(?:" + "|".join(PROOF_ALIASES) + r")\*?\}\s*\[(.*?)\]",
+    re.I | re.S,
+)
 PROOF_OF_REF_RX = re.compile(
     r"\\begin\{(?:" + "|".join(PROOF_ALIASES) + r")\*?\}"
     r"\s*\[.*?\\(?:ref|Cref|cref)\{([^}]+)\}.*?\]",
     re.I | re.S,
 )
+
+
+def split_labels(text):
+    """The labels of a comma-separated reference argument
+    (``\\cref{a,b}`` or ``\\proves{a, b}``), stripped and non-empty."""
+    return [x.strip() for x in text.split(",") if x.strip()]
 
 # ============================================================
 # File inclusion patterns
@@ -120,6 +134,39 @@ INNER_LABEL_ENVS = frozenset({
 })
 
 H3_MAX_GAP = 3  # max node gap for H3 lemma->theorem heuristic
+
+# ============================================================
+# Default node styles per statement kind (Graphviz)
+# ============================================================
+# Used by the command line's DOT output.  The web page keeps the same
+# table in JavaScript (KIND_STYLE in web/template.html); change both.
+
+DEFAULT_ENV_STYLES = {
+    "definition":  {"shape": "box",     "border": "#2A6FA8", "fill": "#DCEBF7"},
+    "notation":    {"shape": "box",     "border": "#2A6FA8", "fill": "#DCEBF7"},
+    "axiom":       {"shape": "box",     "border": "#2A6FA8", "fill": "#DCEBF7"},
+    "theorem":     {"shape": "ellipse", "border": "#B5761A", "fill": "#FBEBC8"},
+    "proposition": {"shape": "ellipse", "border": "#6B4CA8", "fill": "#E8E0F4"},
+    "lemma":       {"shape": "ellipse", "border": "#2F7D4A", "fill": "#DDF0DC"},
+    "corollary":   {"shape": "ellipse", "border": "#A83A62", "fill": "#F5DEE6"},
+    "conjecture":  {"shape": "hexagon", "border": "#B5761A", "fill": "#FBEBC8"},
+    "claim":       {"shape": "ellipse", "border": "#2F7D4A", "fill": "#DDF0DC"},
+    "example":     {"shape": "note",    "border": "#6C7278", "fill": "#EDEEEA"},
+    "remark":      {"shape": "note",    "border": "#6C7278", "fill": "#EDEEEA"},
+    "default":     {"shape": "ellipse", "border": "#6C7278", "fill": "#EDEEEA"},
+}
+_STYLE_ALIAS = {"defn": "definition", "def": "definition", "dfn": "definition",
+                "thm": "theorem", "prop": "proposition", "propn": "proposition",
+                "lem": "lemma", "cor": "corollary", "rem": "remark", "ex": "example",
+                "conj": "conjecture", "ntn": "notation", "constn": "definition",
+                "construction": "definition"}
+
+
+def default_env_style(env):
+    """The default style dict of a statement kind (a copy)."""
+    k = env.lower()
+    return dict(DEFAULT_ENV_STYLES.get(k) or DEFAULT_ENV_STYLES.get(_STYLE_ALIAS.get(k, ""))
+                or DEFAULT_ENV_STYLES["default"])
 
 # ============================================================
 # LaTeX-to-plaintext stripping patterns

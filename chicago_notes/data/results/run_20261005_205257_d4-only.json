@@ -108,5 +108,5 @@
       ]
     ]
   },
-  "note": "The ground truth holds hyperlink edges only, so every D4 edge counts as a false positive here; see benchmark/README.md."
+  "note": "The ground truth holds hyperlink edges only, so every D4 edge counts as a false positive here; see chicago_notes/README.md."
 }
