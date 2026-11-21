@@ -4,7 +4,7 @@
 
 It is derived from [Patrick Massot's *plastexdepgraph* plugin](https://github.com/PatrickMassot/plastexdepgraph) and produces similar graphs **without PlasTeX or a Lean blueprint**.
 
-**Artificial Intelligence Disclosure.** KnowTeX was developed with substantial assistance from a generative AI tool (Anthropic's Claude, through Claude Code). Under the author's direction it wrote significant parts of the Python code, the web page, the tests and the documentation; commits co-authored by the tool carry a `Co-Authored-By` line. The research questions, the inference rules, the design decisions and the evaluation are the author's. All generated code was reviewed, tested and validated by the author, who assumes full responsibility for the final implementation.
+**Artificial Intelligence Disclosure.** KnowTeX was developed with substantial assistance from a generative AI tool (Anthropic's Claude, through Claude Code). Under the first author's direction it wrote significant parts of the Python code, the web page, the tests, the benchmark scripts and the documentation; commits co-authored by the tool carry a `Co-Authored-By` line. The research questions, the inference rules, the design decisions, the evaluation design and the manual classification of edges are the authors' own. All generated code was reviewed, tested and validated by the authors, who assume full responsibility for the final implementation.
 
 ## Two modes
 

@@ -24,15 +24,13 @@ authors:
   - family-names: Uskuplu
     given-names: Elif
     affiliation: "Indiana University, Bloomington"
-    # orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0000-0003-3836-7193"
   - family-names: Moss
     given-names: Lawrence S.
     affiliation: "Indiana University, Bloomington"
-    # orcid: "https://orcid.org/0000-0000-0000-0000"
   - family-names: de Paiva
     given-names: Valeria
     affiliation: "Topos Institute"
-    # orcid: "https://orcid.org/0000-0000-0000-0000"
 preferred-citation:
   type: article
   title: "KnowTeX: Extracting Logical Dependencies from Mathematical Texts"
